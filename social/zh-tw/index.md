@@ -1,83 +1,83 @@
 # Semantic Kernel Graph
 
-Welcome to the SemanticKernel.Graph documentation. This site mirrors the LangGraph documentation structure, focusing on a lean and pragmatic .NET implementation that's fully integrated with Semantic Kernel.
+歡迎來到 SemanticKernel.Graph 文件。本網站參考 LangGraph 文件結構，專注於精簡且實用的 .NET 實作，並完全整合於 Semantic Kernel。
 
-## Concepts and Techniques
+## 概念與技術
 
-**SemanticKernel.Graph**: Extension of Semantic Kernel that adds computational graph execution capabilities, allowing you to create complex workflows with intelligent orchestration.
+**SemanticKernel.Graph**：Semantic Kernel 的擴充功能，新增了計算圖執行能力，讓您能夠建立具有智慧編排功能的複雜工作流程。
 
-**Computational Graphs**: Structures that represent workflows through nodes connected by edges, with controlled execution and conditional routing.
+**計算圖**：透過由邊連接的節點來表示工作流程的結構，具有受控的執行和條件式路由。
 
-**Native Integration**: Works as an extension of the existing Semantic Kernel, maintaining full compatibility and leveraging existing plugins and services.
+**原生整合**：作為現有 Semantic Kernel 的擴充功能運作，保持完全相容性並利用現有的外掛程式和服務。
 
-## What SemanticKernel.Graph Solves
+## SemanticKernel.Graph 解決的問題
 
-### Orchestration Problems
-* **Complex Workflows**: Creation of AI pipelines with multiple steps
-* **Intelligent Routing**: Decisions based on state and context
-* **Flow Control**: Loops, conditionals and controlled iterations
-* **Composition**: Reuse of components and subgraphs
+### 編排問題
+* **複雜工作流程**：建立具有多個步驟的 AI 管線
+* **智慧路由**：基於狀態和上下文的決策
+* **流程控制**：迴圈、條件式和受控迭代
+* **組合**：重複使用元件和子圖
 
-### Production Challenges
-* **Scalability**: Parallel and distributed execution
-* **Resilience**: Checkpointing, retry and circuit breakers
-* **Observability**: Metrics, logging and real-time visualization
-* **Maintainability**: Debug, inspection and automatic documentation
+### 生產挑戰
+* **可擴展性**：平行和分散式執行
+* **韌性**：檢查點、重試和斷路器
+* **可觀察性**：指標、記錄和即時視覺化
+* **可維護性**：除錯、檢查和自動文件
 
-## Core Features
+## 核心功能
 
-### **Graph Execution**
-* Function, conditional, reasoning and loop nodes
-* Edges with conditions and dynamic routing
-* Sequential, parallel and distributed execution
-* Deterministic scheduler for reproducibility
+### **圖執行**
+* 函式、條件式、推理和迴圈節點
+* 具有條件和動態路由的邊
+* 循序、平行和分散式執行
+* 用於可重現性的確定性排程器
 
-### **Streaming and Events**
-* Streaming execution with real-time events
-* Automatic reconnection and backpressure control
-* Asynchronous consumption of execution events
-* Integration with messaging systems
+### **串流和事件**
+* 具有即時事件的串流執行
+* 自動重新連接和背壓控制
+* 非同步消費執行事件
+* 與訊息系統整合
 
-### **State and Persistence**
-* Typed and validated state system
-* Automatic and manual checkpointing
-* State serialization and compression
-* Execution recovery and replay
+### **狀態和持久性**
+* 具有型別和驗證的狀態系統
+* 自動和手動檢查點
+* 狀態序列化和壓縮
+* 執行恢復和重播
 
-### **Intelligent Routing**
-* State-based conditional routing
-* Dynamic and adaptive strategies
-* Semantic similarity for decisions
-* Learning from feedback
+### **智慧路由**
+* 基於狀態的條件式路由
+* 動態和自適應策略
+* 用於決策的語義相似性
+* 從回饋中學習
 
-### **Human-in-the-Loop**
-* Human approval nodes
-* Multiple channels (console, web, email)
-* Timeouts and SLA policies
-* Audit and decision tracking
+### **人工介入**
+* 人工核准節點
+* 多個通道（主控台、網頁、電子郵件）
+* 逾時和 SLA 政策
+* 稽核和決策追蹤
 
-### **Integration and Extensibility**
-* Integrated REST tools
-* Extensible plugin system
-* Integration with external services
-* Templates for common workflows
+### **整合和擴充性**
+* 整合的 REST 工具
+* 可擴充的外掛程式系統
+* 與外部服務整合
+* 常見工作流程的範本
 
-## Get Started in Minutes
+## 幾分鐘內開始使用
 
-### 1. **Quick Installation**
+### 1. **快速安裝**
 ```bash
 dotnet add package SemanticKernel.Graph
 ```
 
-### 2. **First Graph**
+### 2. **第一個圖**
 ```csharp
 builder.AddGraphSupport();
 var kernel = builder.Build();
 
-// Create graph executor (not a Graph class)
+// 建立圖執行器（不是 Graph 類別）
 var executor = new GraphExecutor("MyGraph", "My first graph");
 
-// Add nodes and edges
+// 新增節點和邊
 executor.AddNode(startNode);
 executor.AddNode(processNode);
 executor.AddNode(endNode);
@@ -86,120 +86,120 @@ executor.SetStartNode(startNode.NodeId);
 executor.AddEdge(ConditionalEdge.CreateUnconditional(startNode, processNode));
 executor.AddEdge(ConditionalEdge.CreateUnconditional(processNode, endNode));
 
-// Execute the graph
+// 執行圖
 var result = await executor.ExecuteAsync(kernel, arguments);
 ```
 
-> **Important Note**: The SemanticKernel.Graph library uses `GraphExecutor` class, not a `Graph` class. This is different from some other graph libraries. The `GraphExecutor` serves both as the graph definition and execution engine.
+> **重要注意事項**：SemanticKernel.Graph 函式庫使用 `GraphExecutor` 類別，而不是 `Graph` 類別。這與其他一些圖函式庫不同。`GraphExecutor` 同時作為圖定義和執行引擎。
 
-## Documentation Structure
+## 文件結構
 
-### **Get Started**
-* [Installation](./installation.md) - Setup and requirements
-* [First Graph](./first-graph-5-minutes.md) - Hello World in 5 minutes
-* [Quickstarts](./index.md#quickstarts) - Quick guides by functionality
+### **開始使用**
+* [安裝](./installation.md) - 設定和需求
+* [第一個圖](./first-graph-5-minutes.md) - 5 分鐘的 Hello World
+* [快速入門](./index.md#quickstarts) - 依功能分類的快速指南
 
-### **Concepts**
-* [Graphs](./concepts/graphs.md) - Structure and components
-* [Nodes](./concepts/nodes.md) - Types and lifecycle
-* [Execution](./concepts/execution.md) - Modes and control
-* [Routing](./concepts/routing.md) - Strategies and conditions
-* [State](./concepts/state.md) - Management and persistence
+### **概念**
+* [圖](./concepts/graphs.md) - 結構和元件
+* [節點](./concepts/nodes.md) - 類型和生命週期
+* [執行](./concepts/execution.md) - 模式和控制
+* [路由](./concepts/routing.md) - 策略和條件
+* [狀態](./concepts/state.md) - 管理和持久性
 
-### **How-To Guides**
-* [Building Graphs](./how-to/build-a-graph.md) - Creation and validation
-* [Conditional Nodes](./how-to/conditional-nodes.md) - Dynamic routing
-* [Checkpointing](./how-to/checkpointing.md) - Persistence and recovery
-* [Streaming](./how-to/streaming.md) - Real-time execution
-* [Metrics](./how-to/metrics-and-observability.md) - Monitoring
+### **操作指南**
+* [建立圖](./how-to/build-a-graph.md) - 建立和驗證
+* [條件節點](./how-to/conditional-nodes.md) - 動態路由
+* [檢查點](./how-to/checkpointing.md) - 持久性和恢復
+* [串流](./how-to/streaming.md) - 即時執行
+* [指標](./how-to/metrics-and-observability.md) - 監控
 
-### **Reference**
-* [APIs](./api/index.md) - Complete API documentation
-* [Configuration](./api/configuration.md) - Options and parameters
-* [Types](./api/types.md) - Data structures
-* [Extensions](./api/extensions.md) - Extension methods
+### **參考**
+* [API](./api/index.md) - 完整的 API 文件
+* [設定](./api/configuration.md) - 選項和參數
+* [類型](./api/types.md) - 資料結構
+* [擴充功能](./api/extensions.md) - 擴充方法
 
-### **Examples**
-* [Index](./examples/index.md) - All available examples
-* [Chatbot](./examples/chatbot.md) - Conversation with memory
-* [ReAct](./examples/react-agent.md) - Reasoning and action
-* [Multi-Agent](./examples/multi-agent.md) - Agent coordination
-* [Documents](./examples/document-analysis-pipeline.md) - Document analysis
+### **範例**
+* [索引](./examples/index.md) - 所有可用的範例
+* [聊天機器人](./examples/chatbot.md) - 具有記憶的對話
+* [ReAct](./examples/react-agent.md) - 推理和行動
+* [多代理](./examples/multi-agent.md) - 代理協調
+* [文件](./examples/document-analysis-pipeline.md) - 文件分析
 
-## Use Cases
+## 使用案例
 
-### **AI Agents**
-* Chatbots with memory and context
-* Reasoning agents (ReAct, Chain of Thought)
-* Coordination of multiple agents
-* Automated decision workflows
+### **AI 代理**
+* 具有記憶和上下文的聊天機器人
+* 推理代理（ReAct、思考鏈）
+* 多個代理的協調
+* 自動決策工作流程
 
-### **Document Processing**
-* Automatic analysis and classification
-* Structured information extraction
-* Validation and approval pipelines
-* Batch processing with checkpoints
+### **文件處理**
+* 自動分析和分類
+* 結構化資訊擷取
+* 驗證和核准管線
+* 具有檢查點的批次處理
 
-### **Recommendation Systems**
-* Similarity-based routing
-* Learning from user feedback
-* Conditional filters and personalization
-* Continuous result optimization
+### **推薦系統**
+* 基於相似性的路由
+* 從使用者回饋中學習
+* 條件式篩選和個人化
+* 持續結果最佳化
 
-### **Microservice Orchestration**
-* API call coordination
-* Circuit breakers and retry policies
-* Intelligent load balancing
-* Monitoring and observability
+### **微服務編排**
+* API 呼叫協調
+* 斷路器和重試政策
+* 智慧負載平衡
+* 監控和可觀察性
 
-## Comparison with Alternatives
+## 與替代方案的比較
 
-| Feature | SemanticKernel.Graph | LangGraph | Temporal | Durable Functions |
+| 功能 | SemanticKernel.Graph | LangGraph | Temporal | Durable Functions |
 |---------|----------------------|-----------|----------|-------------------|
-| **SK Integration** | ✅ Native | ❌ Python | ❌ Java/Go | ❌ Azure |
-| **Performance** | ✅ Native .NET | ⚠️ Python | ✅ JVM | ✅ Azure Runtime |
-| **Checkpointing** | ✅ Advanced | ✅ Basic | ✅ Robust | ✅ Native |
-| **Streaming** | ✅ Events | ✅ Streaming | ❌ | ⚠️ Limited |
-| **Visualization** | ✅ Real Time | ✅ Static | ❌ | ❌ |
-| **HITL** | ✅ Multiple Channels | ⚠️ Basic | ❌ | ❌ |
+| **SK 整合** | ✅ 原生 | ❌ Python | ❌ Java/Go | ❌ Azure |
+| **效能** | ✅ 原生 .NET | ⚠️ Python | ✅ JVM | ✅ Azure Runtime |
+| **檢查點** | ✅ 進階 | ✅ 基本 | ✅ 強固 | ✅ 原生 |
+| **串流** | ✅ 事件 | ✅ 串流 | ❌ | ⚠️ 受限 |
+| **視覺化** | ✅ 即時 | ✅ 靜態 | ❌ | ❌ |
+| **人工介入** | ✅ 多通道 | ⚠️ 基本 | ❌ | ❌ |
 
-## Community and Support
+## 社群和支援
 
-### **Contribute**
-* [GitHub Repository](https://github.com/kallebelins/semantic-kernel-graph-docs)
-* [Issues](https://github.com/kallebelins/semantic-kernel-graph-docs/issues)
-* [Discussions](https://github.com/kallebelins/semantic-kernel-graph-docs/discussions)
-* [Contributing Guide](https://github.com/kallebelins/semantic-kernel-graph-docs/CONTRIBUTING.md)
+### **貢獻**
+* [GitHub 儲存庫](https://github.com/kallebelins/semantic-kernel-graph-docs)
+* [議題](https://github.com/kallebelins/semantic-kernel-graph-docs/issues)
+* [討論](https://github.com/kallebelins/semantic-kernel-graph-docs/discussions)
+* [貢獻指南](https://github.com/kallebelins/semantic-kernel-graph-docs/CONTRIBUTING.md)
 
-### **Additional Resources**
+### **其他資源**
 * [LinkedIn](https://www.linkedin.com/company/skgraph-dev)
 
-### **Need Help?**
-* [FAQ](./faq.md) - Frequently asked questions
-* [Troubleshooting](./troubleshooting.md) - Problem resolution
-* [Examples](./examples/index.md) - Practical examples
-* [API Reference](./api/index.md) - Technical documentation
+### **需要協助？**
+* [常見問題](./faq.md) - 常見問題解答
+* [疑難排解](./troubleshooting.md) - 問題解決
+* [範例](./examples/index.md) - 實用範例
+* [API 參考](./api/index.md) - 技術文件
 
-## Quickstarts
+## 快速入門
 
-### **5 Minutes**
-* [First Graph](./first-graph-5-minutes.md) - Basic Hello World
-* [State](./state-quickstart.md) - Variable management
-* [Conditionals](./conditional-nodes-quickstart.md) - Simple routing
-* [Streaming](./streaming-quickstart.md) - Real-time events
+### **5 分鐘**
+* [第一個圖](./first-graph-5-minutes.md) - 基本 Hello World
+* [狀態](./state-quickstart.md) - 變數管理
+* [條件式](./conditional-nodes-quickstart.md) - 簡單路由
+* [串流](./streaming-quickstart.md) - 即時事件
 
-### **15 Minutes**
-* [Checkpointing](./checkpointing-quickstart.md) - State persistence
-* [Metrics](./metrics-logging-quickstart.md) - Basic monitoring
-* [ReAct/CoT](./react-cot-quickstart.md) - Reasoning patterns
+### **15 分鐘**
+* [檢查點](./checkpointing-quickstart.md) - 狀態持久性
+* [指標](./metrics-logging-quickstart.md) - 基本監控
+* [ReAct/CoT](./react-cot-quickstart.md) - 推理模式
 
-### **30 Minutes**
-* [Conditionals Tutorial](./conditional-nodes-tutorial.md) - Advanced routing
-* [State Tutorial](./state-tutorial.md) - Complex management
-* [Multi-Agent](./examples/multi-agent.md) - Agent coordination
+### **30 分鐘**
+* [條件式教學](./conditional-nodes-tutorial.md) - 進階路由
+* [狀態教學](./state-tutorial.md) - 複雜管理
+* [多代理](./examples/multi-agent.md) - 代理協調
 
 ---
 
-> **Tip**: This documentation uses Material for MkDocs. Use the left navigation and search bar to quickly find topics.
+> **提示**：本文件使用 Material for MkDocs。使用左側導覽和搜尋列快速尋找主題。
 
-> **Ready to get started?** Go to [Installation](./installation.md) or [First Graph](./first-graph-5-minutes.md) to begin in minutes!
+> **準備開始了嗎？** 前往[安裝](./installation.md)或[第一個圖](./first-graph-5-minutes.md)即可在幾分鐘內開始！
