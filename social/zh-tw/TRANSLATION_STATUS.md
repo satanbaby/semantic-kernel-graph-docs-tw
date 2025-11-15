@@ -10,13 +10,14 @@
 - ✅ **index.md** - 主頁文件（已完整翻譯）
 - ✅ **getting-started.md** - 入門指南（已完整翻譯）
 - ✅ **installation.md** - 安裝指南（已完整翻譯）
+- ✅ **first-graph-5-minutes.md** - 5 分鐘快速開始（已完整翻譯）
 - ✅ 目錄結構已建立
 - ✅ 所有 108 個檔案已複製至 `social/zh-tw/` 目錄
 
 ### 待翻譯 (Pending Translation)
 以下檔案仍需要從英文翻譯成正體中文：
 
-#### 根目錄檔案 (15/18 檔案)
+#### 根目錄檔案 (14/18 檔案)
 - [ ] first-graph-5-minutes.md
 - [ ] first-graph.md
 - [ ] glossary.md
