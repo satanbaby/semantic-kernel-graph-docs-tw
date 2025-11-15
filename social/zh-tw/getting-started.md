@@ -1,131 +1,131 @@
-# Getting Started with SemanticKernel.Graph
+# 開始使用 SemanticKernel.Graph
 
-Welcome to SemanticKernel.Graph, a powerful .NET library that brings the flexibility and power of graph-based workflows to Microsoft's Semantic Kernel ecosystem. This guide will help you understand what SemanticKernel.Graph is, the problems it solves, and how it relates to both Semantic Kernel and LangGraph.
+歡迎使用 SemanticKernel.Graph，這是一個強大的 .NET 函式庫，為 Microsoft 的 Semantic Kernel 生態系統帶來基於圖的工作流程的靈活性和強大功能。本指南將協助您了解什麼是 SemanticKernel.Graph、它解決的問題，以及它與 Semantic Kernel 和 LangGraph 的關係。
 
-## What is SemanticKernel.Graph?
+## 什麼是 SemanticKernel.Graph？
 
-SemanticKernel.Graph is a production-ready .NET library that enables you to build complex, stateful AI workflows using directed graphs. It extends Microsoft's Semantic Kernel with advanced orchestration capabilities, allowing you to create sophisticated AI agents, multi-step reasoning workflows, and intelligent automation systems.
+SemanticKernel.Graph 是一個可用於生產環境的 .NET 函式庫，讓您能夠使用有向圖建立複雜的、具狀態的 AI 工作流程。它擴充了 Microsoft 的 Semantic Kernel，提供進階的編排能力，讓您能夠建立精密的 AI 代理、多步驟推理工作流程和智慧自動化系統。
 
-### Key Capabilities
+### 主要功能
 
-* **Graph-Based Workflows**: Design complex AI workflows using nodes and conditional edges
-* **Native Semantic Kernel Integration**: Seamlessly use existing SK plugins, memory, and connectors
-* **State Management**: Maintain context and state across workflow execution
-* **Conditional Logic**: Implement dynamic routing based on AI responses and state
-* **Streaming Execution**: Real-time monitoring and event streaming
-* **Checkpointing & Recovery**: Resume workflows from any point with state persistence
-* **Visualization & Debugging**: Built-in tools for understanding and troubleshooting workflows
-* **Multi-Agent Coordination**: Orchestrate multiple AI agents in complex scenarios
+* **圖基礎工作流程**：使用節點和條件式邊來設計複雜的 AI 工作流程
+* **原生 Semantic Kernel 整合**：無縫使用現有的 SK 外掛程式、記憶體和連接器
+* **狀態管理**：在工作流程執行過程中維護上下文和狀態
+* **條件式邏輯**：基於 AI 回應和狀態實作動態路由
+* **串流執行**：即時監控和事件串流
+* **檢查點與恢復**：從任何點恢復工作流程並持久化狀態
+* **視覺化與除錯**：內建工具用於理解和疑難排解工作流程
+* **多代理協調**：在複雜情境中編排多個 AI 代理
 
-## Problems SemanticKernel.Graph Solves
+## SemanticKernel.Graph 解決的問題
 
-### 1. **Complex AI Workflow Orchestration**
-Traditional AI applications often execute functions sequentially without the ability to make decisions or handle complex branching logic. SemanticKernel.Graph enables you to create intelligent workflows that can:
-* Make decisions based on AI responses
-* Handle multiple execution paths
-* Implement retry logic and error recovery
-* Coordinate multiple AI agents
+### 1. **複雜的 AI 工作流程編排**
+傳統的 AI 應用程式通常循序執行函式，無法做出決策或處理複雜的分支邏輯。SemanticKernel.Graph 讓您能夠建立智慧工作流程，可以：
+* 基於 AI 回應做出決策
+* 處理多個執行路徑
+* 實作重試邏輯和錯誤恢復
+* 協調多個 AI 代理
 
-### 2. **State Management Across AI Interactions**
-Maintaining context across multiple AI function calls is challenging. SemanticKernel.Graph provides:
-* Persistent state management with versioning
-* Automatic state serialization and checkpointing
-* State validation and integrity checks
-* Efficient state sharing between workflow steps
+### 2. **跨 AI 互動的狀態管理**
+在多個 AI 函式呼叫之間維護上下文具有挑戰性。SemanticKernel.Graph 提供：
+* 具有版本控制的持久性狀態管理
+* 自動狀態序列化和檢查點
+* 狀態驗證和完整性檢查
+* 工作流程步驟之間的高效狀態共享
 
-### 3. **Dynamic AI Agent Behavior**
-Creating AI agents that can adapt their behavior based on context requires sophisticated orchestration. With SemanticKernel.Graph, you can:
-* Implement ReAct (Reasoning + Acting) patterns
-* Create chain-of-thought reasoning workflows
-* Build agents that learn from previous interactions
-* Handle human-in-the-loop scenarios
+### 3. **動態 AI 代理行為**
+建立能夠根據上下文調整其行為的 AI 代理需要精密的編排。使用 SemanticKernel.Graph，您可以：
+* 實作 ReAct（推理 + 行動）模式
+* 建立思考鏈推理工作流程
+* 建構從先前互動中學習的代理
+* 處理人工介入情境
 
-### 4. **Production-Ready AI Workflows**
-Building enterprise-grade AI applications requires robust error handling, monitoring, and scalability. SemanticKernel.Graph provides:
-* Comprehensive error handling and recovery
-* Performance metrics and observability
-* Resource governance and rate limiting
-* Distributed execution capabilities
+### 4. **生產就緒的 AI 工作流程**
+建立企業級 AI 應用程式需要強固的錯誤處理、監控和可擴展性。SemanticKernel.Graph 提供：
+* 全面的錯誤處理和恢復
+* 效能指標和可觀察性
+* 資源治理和速率限制
+* 分散式執行能力
 
-## Relationship with Semantic Kernel
+## 與 Semantic Kernel 的關係
 
-SemanticKernel.Graph is built **on top of** Semantic Kernel, not as a replacement. It extends the existing SK ecosystem with graph orchestration capabilities while maintaining full compatibility with:
+SemanticKernel.Graph 是**建構於** Semantic Kernel 之上，而非取代它。它擴充了現有的 SK 生態系統，提供圖編排能力，同時保持與以下元件的完全相容性：
 
-### **Existing SK Components**
-* **Plugins**: All existing SK plugins work as graph nodes
-* **Memory**: Vector and semantic memory systems integrate seamlessly
-* **Connectors**: OpenAI, Azure OpenAI, and other LLM providers work unchanged
-* **Templates**: Handlebars and other template systems remain fully functional
-* **Logging**: SK's logging infrastructure is enhanced with graph-specific context
+### **現有的 SK 元件**
+* **外掛程式**：所有現有的 SK 外掛程式都可以作為圖節點運作
+* **記憶體**：向量和語義記憶體系統無縫整合
+* **連接器**：OpenAI、Azure OpenAI 和其他 LLM 提供者保持不變
+* **範本**：Handlebars 和其他範本系統保持完全功能
+* **記錄**：SK 的記錄基礎設施增強了圖特定的上下文
 
-### **Zero-Configuration Setup**
+### **零設定設置**
 ```csharp
 var builder = Kernel.CreateBuilder();
-// Your existing SK configuration
+// 您現有的 SK 設定
 builder.AddOpenAIChatCompletion("gpt-4", "your-api-key");
 
-// Add graph support with one line
+// 只需一行即可新增圖支援
 builder.AddGraphSupport();
 
 var kernel = builder.Build();
 ```
 
-### **Enhanced Capabilities**
-SemanticKernel.Graph adds graph-specific features while preserving SK's simplicity:
-* **Graph State**: Enhanced `KernelArguments` with versioning and validation
-* **Node Types**: Specialized nodes for conditional logic, loops, and error handling
-* **Execution Engine**: Advanced orchestration with checkpointing and recovery
-* **Observability**: Enhanced logging and metrics for graph execution
+### **增強功能**
+SemanticKernel.Graph 在保留 SK 簡單性的同時新增了圖特定功能：
+* **圖狀態**：具有版本控制和驗證的增強型 `KernelArguments`
+* **節點類型**：用於條件式邏輯、迴圈和錯誤處理的專用節點
+* **執行引擎**：具有檢查點和恢復功能的進階編排
+* **可觀察性**：增強的圖執行記錄和指標
 
-## Parity with LangGraph
+## 與 LangGraph 的對等性
 
-SemanticKernel.Graph provides feature parity with LangGraph while maintaining .NET-native design patterns and integration with the Microsoft ecosystem.
+SemanticKernel.Graph 提供與 LangGraph 的功能對等性，同時保持 .NET 原生設計模式和與 Microsoft 生態系統的整合。
 
-### **Core Concepts Alignment**
-| LangGraph Concept | SemanticKernel.Graph Equivalent | Status |
+### **核心概念對齊**
+| LangGraph 概念 | SemanticKernel.Graph 對應 | 狀態 |
 |------------------|----------------------------------|---------|
-| State Management | `GraphState` + `KernelArguments` | ✅ Full |
-| Conditional Edges | `ConditionalEdge` + `ConditionalGraphNode` | ✅ Full |
-| Function Nodes | `FunctionGraphNode` | ✅ Full |
-| Loops | `LoopGraphNode` + `ReActLoopGraphNode` | ✅ Full |
-| Human-in-the-Loop | `HumanApprovalGraphNode` | ✅ Full |
-| Streaming | `IStreamingGraphExecutor` | ✅ Full |
-| Checkpointing | `CheckpointManager` + `StateHelpers` | ✅ Full |
-| Multi-Agent | `MultiAgentCoordinator` | ✅ Full |
+| 狀態管理 | `GraphState` + `KernelArguments` | ✅ 完整 |
+| 條件式邊 | `ConditionalEdge` + `ConditionalGraphNode` | ✅ 完整 |
+| 函式節點 | `FunctionGraphNode` | ✅ 完整 |
+| 迴圈 | `LoopGraphNode` + `ReActLoopGraphNode` | ✅ 完整 |
+| 人工介入 | `HumanApprovalGraphNode` | ✅ 完整 |
+| 串流 | `IStreamingGraphExecutor` | ✅ 完整 |
+| 檢查點 | `CheckpointManager` + `StateHelpers` | ✅ 完整 |
+| 多代理 | `MultiAgentCoordinator` | ✅ 完整 |
 
-### **Advanced Features**
-* **ReAct Pattern**: Full implementation with reasoning and acting cycles
-* **Chain-of-Thought**: Structured reasoning workflows with validation
-* **Dynamic Routing**: Context-aware node selection
-* **Error Recovery**: Comprehensive error handling and retry mechanisms
-* **Performance Optimization**: Built-in profiling and optimization tools
+### **進階功能**
+* **ReAct 模式**：具有推理和行動週期的完整實作
+* **思考鏈**：具有驗證的結構化推理工作流程
+* **動態路由**：上下文感知的節點選擇
+* **錯誤恢復**：全面的錯誤處理和重試機制
+* **效能最佳化**：內建的分析和最佳化工具
 
-### **.NET-Specific Advantages**
-* **Native Performance**: Optimized for .NET runtime and memory management
-* **Enterprise Integration**: Built-in support for Azure services and enterprise patterns
-* **Type Safety**: Strong typing throughout the graph execution pipeline
-* **Async/Await**: Native support for asynchronous operations and streaming
-* **Dependency Injection**: Seamless integration with .NET DI containers
+### **.NET 特定優勢**
+* **原生效能**：針對 .NET 執行階段和記憶體管理最佳化
+* **企業整合**：內建對 Azure 服務和企業模式的支援
+* **型別安全**：整個圖執行管線的強型別
+* **Async/Await**：原生支援非同步操作和串流
+* **相依性注入**：與 .NET DI 容器無縫整合
 
-## When to Use SemanticKernel.Graph
+## 何時使用 SemanticKernel.Graph
 
-### **Perfect For**
-* **AI Agents**: Building intelligent agents that can reason and act
-* **Workflow Automation**: Complex multi-step AI processes
-* **Decision Systems**: AI-powered decision trees and routing logic
-* **Multi-Agent Coordination**: Orchestrating multiple AI agents
-* **Human-AI Collaboration**: Workflows requiring human approval or input
-* **Production AI Applications**: Enterprise-grade AI systems with monitoring and recovery
+### **最適合用於**
+* **AI 代理**：建立能夠推理和行動的智慧代理
+* **工作流程自動化**：複雜的多步驟 AI 流程
+* **決策系統**：AI 驅動的決策樹和路由邏輯
+* **多代理協調**：編排多個 AI 代理
+* **人機協作**：需要人工核准或輸入的工作流程
+* **生產環境 AI 應用程式**：具有監控和恢復功能的企業級 AI 系統
 
-### **Consider Alternatives When**
-* **Simple Function Calls**: Basic SK function execution is sufficient
-* **Static Workflows**: No conditional logic or dynamic behavior needed
-* **Minimal State Management**: Simple stateless AI interactions
-* **Resource Constraints**: Very limited memory or processing resources
+### **考慮替代方案的情況**
+* **簡單函式呼叫**：基本的 SK 函式執行就足夠
+* **靜態工作流程**：不需要條件式邏輯或動態行為
+* **最小狀態管理**：簡單的無狀態 AI 互動
+* **資源限制**：記憶體或處理資源非常有限
 
-## Quick Start
+## 快速開始
 
-Ready to get started? Here's how to create your first graph in under 5 minutes:
+準備好開始了嗎？以下是如何在 5 分鐘內建立您的第一個圖：
 
 ```csharp
 using Microsoft.SemanticKernel;
@@ -133,13 +133,13 @@ using SemanticKernel.Graph.Core;
 using SemanticKernel.Graph.Extensions;
 using SemanticKernel.Graph.Nodes;
 
-// 1. Create and configure your kernel
+// 1. 建立並設定您的核心
 var builder = Kernel.CreateBuilder();
 builder.AddOpenAIChatCompletion("gpt-4", "your-api-key");
-builder.AddGraphSupport(); // Enable graph functionality
+builder.AddGraphSupport(); // 啟用圖功能
 var kernel = builder.Build();
 
-// 2. Create a simple function node
+// 2. 建立一個簡單的函式節點
 var echoNode = new FunctionGraphNode(
     kernel.CreateFunctionFromMethod(
         (string input) => $"Echo: {input}",
@@ -149,7 +149,7 @@ var echoNode = new FunctionGraphNode(
     "echo_node"
 ).StoreResultAs("output");
 
-// 3. Create and execute a graph
+// 3. 建立並執行圖
 var graph = new GraphExecutor("MyFirstGraph");
 graph.AddNode(echoNode);
 graph.SetStartNode(echoNode);
@@ -157,42 +157,42 @@ graph.SetStartNode(echoNode);
 var state = new KernelArguments { ["input"] = "Hello, World!" };
 var result = await graph.ExecuteAsync(kernel, state);
 
-Console.WriteLine(state["output"]); // Output: Echo: Hello, World!
+Console.WriteLine(state["output"]); // 輸出: Echo: Hello, World!
 ```
 
-## Next Steps
+## 下一步
 
-Now that you understand what SemanticKernel.Graph is and how it fits into your AI development workflow, explore these resources:
+現在您已經了解什麼是 SemanticKernel.Graph 以及它如何融入您的 AI 開發工作流程，請探索這些資源：
 
-* **[Installation Guide](installation.md)**: Set up SemanticKernel.Graph in your project
-* **[First Graph Tutorial](first-graph.md)**: Build your first complete graph workflow
-* **[Core Concepts](concepts/index.md)**: Understand graphs, nodes, state, and execution
-* **[Examples](examples/index.md)**: See real-world usage patterns and implementations
-* **[API Reference](api/core.md)**: Explore the complete API surface
+* **[安裝指南](installation.md)**：在您的專案中設定 SemanticKernel.Graph
+* **[第一個圖教學](first-graph.md)**：建立您的第一個完整圖工作流程
+* **[核心概念](concepts/index.md)**：了解圖、節點、狀態和執行
+* **[範例](examples/index.md)**：查看實際使用模式和實作
+* **[API 參考](api/core.md)**：探索完整的 API 介面
 
-## Concepts and Techniques
+## 概念與技術
 
-This overview introduces several key concepts that you'll use throughout SemanticKernel.Graph:
+本概述介紹了在 SemanticKernel.Graph 中將使用的幾個關鍵概念：
 
-* **Graph**: A directed graph structure composed of nodes and edges that defines the flow of execution
-* **Node**: Individual units of work that can execute AI functions, make decisions, or perform other operations
-* **Edge**: Connections between nodes that can include conditional logic for dynamic routing
-* **State**: Persistent data that flows through the graph, maintaining context across execution steps
-* **Execution**: The process of traversing the graph, executing nodes, and managing state transitions
+* **圖**：由節點和邊組成的有向圖結構，定義了執行流程
+* **節點**：可以執行 AI 函式、做出決策或執行其他操作的個別工作單元
+* **邊**：節點之間的連接，可包含用於動態路由的條件式邏輯
+* **狀態**：流經圖的持久性資料，在執行步驟之間維護上下文
+* **執行**：遍歷圖、執行節點和管理狀態轉換的過程
 
-## Prerequisites and Minimum Configuration
+## 先決條件和最低設定
 
-To use SemanticKernel.Graph, you need:
-* **.NET 8.0** or later
-* **Semantic Kernel** package (latest stable version)
-* **LLM Provider** (OpenAI, Azure OpenAI, or other supported providers)
-* **API Keys** for your chosen LLM provider
+要使用 SemanticKernel.Graph，您需要：
+* **.NET 8.0** 或更新版本
+* **Semantic Kernel** 套件（最新穩定版本）
+* **LLM 提供者**（OpenAI、Azure OpenAI 或其他支援的提供者）
+* 您所選 LLM 提供者的 **API 金鑰**
 
-## Troubleshooting Quick
+## 快速疑難排解
 
-**Common Issues:**
-* **Package not found**: Ensure you're using the correct NuGet package name
-* **Kernel configuration errors**: Verify your LLM provider is properly configured
-* **Graph execution failures**: Check that all nodes are properly connected and configured
+**常見問題：**
+* **找不到套件**：確保您使用正確的 NuGet 套件名稱
+* **核心設定錯誤**：驗證您的 LLM 提供者已正確設定
+* **圖執行失敗**：檢查所有節點是否正確連接和設定
 
-For more detailed troubleshooting, see the [Troubleshooting Guide](troubleshooting.md).
+如需更詳細的疑難排解，請參閱[疑難排解指南](troubleshooting.md)。

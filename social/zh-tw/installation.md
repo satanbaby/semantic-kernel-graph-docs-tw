@@ -1,39 +1,39 @@
-# Installation Guide
+# 安裝指南
 
-This guide will help you install and configure SemanticKernel.Graph in your .NET project. You'll learn how to add the package, configure your environment, and set up the basic requirements.
+本指南將協助您在 .NET 專案中安裝和設定 SemanticKernel.Graph。您將學習如何新增套件、設定環境，以及設置基本需求。
 
-## Prerequisites
+## 先決條件
 
-Before installing SemanticKernel.Graph, ensure you have:
+在安裝 SemanticKernel.Graph 之前，請確保您擁有：
 
-* **.NET 8.0** or later installed on your system
-* **Visual Studio 2022** (17.8+) or **VS Code** with C# extension
-* **Semantic Kernel** package already installed in your project
-* **LLM Provider API Key** (OpenAI, Azure OpenAI, or other supported providers)
+* 系統上已安裝 **.NET 8.0** 或更新版本
+* **Visual Studio 2022** (17.8+) 或具有 C# 擴充功能的 **VS Code**
+* 您的專案中已安裝 **Semantic Kernel** 套件
+* **LLM 提供者 API 金鑰**（OpenAI、Azure OpenAI 或其他支援的提供者）
 
-### .NET Version Check
+### .NET 版本檢查
 
-Verify your .NET version by running:
+執行以下命令驗證您的 .NET 版本：
 
 ```bash
 dotnet --version
 ```
 
-You should see version 8.0.0 or higher. If not, download and install the latest .NET 8 SDK from [Microsoft's official site](https://dotnet.microsoft.com/download).
+您應該看到版本 8.0.0 或更高。如果沒有，請從 [Microsoft 官方網站](https://dotnet.microsoft.com/download)下載並安裝最新的 .NET 8 SDK。
 
-## Package Installation
+## 套件安裝
 
-SemanticKernel.Graph is now available on NuGet! You can install it using the following methods:
+SemanticKernel.Graph 現已在 NuGet 上提供！您可以使用以下方法安裝：
 
-### Using dotnet CLI (Recommended)
+### 使用 dotnet CLI（建議）
 
 ```bash
 dotnet add package SemanticKernel.Graph
 ```
 
-### Using PackageReference
+### 使用 PackageReference
 
-Add this to your `.csproj` file:
+將此新增至您的 `.csproj` 檔案：
 
 ```xml
 <ItemGroup>
@@ -41,19 +41,19 @@ Add this to your `.csproj` file:
 </ItemGroup>
 ```
 
-### Using Package Manager Console
+### 使用套件管理器主控台
 
 ```
 Install-Package SemanticKernel.Graph
 ```
 
-## Environment Configuration
+## 環境設定
 
-### LLM Provider Setup
+### LLM 提供者設定
 
-SemanticKernel.Graph requires a configured LLM provider. Here are the most common setups:
+SemanticKernel.Graph 需要已設定的 LLM 提供者。以下是最常見的設定：
 
-#### OpenAI Configuration
+#### OpenAI 設定
 
 ```bash
 # Windows
@@ -66,7 +66,7 @@ export OPENAI_MODEL_NAME="gpt-4"
 ```
 
 ```csharp
-// In your code
+// 在您的程式碼中
 var builder = Kernel.CreateBuilder();
 builder.AddOpenAIChatCompletion(
     modelId: Environment.GetEnvironmentVariable("OPENAI_MODEL_NAME") ?? "gpt-4",
@@ -74,7 +74,7 @@ builder.AddOpenAIChatCompletion(
 );
 ```
 
-#### Azure OpenAI Configuration
+#### Azure OpenAI 設定
 
 ```bash
 # Windows
@@ -89,7 +89,7 @@ export AZURE_OPENAI_DEPLOYMENT_NAME="your-deployment-name"
 ```
 
 ```csharp
-// In your code
+// 在您的程式碼中
 var builder = Kernel.CreateBuilder();
 builder.AddAzureOpenAIChatCompletion(
     deploymentName: Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT_NAME") ?? throw new InvalidOperationException("AZURE_OPENAI_DEPLOYMENT_NAME not found"),
@@ -98,9 +98,9 @@ builder.AddAzureOpenAIChatCompletion(
 );
 ```
 
-#### Configuration File Setup
+#### 設定檔設置
 
-For local development, you can use `appsettings.json` (remember to add it to `.gitignore`):
+對於本機開發，您可以使用 `appsettings.json`（記得將其新增至 `.gitignore`）：
 
 ```json
 {
@@ -121,10 +121,10 @@ For local development, you can use `appsettings.json` (remember to add it to `.g
 }
 ```
 
-Then load it in your application:
+然後在您的應用程式中載入它：
 
 ```csharp
-// Load configuration from appsettings.json
+// 從 appsettings.json 載入設定
 var configuration = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -138,16 +138,16 @@ builder.AddOpenAIChatCompletion(
 );
 ```
 
-## Basic Project Setup
+## 基本專案設定
 
-### 1. Create a New .NET Project
+### 1. 建立新的 .NET 專案
 
 ```bash
 dotnet new console -n MyGraphApp
 cd MyGraphApp
 ```
 
-### 2. Add Required Packages
+### 2. 新增必要的套件
 
 ```bash
 dotnet add package Microsoft.SemanticKernel
@@ -156,15 +156,15 @@ dotnet add package Microsoft.Extensions.Configuration.Json
 dotnet add package Microsoft.Extensions.Configuration.EnvironmentVariables
 ```
 
-### 3. Add SemanticKernel.Graph Package
+### 3. 新增 SemanticKernel.Graph 套件
 
 ```bash
 dotnet add package SemanticKernel.Graph
 ```
 
-This will automatically add the package reference to your `.csproj` file.
+這將自動將套件參考新增至您的 `.csproj` 檔案。
 
-### 4. Basic Configuration
+### 4. 基本設定
 
 ```csharp
 using Microsoft.SemanticKernel;
@@ -179,13 +179,13 @@ var configuration = new ConfigurationBuilder()
 
 var builder = Kernel.CreateBuilder();
 
-// Configure your LLM provider
+// 設定您的 LLM 提供者
 builder.AddOpenAIChatCompletion(
     "gpt-4", 
     configuration["OpenAI:ApiKey"] ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")
 );
 
-// Enable graph functionality
+// 啟用圖功能
 builder.AddGraphSupport(options =>
 {
     options.EnableLogging = true;
@@ -195,27 +195,27 @@ builder.AddGraphSupport(options =>
 var kernel = builder.Build();
 ```
 
-## Advanced Configuration
+## 進階設定
 
-### Graph Options
+### 圖選項
 
-You can customize graph behavior with various options:
+您可以使用各種選項自訂圖行為：
 
 ```csharp
 builder.AddGraphSupport(options =>
 {
-    // Enable logging
+    // 啟用記錄
     options.EnableLogging = true;
     
-    // Enable performance metrics
+    // 啟用效能指標
     options.EnableMetrics = true;
     
-    // Configure execution limits
+    // 設定執行限制
     options.MaxExecutionSteps = 100;
     options.ExecutionTimeout = TimeSpan.FromMinutes(5);
 });
 
-// Add additional graph features
+// 新增額外的圖功能
 builder.AddGraphMemory()
     .AddGraphTemplates()
     .AddCheckpointSupport(options =>
@@ -227,15 +227,15 @@ builder.AddGraphMemory()
     });
 ```
 
-### Dependency Injection Setup
+### 相依性注入設定
 
-For ASP.NET Core applications, SemanticKernel.Graph integrates seamlessly with the DI container:
+對於 ASP.NET Core 應用程式，SemanticKernel.Graph 與 DI 容器無縫整合：
 
 ```csharp
 // Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Semantic Kernel with graph support
+// 新增具有圖支援的 Semantic Kernel
 builder.Services.AddKernel(options =>
 {
     options.AddOpenAIChatCompletion("gpt-4", builder.Configuration["OpenAI:ApiKey"]);
@@ -245,41 +245,41 @@ builder.Services.AddKernel(options =>
 var app = builder.Build();
 ```
 
-**Note**: This example requires the ASP.NET Core runtime and the `Microsoft.AspNetCore.App` framework reference. If you're building a console application, you can use the basic configuration examples above instead.
+**注意**：此範例需要 ASP.NET Core 執行階段和 `Microsoft.AspNetCore.App` 框架參考。如果您正在建立主控台應用程式，可以改用上述的基本設定範例。
 
-## Running Examples
+## 執行範例
 
-The project includes comprehensive examples that demonstrate various features:
+本專案包含展示各種功能的全面範例：
 
-### 1. Explore the Examples
+### 1. 探索範例
 
-The documentation includes comprehensive examples in the [examples/](examples/) directory:
+文件包含 [examples/](examples/) 目錄中的全面範例：
 
-* **Basic Patterns**: Simple workflows and node types
-* **Advanced Routing**: Dynamic execution paths and conditional logic
-* **Multi-Agent**: Coordinated AI agent workflows
-* **Enterprise**: Production-ready patterns with monitoring and resilience
+* **基本模式**：簡單的工作流程和節點類型
+* **進階路由**：動態執行路徑和條件式邏輯
+* **多代理**：協調的 AI 代理工作流程
+* **企業級**：具有監控和韌性的生產就緒模式
 
-### 2. Follow the Tutorials
+### 2. 遵循教學
 
-Each example includes:
-* Complete code snippets you can copy and adapt
-* Step-by-step explanations of how the code works
-* Configuration examples for different scenarios
-* Best practices and usage patterns
+每個範例包含：
+* 您可以複製和調整的完整程式碼片段
+* 程式碼運作方式的逐步說明
+* 不同情境的設定範例
+* 最佳實踐和使用模式
 
-### 3. Available Example Categories
+### 3. 可用的範例類別
 
-* **Core Functionality**: Basic setup and configuration
-* **Graph Execution**: Workflow patterns and routing
-* **Advanced Patterns**: Complex AI workflows and reasoning
-* **Enterprise Features**: Production-ready implementations
+* **核心功能**：基本設定和配置
+* **圖執行**：工作流程模式和路由
+* **進階模式**：複雜的 AI 工作流程和推理
+* **企業功能**：生產就緒的實作
 
-## Verification
+## 驗證
 
-### Test Your Installation
+### 測試您的安裝
 
-Create a simple test to verify everything is working:
+建立一個簡單的測試以驗證一切正常運作：
 
 ```csharp
 using Microsoft.SemanticKernel;
@@ -287,20 +287,20 @@ using SemanticKernel.Graph;
 using SemanticKernel.Graph.Extensions;
 using SemanticKernel.Graph.Nodes;
 
-// Test basic functionality
+// 測試基本功能
 var builder = Kernel.CreateBuilder();
 builder.AddOpenAIChatCompletion("gpt-4", Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
 builder.AddGraphSupport();
 
 var kernel = builder.Build();
 
-// Create a simple test node
+// 建立一個簡單的測試節點
 var testNode = new FunctionGraphNode(
     kernel.CreateFunctionFromPrompt("Say hello to {{$name}}"),
     "test-node"
 );
 
-// Create and execute a minimal graph
+// 建立並執行最小圖
 var graph = new GraphExecutor("TestGraph");
 graph.AddNode(testNode);
 graph.SetStartNode(testNode.NodeId);
@@ -308,87 +308,87 @@ graph.SetStartNode(testNode.NodeId);
 var state = new KernelArguments { ["name"] = "World" };
 var result = await graph.ExecuteAsync(kernel, state);
 
-Console.WriteLine($"Test successful! Result: {result}");
+Console.WriteLine($"測試成功！結果：{result}");
 ```
 
-### Expected Output
+### 預期輸出
 
-If everything is configured correctly, you should see:
+如果一切設定正確，您應該看到：
 
 ```
-Test successful! Result: Hello World!
+測試成功！結果：Hello World!
 ```
 
-**Note**: The actual output may vary depending on the LLM model used. If you don't have a valid API key configured, the test will show a warning message instead of executing the graph.
+**注意**：實際輸出可能會根據使用的 LLM 模型而有所不同。如果您沒有設定有效的 API 金鑰，測試將顯示警告訊息，而不會執行圖。
 
-## Troubleshooting
+## 疑難排解
 
-### Common Installation Issues
+### 常見安裝問題
 
-#### Build Errors
+#### 建置錯誤
 ```
 error CS0234: The type or namespace name 'SemanticKernel' does not exist
 ```
-**Solution**: Ensure you've added the SemanticKernel.Graph package correctly using `dotnet add package SemanticKernel.Graph`.
+**解決方案**：確保您已使用 `dotnet add package SemanticKernel.Graph` 正確新增 SemanticKernel.Graph 套件。
 
-#### Missing Dependencies
+#### 缺少相依性
 ```
 error CS0246: The type or namespace name 'Microsoft.Extensions.Configuration' could not be found
 ```
-**Solution**: Add the required NuGet packages for configuration and dependency injection.
+**解決方案**：新增設定和相依性注入所需的 NuGet 套件。
 
-#### Environment Variable Issues
+#### 環境變數問題
 ```
 System.InvalidOperationException: OPENAI_API_KEY not found
 ```
-**Solution**: Verify your environment variables are set correctly and accessible to your application.
+**解決方案**：驗證您的環境變數已正確設定且可供應用程式存取。
 
-#### .NET Version Issues
+#### .NET 版本問題
 ```
 error NETSDK1045: The current .NET SDK does not support targeting .NET 8.0
 ```
-**Solution**: Install .NET 8.0 SDK or update your project to target a supported framework version.
+**解決方案**：安裝 .NET 8.0 SDK 或更新您的專案以目標支援的框架版本。
 
-### Getting Help
+### 取得協助
 
-If you encounter issues:
+如果您遇到問題：
 
-1. **Check the logs**: Enable detailed logging to see what's happening
-2. **Verify configuration**: Ensure all environment variables and API keys are correct
-3. **Check versions**: Ensure compatibility between Semantic Kernel and .NET versions
-4. **Check package version**: Ensure you have the latest version of the SemanticKernel.Graph package
-5. **Run examples**: Use the provided examples to verify your setup
+1. **檢查記錄**：啟用詳細記錄以查看發生了什麼
+2. **驗證設定**：確保所有環境變數和 API 金鑰都正確
+3. **檢查版本**：確保 Semantic Kernel 和 .NET 版本之間的相容性
+4. **檢查套件版本**：確保您擁有最新版本的 SemanticKernel.Graph 套件
+5. **執行範例**：使用提供的範例來驗證您的設定
 
-## Next Steps
+## 下一步
 
-Now that you have SemanticKernel.Graph installed and configured:
+現在您已安裝並設定 SemanticKernel.Graph：
 
-* **[First Graph Tutorial](first-graph.md)**: Build your first complete graph workflow
-* **[Core Concepts](concepts/index.md)**: Understand the fundamental concepts
-* **[Examples](examples/index.md)**: Explore real-world usage patterns
-* **[API Reference](api/core.md)**: Dive into the complete API surface
+* **[第一個圖教學](first-graph.md)**：建立您的第一個完整圖工作流程
+* **[核心概念](concepts/index.md)**：了解基本概念
+* **[範例](examples/index.md)**：探索實際使用模式
+* **[API 參考](api/core.md)**：深入了解完整的 API 介面
 
-## Concepts and Techniques
+## 概念與技術
 
-This installation guide covers several key concepts:
+本安裝指南涵蓋了幾個關鍵概念：
 
-* **Package Management**: Installing SemanticKernel.Graph from NuGet package repository
-* **Environment Configuration**: Setting up LLM provider credentials and configuration
-* **Configuration Management**: Using appsettings.json and environment variables
-* **Dependency Injection**: Integrating with .NET's DI container for enterprise applications
+* **套件管理**：從 NuGet 套件儲存庫安裝 SemanticKernel.Graph
+* **環境設定**：設定 LLM 提供者憑證和配置
+* **設定管理**：使用 appsettings.json 和環境變數
+* **相依性注入**：與 .NET 的 DI 容器整合以用於企業應用程式
 
-## Prerequisites and Minimum Configuration
+## 先決條件和最低設定
 
-To successfully install and use SemanticKernel.Graph, you need:
-* **.NET 8.0+** runtime and SDK
-* **Internet Access** to download packages from NuGet
-* **Semantic Kernel** package (compatible version)
-* **LLM Provider** configuration (API keys, endpoints)
-* **Configuration Files** or environment variables for sensitive data
+要成功安裝和使用 SemanticKernel.Graph，您需要：
+* **.NET 8.0+** 執行階段和 SDK
+* **網際網路存取**以從 NuGet 下載套件
+* **Semantic Kernel** 套件（相容版本）
+* **LLM 提供者**設定（API 金鑰、端點）
+* 敏感資料的**設定檔**或環境變數
 
-## See Also
+## 另請參閱
 
-* **[Getting Started](getting-started.md)**: Overview of SemanticKernel.Graph capabilities
-* **[Core Concepts](concepts/index.md)**: Understanding graphs, nodes, and execution
-* **[Troubleshooting](troubleshooting.md)**: Common issues and solutions
-* **[API Reference](api/core.md)**: Complete API documentation
+* **[開始使用](getting-started.md)**：SemanticKernel.Graph 功能概述
+* **[核心概念](concepts/index.md)**：了解圖、節點和執行
+* **[疑難排解](troubleshooting.md)**：常見問題和解決方案
+* **[API 參考](api/core.md)**：完整的 API 文件
