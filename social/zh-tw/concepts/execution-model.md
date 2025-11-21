@@ -1,19 +1,19 @@
 # 執行模型
 
-本指南說明 `GraphExecutor` 如何協調圖形執行，包括完整的生命週期、導航邏輯、執行限制和內建的無限迴圈防護。
+本指南說明 `GraphExecutor` 如何協調圖形執行，包括完整的生命週期、導航邏輯、執行限制和內建的無限迴圈防護機制。
 
 ## 概述
 
-`GraphExecutor` 是中央協調器，管理圖形的完整執行流程。它處理節點生命週期管理、節點間的導航、平行執行、錯誤恢復，並提供全面的防護措施以確保可靠且可預測的執行。
+`GraphExecutor` 是中央協調器，用來管理圖形的完整執行流程。它處理 Node 生命週期管理、Node 之間的導航、並行執行、錯誤恢復，並提供全面的防護措施，以確保可靠和可預測的執行。
 
 ## 執行生命週期
 
 ### 1. 執行初始化
 
-執行開始前，執行器執行數個設定步驟：
+在執行開始之前，執行器會執行多個設定步驟：
 
 ```csharp
-// 建立執行內容，含有不可變選項快照
+// 使用不可變選項快照建立執行內容
 var graphState = arguments.GetOrCreateGraphState();
 var context = new GraphExecutionContext(kernel, graphState, cancellationToken, arguments.GetExecutionSeed());
 
@@ -23,11 +23,11 @@ if (context.ExecutionOptions.ValidateGraphIntegrity)
     var validationResult = ValidateGraphIntegrity();
     if (!validationResult.IsValid)
     {
-        throw new InvalidOperationException($"Graph validation failed: {validationResult.CreateSummary()}");
+        throw new InvalidOperationException($"圖形驗證失敗: {validationResult.CreateSummary()}");
     }
 }
 
-// 啟用計畫編譯和快取（可選）
+// 啟用計劃編譯和快取（可選）
 if (context.ExecutionOptions.EnablePlanCompilation)
 {
     _ = GraphPlanCompiler.ComputeSignature(this);
@@ -35,20 +35,20 @@ if (context.ExecutionOptions.EnablePlanCompilation)
 }
 ```
 
-### 2. 節點執行生命週期
+### 2. Node 執行生命週期
 
-每個節點都遵循一致的生命週期模式：
+每個 Node 遵循一致的生命週期模式：
 
 #### 執行前 (`OnBeforeExecuteAsync`)
-* **中介軟體管線**：自訂中介軟體在節點執行前執行
-* **節點掛鉤**：節點的 `OnBeforeExecuteAsync` 方法執行
-* **資源取得**：根據節點成本和優先級取得資源許可
-* **效能追蹤**：開始執行計時
-* **除錯掛鉤**：斷點和逐步模式檢查
+* **中介軟體管道**：自訂中介軟體在 Node 之前執行
+* **Node Hook**：Node 的 `OnBeforeExecuteAsync` 方法執行
+* **資源取得**：根據 Node 成本和優先級取得資源許可
+* **效能追蹤**：執行計時開始
+* **偵錯 Hook**：斷點和逐步模式檢查
 
 ```csharp
-// 執行生命週期：執行前（中介軟體然後節點掛鉤）
-// Await 呼叫使用 ConfigureAwait(false)，以避免在消費者應用程式中捕捉
+// 執行生命週期：執行前（中介軟體，然後是 Node Hook）
+// Await 呼叫使用 ConfigureAwait(false)，以避免在消費應用程式中擷取
 // 同步化內容。
 await InvokeBeforeMiddlewaresAsync(context, execNode).ConfigureAwait(false);
 await execNode.OnBeforeExecuteAsync(context.Kernel, context.GraphState.KernelArguments, effectiveCt).ConfigureAwait(false);
@@ -63,47 +63,47 @@ var nodeTracker = _performanceMetrics?.StartNodeTracking(currentNode.NodeId, cur
 ```
 
 #### 主要執行 (`ExecuteAsync`)
-* **函式執行**：節點的核心邏輯執行
-* **結果處理**：輸出被捕捉並儲存
+* **函數執行**：Node 的核心邏輯執行
+* **結果處理**：輸出被擷取並儲存
 * **狀態更新**：根據結果修改圖形狀態
 
 #### 執行後 (`OnAfterExecuteAsync`)
-* **節點掛鉤**：節點的 `OnAfterExecuteAsync` 方法執行
-* **中介軟體管線**：自訂中介軟體在節點執行後執行
-* **效能完成**：執行計時被最終化
-* **成功登記**：節點成功被記錄以便自我修復
+* **Node Hook**：Node 的 `OnAfterExecuteAsync` 方法執行
+* **中介軟體管道**：自訂中介軟體在 Node 之後執行
+* **效能完成**：執行計時最終確定
+* **成功註冊**：為自我修復記錄 Node 成功
 
 ```csharp
-// 執行節點
-// 使用 ConfigureAwait(false) 讓程式庫程式碼不會捕捉內容。
+// 執行 Node
+// 使用 ConfigureAwait(false)，以免範例程式庫代碼擷取內容。
 var result = await execNode.ExecuteAsync(context.Kernel, context.GraphState.KernelArguments, effectiveCt).ConfigureAwait(false);
 
-// 執行生命週期：執行後（節點掛鉤然後中介軟體）
+// 執行生命週期：執行後（Node Hook，然後是中介軟體）
 await execNode.OnAfterExecuteAsync(context.Kernel, context.GraphState.KernelArguments, result, effectiveCt).ConfigureAwait(false);
 await InvokeAfterMiddlewaresAsync(context, execNode, result).ConfigureAwait(false);
 
 // 記錄成功完成
 context.RecordNodeCompleted(execNode, result);
 
-// 自我修復：登記成功
+// 自我修復：註冊成功
 RegisterNodeSuccess(execNode.NodeId);
 ```
 
 #### 錯誤處理 (`OnExecutionFailedAsync`)
-* **失敗記錄**：節點失敗被記錄和追蹤
+* **失敗記錄**：記錄並追蹤 Node 失敗
 * **錯誤恢復**：恢復引擎嘗試恢復執行
 * **原則應用**：錯誤處理原則決定重試/跳過行為
-* **自我修復**：失敗的節點可能被隔離
+* **自我修復**：失敗的 Node 可能被隔離
 
 ```csharp
 // 執行生命週期：失敗
-// 確保在等待呼叫上使用 ConfigureAwait(false)。
+// 確保在等待的呼叫上使用 ConfigureAwait(false)。
 await currentNode.OnExecutionFailedAsync(context.Kernel, context.GraphState.KernelArguments, ex, context.CancellationToken).ConfigureAwait(false);
 
-// 記錄節點失敗
+// 記錄 Node 失敗
 context.RecordNodeFailed(currentNode, ex);
 
-// 自我修復：登記失敗並可能隔離
+// 自我修復：註冊失敗並可能隔離
 RegisterNodeFailure(currentNode.NodeId);
 
 // 應用錯誤處理原則
@@ -122,18 +122,18 @@ if (_metadata.TryGetValue(nameof(IErrorHandlingPolicy), out var epObj) && epObj 
 
 ## 導航邏輯
 
-### 下一個節點選擇
+### 下一個 Node 選擇
 
-節點執行後，執行器決定接下來執行哪些節點：
+在 Node 執行後，執行器決定哪些 Node 要接著執行：
 
 ```csharp
-// 找到下一個要執行的節點
+// 尋找下一個要執行的 Node
 var nextNodes = GetCombinedNextNodes(execNode, result, context.GraphState).ToList();
 
 if (_routingEngine != null && nextNodes.Count > 0)
 {
-    // 使用動態路由引擎進行智能節點選擇
-    // 在程式庫程式碼範例中等待時使用 ConfigureAwait(false)。
+    // 使用動態路由引擎進行智能 Node 選擇
+    // 在程式庫代碼範例中等待時使用 ConfigureAwait(false)。
     currentNode = await _routingEngine.SelectNextNodeAsync(nextNodes, execNode,
         context.GraphState, result, context.CancellationToken).ConfigureAwait(false);
 }
@@ -141,32 +141,32 @@ else
 {
     if (nextNodes.Count <= 1 || !_concurrencyOptions.EnableParallelExecution)
     {
-        // 以確定性順序進行順序執行
+        // 序列執行，具有確定性順序
         var ordered = context.WorkQueue.OrderDeterministically(nextNodes).ToList();
         currentNode = ordered.FirstOrDefault();
     }
     else
     {
-        // 平行分叉/合併執行
-        // ... 平行執行邏輯
+        // 並行分支/合併執行
+        // ... 並行執行邏輯
     }
 }
 ```
 
-### 條件邊緣評估
+### 條件 Edge 評估
 
-邊緣被評估以確定有效的轉換：
+評估 Edge 以決定有效的轉換：
 
 ```csharp
 private IEnumerable<IGraphNode> GetCombinedNextNodes(IGraphNode node, FunctionResult? result, GraphState graphState)
 {
     var nextNodes = new List<IGraphNode>();
     
-    // 獲取來自節點自身導航邏輯的節點
+    // 從 Node 自身的導航邏輯取得 Node
     var nodeNextNodes = node.GetNextNodes(result, graphState);
     nextNodes.AddRange(nodeNextNodes);
     
-    // 獲取來自條件邊緣的節點
+    // 從條件 Edge 取得 Node
     var edgeNextNodes = GetOutgoingEdges(node)
         .Where(edge => edge.EvaluateCondition(graphState))
         .Select(edge => edge.TargetNode);
@@ -176,14 +176,14 @@ private IEnumerable<IGraphNode> GetCombinedNextNodes(IGraphNode node, FunctionRe
 }
 ```
 
-## 執行限制和防護
+## 執行限制和防護措施
 
-### 1. 最大迭代次數
+### 1. 最大迭代
 
-執行器對執行步驟總數施加可配置的限制：
+執行器強制執行可配置的執行步驟總數限制：
 
 ```csharp
-// 遵循各執行選項中的最大步驟數，在需要時回退到結構界限
+// 尊重各執行選項的最大步驟，在需要時退回到結構界限
 var maxIterations = Math.Max(1, context.ExecutionOptions.MaxExecutionSteps);
 var iterations = 0;
 
@@ -195,29 +195,29 @@ while (currentNode != null && iterations < maxIterations)
 
 if (iterations >= maxIterations)
 {
-    throw new InvalidOperationException($"Graph execution exceeded maximum steps ({maxIterations}). Possible infinite loop detected.");
+    throw new InvalidOperationException($"圖形執行超過最大步驟 ({maxIterations})。檢測到可能的無限迴圈。");
 }
 ```
 
-### 2. 執行超時
+### 2. 執行逾時
 
-整體執行超時防止失控的圖形：
+整體執行逾時防止運行失控的圖形：
 
 ```csharp
-// 在配置時應用整體超時
+// 在設定時應用整體逾時
 if (context.ExecutionOptions.ExecutionTimeout > TimeSpan.Zero)
 {
     var elapsed = DateTimeOffset.UtcNow - context.StartTime;
     if (elapsed > context.ExecutionOptions.ExecutionTimeout)
     {
-        throw new OperationCanceledException($"Graph execution exceeded configured timeout of {context.ExecutionOptions.ExecutionTimeout}");
+        throw new OperationCanceledException($"圖形執行超過設定的逾時 {context.ExecutionOptions.ExecutionTimeout}");
     }
 }
 ```
 
-### 3. 節點級超時
+### 3. Node 層級逾時
 
-個別節點可以有可配置的超時：
+個別 Node 可以有可配置的逾時：
 
 ```csharp
 private CancellationTokenSource? CreateNodeTimeoutCts(GraphExecutionContext context, IGraphNode node)
@@ -238,10 +238,10 @@ private CancellationTokenSource? CreateNodeTimeoutCts(GraphExecutionContext cont
 
 ### 4. 斷路器
 
-自我修復機制自動隔離失敗的節點：
+自我修復機制自動隔離失敗的 Node：
 
 ```csharp
-// 自我修復：跳過隔離的節點
+// 自我修復：跳過隔離的 Node
 if (IsNodeQuarantined(currentNode.NodeId))
 {
     var skipCandidates = GetCombinedNextNodes(currentNode, lastResult, context.GraphState).ToList();
@@ -254,10 +254,10 @@ if (IsNodeQuarantined(currentNode.NodeId))
 
 ### 5. 執行深度追蹤
 
-執行器追蹤執行深度以偵測過度嵌套：
+執行器追蹤執行深度以偵測過度巢狀：
 
 ```csharp
-// 記錄執行路徑以供度量
+// 記錄執行路徑用於計量
 if (_performanceMetrics != null && context.ExecutionPath.Count > 0)
 {
     var executionPath = context.ExecutionPath.Select(n => n.NodeId).ToList();
@@ -268,17 +268,17 @@ if (_performanceMetrics != null && context.ExecutionPath.Count > 0)
 }
 ```
 
-## 平行執行
+## 並行執行
 
-### 分叉/合併模式
+### 分支/合併模式
 
-執行器支援多個分支的平行執行：
+執行器支援多個分支的並行執行：
 
 ```csharp
-// 平行分叉/合併：並行執行所有下一個節點，合併狀態，然後繼續
+// 並行分支/合併：並行執行所有下一個 Node，合併狀態，然後繼續
 var branchNodes = context.WorkQueue.OrderDeterministically(nextNodes).ToList();
 
-// 為每個分支複製基礎狀態以避免寫入衝突
+// 為每個分支複製基本狀態，以避免寫入衝突
 var branchStates = branchNodes
     .Select(_ => StateHelpers.CloneState(context.GraphState))
     .ToList();
@@ -290,7 +290,7 @@ var branchTasks = branchNodes.Select(async (branchNode, index) =>
     await semaphore.WaitAsync(context.CancellationToken);
     try
     {
-        // 使用隔離狀態執行分支節點
+        // 使用隔離狀態執行分支 Node
         var branchArgs = branchStates[index].KernelArguments;
         var branchResult = await branchNode.ExecuteAsync(context.Kernel, branchArgs, context.CancellationToken);
         
@@ -304,7 +304,7 @@ var branchTasks = branchNodes.Select(async (branchNode, index) =>
 
 var branchResults = await Task.WhenAll(branchTasks);
 
-// 使用邊緣特定配置合併狀態
+// 使用 Edge 特定配置合併狀態
 var merged = StateHelpers.CloneState(originalGraphState);
 foreach (var br in branchResults)
 {
@@ -316,14 +316,14 @@ foreach (var br in branchResults)
 }
 ```
 
-## 錯誤恢復和彈性
+## 錯誤恢復和復原力
 
 ### 恢復引擎整合
 
 執行器與恢復引擎整合以進行自動錯誤處理：
 
 ```csharp
-// 如果有恢復引擎可用，嘗試錯誤恢復
+// 如果有恢復引擎，嘗試錯誤恢復
 if (_recoveryEngine != null)
 {
     try
@@ -352,11 +352,11 @@ if (_recoveryEngine != null)
         
         if (recoveryResult.Success)
         {
-            // 根據類型處理恢復（重試、回滾、繼續）
+            // 根據類型處理恢復（重試、回復、繼續）
             switch (recoveryResult.RecoveryType)
             {
                 case RecoveryType.Retry:
-                    iterations--; // 不計算重試為迭代
+                    iterations--; // 不計為迭代的重試
                     continue;
                 case RecoveryType.Rollback:
                     if (recoveryResult.RestoredState != null)
@@ -391,11 +391,11 @@ if (_metadata.TryGetValue(nameof(IErrorHandlingPolicy), out var epObj) && epObj 
             await Task.Delay(delay.Value, context.CancellationToken).ConfigureAwait(false);
         }
         iterations--; // 重試不計為迭代
-        continue; // 重試目前節點
+        continue; // 重試目前的 Node
     }
     if (errorPolicy.ShouldSkip(currentNode, ex, context))
     {
-        // 選擇下一個節點而不執行目前節點
+        // 選擇下一個 Node，不執行目前的
         var nextCandidates = GetCombinedNextNodes(currentNode, lastResult, context.GraphState).ToList();
         currentNode = await SelectNextNodeAsync(currentNode, nextCandidates, context, lastResult);
         continue;
@@ -403,7 +403,7 @@ if (_metadata.TryGetValue(nameof(IErrorHandlingPolicy), out var epObj) && epObj 
 }
 ```
 
-## 中介軟體管線
+## 中介軟體管道
 
 ### 執行中介軟體
 
@@ -442,10 +442,10 @@ private async Task InvokeFailureMiddlewaresAsync(GraphExecutionContext context, 
 
 ### 資源取得
 
-執行器根據節點成本和優先級管理資源配置：
+執行器根據 Node 成本和優先級管理資源分配：
 
 ```csharp
-// 決定成本和優先級（透過 DI 可插入）
+// 決定成本和優先級（可透過 DI 插入）
 var priority = context.GraphState.KernelArguments.GetExecutionPriority() ?? _resourceOptions.DefaultPriority;
 var nodeCost = 1.0;
 
@@ -466,30 +466,30 @@ using var lease = _resourceGovernor != null
 
 ### 執行配置
 
-* **設定合理的限制**：根據工作流程複雜性配置 `MaxExecutionSteps` 和 `ExecutionTimeout`
-* **使用中介軟體**：實作自訂中介軟體以處理橫切關注點，如日誌記錄、監控和安全性
+* **設定合理限制**：根據你的工作流程複雜性設定 `MaxExecutionSteps` 和 `ExecutionTimeout`
+* **使用中介軟體**：實作自訂中介軟體用於跨領域關切，如記錄、監控和安全性
 * **配置資源限制**：設定適當的資源治理以防止資源耗盡
-* **啟用驗證**：在開發中使用 `ValidateGraphIntegrity` 以及早捕捉結構問題
+* **啟用驗證**：在開發中使用 `ValidateGraphIntegrity` 以及早發現結構問題
 
 ### 錯誤處理
 
-* **實作恢復原則**：為您的網域建立自訂錯誤處理原則
-* **使用斷路器**：利用自我修復以自動處理失敗的節點
+* **實作恢復原則**：為你的領域建立自訂錯誤處理原則
+* **使用斷路器**：利用自我修復自動處理失敗的 Node
 * **監控執行路徑**：追蹤執行路徑以識別效能瓶頸
-* **設定節點超時**：為長時間執行的操作配置適當的超時
+* **設定 Node 逾時**：為長時間執行的操作設定適當的逾時
 
 ### 效能
 
-* **啟用計畫編譯**：對複雜圖形使用 `EnablePlanCompilation` 以改善效能
-* **配置平行執行**：為獨立分支使用平行執行
-* **監控資源使用**：追蹤 CPU 和記憶體使用以優化資源配置
-* **使用確定性順序**：使用 `DeterministicWorkQueue` 確保可重複執行
+* **啟用計劃編譯**：對複雜圖形使用 `EnablePlanCompilation` 以改善效能
+* **配置並行執行**：為獨立分支使用並行執行
+* **監控資源使用**：追蹤 CPU 和記憶體使用情況以優化資源分配
+* **使用確定性順序**：使用 `DeterministicWorkQueue` 確保可重現的執行
 
-## 參考資源
+## 另請參閱
 
-* [圖形概念](graph-concepts.md) - 基本圖形概念和元件
-* [節點類型](nodes.md) - 可用的節點實現及其生命週期
-* [狀態管理](state.md) - 執行狀態如何被管理和傳播
-* [錯誤處理](error-handling.md) - 進階錯誤恢復和彈性模式
-* [效能調優](performance-tuning.md) - 最佳化圖形執行效能
-* [範例](../examples/) - 執行模式的實際範例
+* [Graph 概念](graph-concepts.md) - 基本的圖形概念和元件
+* [Node 類型](nodes.md) - 可用的 Node 實作及其生命週期
+* [狀態管理](state.md) - 如何管理和傳播執行狀態
+* [錯誤處理](error-handling.md) - 進階錯誤恢復和復原力模式
+* [效能調整](performance-tuning.md) - 優化圖形執行效能
+* [範例](../examples/) - 執行模式的實踐範例

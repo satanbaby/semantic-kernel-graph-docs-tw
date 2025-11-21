@@ -1,28 +1,28 @@
-# 圖形選項和配置
+# Graph 選項和設定
 
-SemanticKernel.Graph 提供了一個全面的配置系統，包含不同子系統的模組化選項。本參考涵蓋了完整的選項層次結構，包括核心選項、模組特定配置和執行期間的不可變性保證。
+SemanticKernel.Graph 提供了一套全面的設定系統，包含不同子系統的模組化選項。本參考涵蓋完整的選項階層，包括核心選項、特定模組設定和執行期間的不變性保證。
 
 ## GraphOptions
 
-用於控制日誌記錄、指標、驗證和執行邊界的圖形功能的主要配置類別。
+核心功能的主要設定類別，控制日誌、指標、驗證和執行邊界。
 
-### 建構函式
+### Constructor
 
 ```csharp
 public sealed class GraphOptions
 {
-    // 預設建構函式，提供合理的預設值
+    // 預設建構子，使用合理的預設值
     public GraphOptions()
 }
 ```
 
-### 核心屬性
+### Core Properties
 
 ```csharp
 public sealed class GraphOptions
 {
     /// <summary>
-    /// 取得或設定是否啟用圖形執行的日誌記錄。
+    /// 取得或設定是否針對 Graph 執行啟用日誌。
     /// </summary>
     public bool EnableLogging { get; set; } = true;
 
@@ -32,12 +32,12 @@ public sealed class GraphOptions
     public bool EnableMetrics { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定終止前的最大執行步數。
+    /// 取得或設定終止前的最大執行步驟數。
     /// </summary>
     public int MaxExecutionSteps { get; set; } = 1000;
 
     /// <summary>
-    /// 取得或設定是否在執行前驗證圖形完整性。
+    /// 取得或設定是否在執行前驗證 Graph 完整性。
     /// </summary>
     public bool ValidateGraphIntegrity { get; set; } = true;
 
@@ -47,17 +47,17 @@ public sealed class GraphOptions
     public TimeSpan ExecutionTimeout { get; set; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 啟用圖形簽名的結構化執行計畫編譯和快取。
+    /// 依 Graph 簽章啟用編譯和結構執行計畫的快取。
     /// </summary>
     public bool EnablePlanCompilation { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定不同類別和節點的日誌記錄配置。
+    /// 取得或設定不同類別和 Node 的日誌設定。
     /// </summary>
     public GraphLoggingOptions Logging { get; set; } = new();
 
     /// <summary>
-    /// 取得或設定互操作性相關選項（匯入/匯出、橋接、聯盟）。
+    /// 取得或設定互通性相關的選項 (匯入/匯出、橋接、聯盟)。
     /// </summary>
     public GraphInteropOptions Interop { get; set; } = new();
 }
@@ -66,8 +66,8 @@ public sealed class GraphOptions
 ### 使用範例
 
 ```csharp
-// 建議透過核心建設器註冊 GraphOptions，使 DI 容器
-// 將選項暴露給執行上下文和其他服務。
+// 建議透過 kernel 建構器註冊 GraphOptions，
+// 以便讓 DI 容器將選項公開給執行內容和其他服務。
 var kernel = Kernel.CreateBuilder()
     .AddGraphSupport(opts =>
     {
@@ -78,33 +78,33 @@ var kernel = Kernel.CreateBuilder()
         opts.ExecutionTimeout = TimeSpan.FromMinutes(5);
         opts.EnablePlanCompilation = true;
 
-        // 配置日誌記錄子選項
+        // 設定日誌子選項
         opts.Logging.MinimumLevel = LogLevel.Debug;
         opts.Logging.EnableStructuredLogging = true;
         opts.Logging.EnableCorrelationIds = true;
 
-        // 配置互操作性
+        // 設定互通性
         opts.Interop.EnableImporters = true;
         opts.Interop.EnableExporters = true;
         opts.Interop.EnablePythonBridge = false;
     })
     .Build();
 
-// 當執行開始時，執行時會透過 GraphExecutionOptions.From(graphOptions) 
-// 拍攝即時 GraphOptions 的快照，保證按執行的不可變性。
+// 執行開始時，執行時期會透過 GraphExecutionOptions.From(graphOptions)
+// 取得即時 GraphOptions 的快照，以保證執行期間的不變性。
 ```
 
-## 模組啟用選項
+## Module Activation Options
 
 ### GraphModuleActivationOptions
 
-用於有條件地透過依賴注入啟用可選圖形模組的配置旗標。
+透過相依性注入有條件地啟用選用 Graph 模組的設定旗標。
 
 ```csharp
 public sealed class GraphModuleActivationOptions
 {
     /// <summary>
-    /// 啟用串流元件（事件串流連線池、重新連線管理器）。
+    /// 啟用串流元件 (事件串流連線池、重新連線管理員)。
     /// </summary>
     public bool EnableStreaming { get; set; }
 
@@ -114,22 +114,22 @@ public sealed class GraphModuleActivationOptions
     public bool EnableCheckpointing { get; set; }
 
     /// <summary>
-    /// 啟用復原整合。僅在啟用檢查點時有效。
+    /// 啟用復原整合。只有在啟用檢查點時才有效。
     /// </summary>
     public bool EnableRecovery { get; set; }
 
     /// <summary>
-    /// 啟用人類在迴圈中（預設註冊記憶體中存放區和 Web API 支援的通道）。
+    /// 啟用人類參與迴圈 (預設註冊記憶體內存放區和 Web API 支援的通道)。
     /// </summary>
     public bool EnableHumanInTheLoop { get; set; }
 
     /// <summary>
-    /// 啟用多代理程式基礎結構（連線池和選項）。
+    /// 啟用多代理程式基礎結構 (連線池和選項)。
     /// </summary>
     public bool EnableMultiAgent { get; set; }
 
     /// <summary>
-    /// 應用所有旗標的環境變數覆寫。
+    /// 套用所有旗標的環境變數覆寫。
     /// </summary>
     public void ApplyEnvironmentOverrides()
 }
@@ -150,7 +150,7 @@ public sealed class GraphModuleActivationOptions
 var options = new GraphModuleActivationOptions();
 options.ApplyEnvironmentOverrides();
 
-// 將模組新增至核心建設器
+// 將模組新增至 kernel 建構器
 var builder = Kernel.CreateBuilder()
     .AddGraphModules(options);
 ```
@@ -159,7 +159,7 @@ var builder = Kernel.CreateBuilder()
 
 ### StreamingExecutionOptions
 
-用於串流執行行為和事件處理的配置選項。
+串流執行行為和事件處理的設定選項。
 
 ```csharp
 public sealed class StreamingExecutionOptions
@@ -171,7 +171,7 @@ public sealed class StreamingExecutionOptions
     public int BufferSize { get; set; } = 100;
 
     /// <summary>
-    /// 取得或設定應用背壓前的最大緩衝區大小。
+    /// 取得或設定套用背壓前的最大緩衝區大小。
     /// 預設值：1000 個事件。
     /// </summary>
     public int MaxBufferSize { get; set; } = 1000;
@@ -183,7 +183,7 @@ public sealed class StreamingExecutionOptions
     public bool EnableAutoReconnect { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定重新連線嘗試的最大次數。
+    /// 取得或設定重新連線嘗試的次數上限。
     /// 預設值：3 次嘗試。
     /// </summary>
     public int MaxReconnectAttempts { get; set; } = 3;
@@ -195,14 +195,14 @@ public sealed class StreamingExecutionOptions
     public TimeSpan InitialReconnectDelay { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// 取得或設定最大重新連線延遲（用於指數退避）。
+    /// 取得或設定重新連線延遲上限 (用於指數退避)。
     /// 預設值：30 秒。
     /// </summary>
     public TimeSpan MaxReconnectDelay { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// 取得或設定是否在事件中包含中間狀態快照。
-    /// 預設值：false（以減少事件大小）。
+    /// 取得或設定是否在事件中包含中繼狀態快照。
+    /// 預設值：false (減少事件大小)。
     /// </summary>
     public bool IncludeStateSnapshots { get; set; } = false;
 
@@ -213,16 +213,16 @@ public sealed class StreamingExecutionOptions
     public GraphExecutionEventType[]? EventTypesToEmit { get; set; }
 
     /// <summary>
-    /// 取得或設定要附加到串流的自訂事件處理器。
+    /// 取得或設定要附加到串流的自訂事件處理常式。
     /// </summary>
     public List<IGraphExecutionEventHandler> CustomEventHandlers { get; set; } = new();
 }
 ```
 
-### 串流配置範例
+### 串流設定範例
 
 ```csharp
-// 基本串流配置
+// 基本串流設定
 var basicOptions = new StreamingExecutionOptions
 {
     BufferSize = 50,
@@ -230,7 +230,7 @@ var basicOptions = new StreamingExecutionOptions
     EnableAutoReconnect = true
 };
 
-// 高效能配置
+// 高效能設定
 var performanceOptions = new StreamingExecutionOptions
 {
     BufferSize = 1000,
@@ -244,7 +244,7 @@ var performanceOptions = new StreamingExecutionOptions
     }
 };
 
-// 監控配置
+// 監控設定
 var monitoringOptions = new StreamingExecutionOptions
 {
     BufferSize = 100,
@@ -263,23 +263,23 @@ var monitoringOptions = new StreamingExecutionOptions
 
 ### CheckpointingOptions
 
-用於自動檢查點行為和狀態持續性的配置選項。
+自動檢查點行為和狀態持久性的設定選項。
 
 ```csharp
 public sealed class CheckpointingOptions
 {
     /// <summary>
-    /// 取得或設定建立檢查點的間隔（已執行的節點數）。
+    /// 取得或設定建立檢查點的間隔 (已執行 Node 的數量)。
     /// </summary>
     public int CheckpointInterval { get; set; } = 10;
 
     /// <summary>
-    /// 取得或設定用於建立檢查點的可選時間間隔。
+    /// 取得或設定建立檢查點的選用時間間隔。
     /// </summary>
     public TimeSpan? CheckpointTimeInterval { get; set; }
 
     /// <summary>
-    /// 取得或設定是否在執行開始前建立初始檢查點。
+    /// 取得或設定執行開始前是否建立初始檢查點。
     /// </summary>
     public bool CreateInitialCheckpoint { get; set; } = true;
 
@@ -294,7 +294,7 @@ public sealed class CheckpointingOptions
     public bool CreateErrorCheckpoints { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定應始終觸發檢查點建立的重要節點 ID 清單。
+    /// 取得或設定應始終觸發檢查點建立的關鍵 Node ID 清單。
     /// </summary>
     public ISet<string> CriticalNodes { get; set; } = new HashSet<string>();
 
@@ -309,21 +309,21 @@ public sealed class CheckpointingOptions
     public CheckpointRetentionPolicy RetentionPolicy { get; set; } = new();
 
     /// <summary>
-    /// 取得或設定是否啟用重要檢查點的分散式備份。
+    /// 取得或設定是否啟用關鍵檢查點的分散式備份。
     /// </summary>
     public bool EnableDistributedBackup { get; set; } = false;
 
     /// <summary>
-    /// 取得或設定用於分散式存放的備份選項。
+    /// 取得或設定分散式儲存的備份選項。
     /// </summary>
     public DistributedBackupOptions? DistributedBackupOptions { get; set; }
 }
 ```
 
-### 檢查點配置範例
+### 檢查點設定範例
 
 ```csharp
-// 針對關鍵工作流的頻繁檢查點
+// 關鍵工作流程的頻繁檢查點
 var criticalOptions = new CheckpointingOptions
 {
     CheckpointInterval = 5,
@@ -334,17 +334,17 @@ var criticalOptions = new CheckpointingOptions
     EnableAutoCleanup = true
 };
 
-// 基於時間的檢查點
+// 時間為基礎的檢查點
 var timeBasedOptions = new CheckpointingOptions
 {
     CheckpointTimeInterval = TimeSpan.FromMinutes(5),
-    CheckpointInterval = 100, // 回退到基於節點
+    CheckpointInterval = 100, // 回退到 Node 為基礎
     CreateInitialCheckpoint = true,
     CreateFinalCheckpoint = true,
     EnableAutoCleanup = true
 };
 
-// 最小檢查點以提高效能
+// 效能的最小檢查點
 var minimalOptions = new CheckpointingOptions
 {
     CheckpointInterval = 50,
@@ -359,7 +359,7 @@ var minimalOptions = new CheckpointingOptions
 
 ### RecoveryOptions
 
-用於自動復原和重播功能的配置選項。
+自動復原和重播功能的設定選項。
 
 ```csharp
 public sealed class RecoveryOptions
@@ -370,7 +370,7 @@ public sealed class RecoveryOptions
     public bool EnableAutomaticRecovery { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定復原嘗試的最大次數。
+    /// 取得或設定復原嘗試的次數上限。
     /// </summary>
     public int MaxRecoveryAttempts { get; set; } = 3;
 
@@ -380,12 +380,12 @@ public sealed class RecoveryOptions
     public RecoveryStrategy Strategy { get; set; } = RecoveryStrategy.LastSuccessfulCheckpoint;
 
     /// <summary>
-    /// 取得或設定是否啟用條件式重播以執行「如果情況如何」案例。
+    /// 取得或設定是否啟用「如果...會怎樣」情境的條件重播。
     /// </summary>
     public bool EnableConditionalReplay { get; set; } = false;
 
     /// <summary>
-    /// 取得或設定條件式案例的最大重播深度。
+    /// 取得或設定條件情境的最大重播深度。
     /// </summary>
     public int MaxReplayDepth { get; set; } = 10;
 
@@ -401,10 +401,10 @@ public sealed class RecoveryOptions
 }
 ```
 
-### 復原配置範例
+### 復原設定範例
 
 ```csharp
-// 針對生產系統的積極復原
+// 生產系統的積極復原
 var aggressiveRecovery = new RecoveryOptions
 {
     EnableAutomaticRecovery = true,
@@ -415,7 +415,7 @@ var aggressiveRecovery = new RecoveryOptions
     RecoveryTimeout = TimeSpan.FromMinutes(10)
 };
 
-// 針對開發的保守復原
+// 開發的保守復原
 var conservativeRecovery = new RecoveryOptions
 {
     EnableAutomaticRecovery = false,
@@ -427,22 +427,22 @@ var conservativeRecovery = new RecoveryOptions
 };
 ```
 
-## 人類在迴圈中 (HITL) 選項
+## 人類參與迴圈 (HITL) 選項
 
 ### HumanApprovalOptions
 
-用於人類核准節點和互動行為的配置選項。
+人類核准 Node 和互動行為的設定選項。
 
 ```csharp
 public sealed class HumanApprovalOptions
 {
     /// <summary>
-    /// 取得或設定核准請求的標題。
+    /// 取得或設定核准要求的標題。
     /// </summary>
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
-    /// 取得或設定核准請求的描述。
+    /// 取得或設定核准要求的說明。
     /// </summary>
     public string Description { get; set; } = string.Empty;
 
@@ -462,12 +462,12 @@ public sealed class HumanApprovalOptions
     public string[] OptionalFields { get; set; } = Array.Empty<string>();
 
     /// <summary>
-    /// 取得或設定所需的核准次數。
+    /// 取得或設定所需核准的數量。
     /// </summary>
     public int ApprovalThreshold { get; set; } = 1;
 
     /// <summary>
-    /// 取得或設定失敗請求的拒絕次數。
+    /// 取得或設定拒絕數量以導致要求失敗。
     /// </summary>
     public int RejectionThreshold { get; set; } = 1;
 
@@ -480,7 +480,7 @@ public sealed class HumanApprovalOptions
 
 ### WebApiChannelOptions
 
-用於基於網路的人類互動通道的配置選項。
+Web 型人類互動通道的設定選項。
 
 ```csharp
 public sealed class WebApiChannelOptions
@@ -491,43 +491,43 @@ public sealed class WebApiChannelOptions
     public string EndpointPath { get; set; } = "/api/approvals";
 
     /// <summary>
-    /// 取得或設定 HTTP 操作的請求逾時。
+    /// 取得或設定 HTTP 作業的要求逾時。
     /// </summary>
     public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// 取得或設定失敗請求的重試原則。
+    /// 取得或設定失敗要求的重試原則。
     /// </summary>
     public RetryPolicy RetryPolicy { get; set; } = RetryPolicy.ExponentialBackoff(3, TimeSpan.FromSeconds(1));
 
     /// <summary>
-    /// 取得或設定驗證配置。
+    /// 取得或設定驗證設定。
     /// </summary>
     public IAuthenticationConfig? Authentication { get; set; }
 
     /// <summary>
-    /// 取得或設定要包含在請求中的自訂標頭。
+    /// 取得或設定要包含在要求中的自訂標頭。
     /// </summary>
     public Dictionary<string, string> CustomHeaders { get; set; } = new();
 }
 ```
 
-### HITL 配置範例
+### HITL 設定範例
 
 ```csharp
-// 基本核准配置
+// 基本核准設定
 var approvalOptions = new HumanApprovalOptions
 {
-    Title = "Document Review Required",
-    Description = "Please review the generated document for accuracy",
-    Instructions = "Check grammar, content, and formatting",
+    Title = "需要進行文件審查",
+    Description = "請審查產生的文件的準確性",
+    Instructions = "檢查文法、內容和格式",
     RequiredFields = new[] { "reviewer_name", "approval_notes" },
     ApprovalThreshold = 1,
     RejectionThreshold = 1,
     AllowPartialApproval = false
 };
 
-// Web API 通道配置
+// Web API 通道設定
 var webChannelOptions = new WebApiChannelOptions
 {
     EndpointPath = "/api/approvals",
@@ -545,18 +545,18 @@ var webChannelOptions = new WebApiChannelOptions
 
 ### MultiAgentOptions
 
-用於多代理程式協調和工作流程管理的配置選項。
+多代理程式協調和工作流程管理的設定選項。
 
 ```csharp
 public sealed class MultiAgentOptions
 {
     /// <summary>
-    /// 取得或設定並行代理程式的最大數目。
+    /// 取得或設定併行代理程式的最大數量。
     /// </summary>
     public int MaxConcurrentAgents { get; set; } = 10;
 
     /// <summary>
-    /// 取得或設定共用狀態管理選項。
+    /// 取得或設定共享狀態管理選項。
     /// </summary>
     public SharedStateOptions SharedStateOptions { get; set; } = new();
 
@@ -566,12 +566,12 @@ public sealed class MultiAgentOptions
     public WorkDistributionOptions WorkDistributionOptions { get; set; } = new();
 
     /// <summary>
-    /// 取得或設定結果匯總選項。
+    /// 取得或設定結果彙總選項。
     /// </summary>
     public ResultAggregationOptions ResultAggregationOptions { get; set; } = new();
 
     /// <summary>
-    /// 取得或設定健康狀態監控選項。
+    /// 取得或設定健康狀況監控選項。
     /// </summary>
     public HealthMonitoringOptions HealthMonitoringOptions { get; set; } = new();
 
@@ -591,7 +591,7 @@ public sealed class MultiAgentOptions
     public TimeSpan WorkflowRetentionPeriod { get; set; } = TimeSpan.FromHours(24);
 
     /// <summary>
-    /// 取得或設定是否啟用多代理程式工作流程的分散式追蹤 (ActivitySource)。
+    /// 取得或設定是否針對多代理程式工作流程啟用分散式追蹤 (ActivitySource)。
     /// </summary>
     public bool EnableDistributedTracing { get; set; } = true;
 }
@@ -599,18 +599,18 @@ public sealed class MultiAgentOptions
 
 ### AgentConnectionPoolOptions
 
-用於管理代理程式連線池的配置選項。
+用於管理代理程式連線池的設定選項。
 
 ```csharp
 public sealed class AgentConnectionPoolOptions
 {
     /// <summary>
-    /// 取得或設定集區中的最大連線數目。
+    /// 取得或設定集區中的最大連線數。
     /// </summary>
     public int MaxConnections { get; set; } = 100;
 
     /// <summary>
-    /// 取得或設定要維護的最小連線數目。
+    /// 取得或設定要維護的最小連線數。
     /// </summary>
     public int MinConnections { get; set; } = 10;
 
@@ -625,21 +625,21 @@ public sealed class AgentConnectionPoolOptions
     public TimeSpan ConnectionLifetime { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// 取得或設定是否啟用連線健康檢查。
+    /// 取得或設定是否啟用連線健康狀況檢查。
     /// </summary>
     public bool EnableHealthChecks { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定健康檢查間隔。
+    /// 取得或設定健康狀況檢查間隔。
     /// </summary>
     public TimeSpan HealthCheckInterval { get; set; } = TimeSpan.FromSeconds(30);
 }
 ```
 
-### 多代理程式配置範例
+### 多代理程式設定範例
 
 ```csharp
-// 高效能多代理程式配置
+// 高效能多代理程式設定
 var highPerfOptions = new MultiAgentOptions
 {
     MaxConcurrentAgents = 50,
@@ -649,7 +649,7 @@ var highPerfOptions = new MultiAgentOptions
     EnableDistributedTracing = true
 };
 
-// 保守多代理程式配置
+// 保守的多代理程式設定
 var conservativeOptions = new MultiAgentOptions
 {
     MaxConcurrentAgents = 5,
@@ -659,7 +659,7 @@ var conservativeOptions = new MultiAgentOptions
     EnableDistributedTracing = false
 };
 
-// 連線池配置
+// 連線池設定
 var poolOptions = new AgentConnectionPoolOptions
 {
     MaxConnections = 200,
@@ -671,27 +671,27 @@ var poolOptions = new AgentConnectionPoolOptions
 };
 ```
 
-## 日誌記錄選項
+## 日誌選項
 
 ### GraphLoggingOptions
 
-用於圖形執行的進階日誌記錄配置選項。
+Graph 執行的進階日誌設定選項。
 
 ```csharp
 public sealed class GraphLoggingOptions
 {
     /// <summary>
-    /// 取得或設定圖形執行的最小日誌層級。
+    /// 取得或設定 Graph 執行的最小日誌層級。
     /// </summary>
     public LogLevel MinimumLevel { get; set; } = LogLevel.Information;
 
     /// <summary>
-    /// 取得或設定是否啟用結構化日誌記錄。
+    /// 取得或設定是否啟用結構化日誌。
     /// </summary>
     public bool EnableStructuredLogging { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定是否啟用相關識別碼。
+    /// 取得或設定是否啟用關聯 ID。
     /// </summary>
     public bool EnableCorrelationIds { get; set; } = true;
 
@@ -701,20 +701,20 @@ public sealed class GraphLoggingOptions
     public int MaxStateDataSize { get; set; } = 2000;
 
     /// <summary>
-    /// 取得或設定類別特定的日誌記錄配置。
+    /// 取得或設定特定類別的日誌設定。
     /// 類別包括：「Graph」、「Node」、「Routing」、「Error」、「Performance」、「State」、「Validation」。
     /// </summary>
     public Dictionary<string, LogCategoryConfig> CategoryConfigs { get; set; } = new();
 
     /// <summary>
-    /// 取得或設定節點特定的日誌記錄配置。
-    /// 鍵是節點 ID 或節點類型名稱。
+    /// 取得或設定 Node 特定的日誌設定。
+    /// 索引鍵是 Node ID 或 Node 類型名稱。
     /// </summary>
     public Dictionary<string, NodeLoggingConfig> NodeConfigs { get; set; } = new();
 
     /// <summary>
-    /// 取得或設定是否記錄敏感資料（參數、狀態值）。
-    /// 當為 false 時，僅記錄參數名稱和計數，不記錄值。
+    /// 取得或設定是否記錄敏感資料 (參數、狀態值)。
+    /// 為 false 時，只會記錄參數名稱和計數，不會記錄值。
     /// </summary>
     public bool LogSensitiveData { get; set; } = false;
 
@@ -724,7 +724,7 @@ public sealed class GraphLoggingOptions
     public SensitiveDataPolicy Sanitization { get; set; } = SensitiveDataPolicy.Default;
 
     /// <summary>
-    /// 取得或設定此圖形實例的自訂相關識別碼前置詞。
+    /// 取得或設定此 Graph 實例的自訂關聯 ID 前置詞。
     /// </summary>
     public string? CorrelationIdPrefix { get; set; }
 
@@ -735,10 +735,10 @@ public sealed class GraphLoggingOptions
 }
 ```
 
-### 日誌記錄配置範例
+### 日誌設定範例
 
 ```csharp
-// 開發用詳細日誌記錄
+// 開發的詳細日誌
 var verboseLogging = new GraphLoggingOptions
 {
     MinimumLevel = LogLevel.Debug,
@@ -748,7 +748,7 @@ var verboseLogging = new GraphLoggingOptions
     MaxStateDataSize = 5000
 };
 
-// 含清理的生產日誌記錄
+// 具有清理功能的生產日誌
 var productionLogging = new GraphLoggingOptions
 {
     MinimumLevel = LogLevel.Information,
@@ -759,7 +759,7 @@ var productionLogging = new GraphLoggingOptions
     MaxStateDataSize = 1000
 };
 
-// 類別特定的日誌記錄
+// 特定類別的日誌
 var categoryLogging = new GraphLoggingOptions();
 categoryLogging.CategoryConfigs["Performance"] = new LogCategoryConfig 
 { 
@@ -773,42 +773,42 @@ categoryLogging.CategoryConfigs["State"] = new LogCategoryConfig
 };
 ```
 
-## 互操作性選項
+## 互通性選項
 
 ### GraphInteropOptions
 
-用於跨生態系統整合和外部系統橋接的配置選項。
+跨生態系統整合和外部系統橋接的設定選項。
 
 ```csharp
 public sealed class GraphInteropOptions
 {
     /// <summary>
-    /// 啟用將外部圖形定義（例如 LangGraph/LangChain JSON）轉換為 GraphExecutor 實例的匯入器。
+    /// 啟用匯入程式，將外部 Graph 定義 (例如 LangGraph/LangChain JSON) 轉換為 GraphExecutor 實例。
     /// </summary>
     public bool EnableImporters { get; set; } = true;
 
     /// <summary>
-    /// 啟用用於業界格式的匯出器（例如 BPMN XML）。
+    /// 啟用產業格式的匯出程式 (例如 BPMN XML)。
     /// </summary>
     public bool EnableExporters { get; set; } = true;
 
     /// <summary>
-    /// 啟用 Python 執行橋接節點。
+    /// 啟用 Python 執行橋接 Node。
     /// </summary>
     public bool EnablePythonBridge { get; set; } = false;
 
     /// <summary>
-    /// 啟用透過 HTTP 與外部圖形引擎的聯盟。
+    /// 啟用透過 HTTP 與外部 Graph 引擎的聯盟。
     /// </summary>
     public bool EnableFederation { get; set; } = true;
 
     /// <summary>
-    /// 用於 Python 橋接的 Python 可執行檔的可選路徑。如果為 null 或空字串，將使用 PATH 中的「python」。
+    /// Python 可執行檔的選用路徑 (適用於 Python 橋接)。若為 null 或空白，將使用 PATH 中的「python」。
     /// </summary>
     public string? PythonExecutablePath { get; set; }
 
     /// <summary>
-    /// 聯盟圖形呼叫的可選預設基址（例如上游 LangGraph 伺服器）。
+    /// 聯合 Graph 呼叫的選用預設基底位址 (例如，上游 LangGraph 伺服器)。
     /// </summary>
     public string? FederationBaseAddress { get; set; }
 
@@ -819,17 +819,17 @@ public sealed class GraphInteropOptions
 }
 ```
 
-## 完整配置
+## 完整設定
 
 ### CompleteGraphOptions
 
-所有圖形功能的便利聚合配置。
+所有 Graph 功能的便利集合設定。
 
 ```csharp
 public sealed class CompleteGraphOptions
 {
     /// <summary>
-    /// 取得或設定是否啟用日誌記錄。
+    /// 取得或設定是否啟用日誌。
     /// </summary>
     public bool EnableLogging { get; set; } = true;
 
@@ -849,7 +849,7 @@ public sealed class CompleteGraphOptions
     public bool EnableVectorSearch { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定是否啟用語義搜尋。
+    /// 取得或設定是否啟用語意搜尋。
     /// </summary>
     public bool EnableSemanticSearch { get; set; } = true;
 
@@ -864,56 +864,57 @@ public sealed class CompleteGraphOptions
     public bool EnableMetrics { get; set; } = true;
 
     /// <summary>
-    /// 取得或設定最大執行步數。
+    /// 取得或設定最大執行步驟。
     /// </summary>
     public int MaxExecutionSteps { get; set; } = 1000;
 
     /// <summary>
-    /// 取得或設定互操作性（匯入/匯出）選項。
+    /// 取得或設定互通性 (匯入/匯出) 選項。
     /// </summary>
     public GraphInteropOptions Interop { get; set; } = new();
 }
 ```
 
-## 不可變性和執行
+## 不變性和執行
 
-### 不可變性保證
+### 不變性保證
 
-所有配置選項在執行開始後都是不可變的。這可以確保：
+一旦執行開始，所有設定選項都是不變的。這可確保：
 
-* **一致的行為**：執行期間配置無法變更
-* **執行緒安全**：多個執行可以使用不同的配置執行
-* **可預測的效能**：沒有執行時配置負擔
-* **除錯清晰度**：配置狀態被凍結以供分析
+* **一致行為**：執行期間無法變更設定
+* **執行緒安全性**：多個執行可使用不同的設定執行
+* **可預測效能**：沒有執行時期設定額外負荷
+* **偵錯清晰性**：設定狀態已凍結以供分析
 
-### 按執行的配置
+### 依執行的設定
 
 ```csharp
-// 建議從核心建立執行程式，以便繼承主機 DI 容器中註冊的 GraphOptions。
-// 執行程式會在內部捕捉按執行快照，所以選項在執行期間是不可變的。
+// 建議從 kernel 建立執行程式，使其從主機的 DI 容器
+// 繼承已註冊的 GraphOptions。執行程式會在內部擷取執行期間快照，
+// 以便選項在執行期間是不變的。
 var kernel = Kernel.CreateBuilder()
     .AddGraphSupport(opts => { opts.MaxExecutionSteps = 100; opts.EnableLogging = true; })
     .Build();
 
-var executor1 = new GraphExecutor(kernel); // 從核心服務中拾取 GraphOptions
+var executor1 = new GraphExecutor(kernel); // 從 kernel 服務選擇 GraphOptions
 
-// 建立第二個核心具有不同的設定以演示獨立快照
+// 建立第二個具有不同設定的 kernel，以示範獨立快照
 var kernel2 = Kernel.CreateBuilder()
     .AddGraphSupport(opts => { opts.MaxExecutionSteps = 1000; opts.EnableLogging = false; })
     .Build();
 
 var executor2 = new GraphExecutor(kernel2);
 
-// 執行使用其捕捉的配置獨立執行
+// 執行獨立執行，搭配其已擷取的設定
 var result1 = await executor1.ExecuteAsync(kernel, arguments1);
 var result2 = await executor2.ExecuteAsync(kernel2, arguments2);
 ```
 
-### 執行時配置驗證
+### 執行時期設定驗證
 
 ```csharp
-// 在執行開始時驗證配置。使用基於核心的執行程式時，
-// 確保選項透過 AddGraphSupport 註冊，以便執行時可以快照和驗證。
+// 設定會在執行開始時進行驗證。使用 kernel 為基礎的執行程式時，
+// 請確保選項已透過 AddGraphSupport 註冊，以便執行時期可以擷取快照和驗證。
 var kernel = Kernel.CreateBuilder()
     .AddGraphSupport(opts =>
     {
@@ -929,14 +930,14 @@ try
 }
 catch (ArgumentException ex)
 {
-    // 配置驗證失敗
-    Console.WriteLine($"Configuration error: {ex.Message}");
+    // 設定驗證失敗
+    Console.WriteLine($"設定錯誤：{ex.Message}");
 }
 ```
 
 ## 使用模式
 
-### 建設器模式配置
+### 建構器模式設定
 
 ```csharp
 var options = new GraphOptions()
@@ -947,24 +948,24 @@ var options = new GraphOptions()
     .WithInterop(enableImporters: true, enableExporters: true);
 ```
 
-### 環境型配置
+### 環境為基礎的設定
 
 ```csharp
-// 如果您的主機環境暴露配置 (IConfiguration)，建議將
-// 設定繫結到 GraphOptions 中，然後透過 AddGraphSupport 註冊。也可以實作輕量級
-// 環境唯讀覆寫，方法是在註冊選項到 DI 前讀取環境變數並應用。
+// 若您的主控環境公開設定 (IConfiguration)，建議將
+// 設定繫結至 GraphOptions，然後透過 AddGraphSupport 進行註冊。輕量級
+// 僅限環境的覆寫也可以透過讀取環境變數並在向 DI 註冊選項前套用它們來實作。
 var builder = Kernel.CreateBuilder();
 
-// 範例：手動應用環境覆寫
+// 範例：手動套用環境覆寫
 var envOptions = new GraphOptions();
 var envMax = Environment.GetEnvironmentVariable("SKG_MAX_EXECUTION_STEPS");
 if (int.TryParse(envMax, out var maxSteps)) envOptions.MaxExecutionSteps = maxSteps;
 if (bool.TryParse(Environment.GetEnvironmentVariable("SKG_ENABLE_LOGGING"), out var logEnabled)) envOptions.EnableLogging = logEnabled;
 if (bool.TryParse(Environment.GetEnvironmentVariable("SKG_ENABLE_METRICS"), out var m)) envOptions.EnableMetrics = m;
-// 向核心建設器註冊解析的選項
+// 使用 kernel 建構器註冊已解析的選項
 builder.AddGraphSupport(opts =>
 {
-    // 將解析的值複製到主機使用的選項實例中
+    // 將已解析的值複製到主機使用的選項實例中
     opts.EnableLogging = envOptions.EnableLogging;
     opts.EnableMetrics = envOptions.EnableMetrics;
     opts.MaxExecutionSteps = envOptions.MaxExecutionSteps;
@@ -973,10 +974,10 @@ builder.AddGraphSupport(opts =>
 var kernel = builder.Build();
 ```
 
-### 配置繼承
+### 設定繼承
 
 ```csharp
-// 基本配置
+// 基本設定
 var baseOptions = new GraphOptions
 {
     EnableLogging = true,
@@ -984,7 +985,7 @@ var baseOptions = new GraphOptions
     MaxExecutionSteps = 1000
 };
 
-// 特殊配置
+// 特殊設定
 var specializedOptions = new GraphOptions
 {
     EnableLogging = baseOptions.EnableLogging,
@@ -996,24 +997,24 @@ var specializedOptions = new GraphOptions
 
 ## 效能考量
 
-* **配置驗證**：在執行程式建立時進行，不在執行期間進行
-* **選項存取**：直接屬性存取，無間接存取負擔
-* **記憶體使用**：配置物件的最小記憶體足跡
-* **序列化**：選項可序列化以保存配置
-* **快取**：常用的配置可以快取和重複使用
+* **設定驗證**：在執行程式建立時進行一次，不在執行期間進行
+* **選項存取**：直接屬性存取，無間接位址額外負荷
+* **記憶體使用量**：設定物件的記憶體足跡最小
+* **序列化**：選項可以序列化以保存設定
+* **快取**：常用的設定可以快取並重複使用
 
-## 安全考量
+## 安全性考量
 
 * **敏感資料**：在生產環境中使用 `LogSensitiveData = false`
-* **清理**：配置適當的清理原則
-* **驗證**：在使用前一律驗證配置
-* **環境變數**：安全的環境變數存取
-* **配置檔案**：使用適當權限保護配置檔案
+* **清理**：設定適當的清理原則
+* **驗證**：在使用前一律驗證設定
+* **環境變數**：保護環境變數存取安全
+* **設定檔**：使用適當的權限保護設定檔
 
-## 另請參閱
+## 參考
 
-* [核心 API 參考](core.md) - 核心圖形執行 API
-* [擴充和選項](extensions-and-options.md) - 其他配置選項
-* [模組啟用](../how-to/module-activation.md) - 如何啟用可選模組
-* [配置最佳實踐](../how-to/configuration-best-practices.md) - 配置指南
-* [效能調整](../how-to/performance-tuning.md) - 效能最佳化
+* [Core API Reference](core.md) - Core Graph 執行 API
+* [Extensions and Options](extensions-and-options.md) - 其他設定選項
+* [Module Activation](../how-to/module-activation.md) - 如何啟用選用模組
+* [Configuration Best Practices](../how-to/configuration-best-practices.md) - 設定指南
+* [Performance Tuning](../how-to/performance-tuning.md) - 效能最佳化

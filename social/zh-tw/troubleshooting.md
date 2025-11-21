@@ -1,53 +1,53 @@
 ---
-title: 疑難排解
+title: 故障排除
 ---
 
-# 疑難排解
+# 故障排除
 
-SemanticKernel.Graph 中常見問題的解決和診斷指南。
+用於解決 SemanticKernel.Graph 中常見問題和診斷問題的指南。
 
-## 概念與技術
+## 概念和技術
 
-**疑難排解**：識別、診斷和解決計算圖表系統問題的系統性過程。
+**故障排除**：系統性地識別、診斷和解決計算圖系統中的問題的過程。
 
-**診斷**：分析症狀、日誌和指標以確定問題根本原因的分析過程。
+**診斷**：分析症狀、日誌和指標以確定問題的根本原因。
 
-**復原**：解決問題後恢復正常功能的策略。
+**恢復**：在解決問題後恢復正常功能的策略。
 
 ## 執行問題
 
-### 執行暫停或速度較慢
+### 執行暫停或緩慢
 
-**症狀**：
-* 圖表在特定節點之後停止進展
-* 執行時間遠長於預期
+**症狀**:
+* Graph 在特定 Node 之後不進展
+* 執行時間比預期長得多
 * 應用程式似乎「凍結」
 
-**可能原因**：
-* 無限或非常長的迴圈
-* 具有非常高逾時的節點
-* 外部資源堵塞
-* 永遠無法滿足的路由條件
+**可能的原因**:
+* 無限或非常長的循環
+* 具有非常高超時的 Node
+* 在外部資源上阻塞
+* 從不滿足的路由條件
 
-**診斷**：
+**診斷**:
 ```csharp
-// 啟用詳細指標和監測
+// 啟用詳細的指標和監控
 var executionOptions = GraphExecutionOptions.CreateDefault();
 
-// 建立具有效能監測的圖表
+// 建立具有效能監控的 Graph
 var graph = new GraphExecutor("performance-test-graph");
 
-// 新增節點到圖表
-var slowNode = new ActionGraphNode("slow-operation", "慢速操作", "模擬慢速操作");
-var fastNode = new ActionGraphNode("fast-operation", "快速操作", "模擬快速操作");
+// 將 Node 新增至 Graph
+var slowNode = new ActionGraphNode("slow-operation", "Slow Operation", "Simulates a slow operation");
+var fastNode = new ActionGraphNode("fast-operation", "Fast Operation", "Simulates a fast operation");
 
 graph.AddNode(slowNode);
 graph.AddNode(fastNode);
 
-// 設定執行的起始節點
+// 為執行設定開始 Node
 graph.SetStartNode(slowNode);
 
-// 執行並進行效能監測
+// 使用效能監控執行
 var startTime = DateTimeOffset.UtcNow;
 var arguments = new KernelArguments();
 arguments["input"] = "test input";
@@ -55,15 +55,15 @@ arguments["input"] = "test input";
 var result = await graph.ExecuteAsync(kernel, arguments, CancellationToken.None);
 var executionTime = DateTimeOffset.UtcNow - startTime;
 
-Console.WriteLine($"圖表執行完成，耗時 {executionTime.TotalMilliseconds:F2}ms");
+Console.WriteLine($"Graph execution completed in {executionTime.TotalMilliseconds:F2}ms");
 ```
 
-**解決方案**：
+**解決方案**:
 ```csharp
-// 配置執行選項並進行效能監測
+// 使用效能監控配置執行選項
 var executionOptions = GraphExecutionOptions.CreateDefault();
 
-// 設定適當的逾時和限制
+// 設定適當的超時和限制
 var graph = new GraphExecutor("optimized-graph");
 graph.ConfigureMetrics(new GraphMetricsOptions
 {
@@ -71,42 +71,42 @@ graph.ConfigureMetrics(new GraphMetricsOptions
     MetricsRetentionPeriod = TimeSpan.FromHours(24)
 });
 
-// 新增配置適當的節點
-var optimizedNode = new ActionGraphNode("optimized-operation", "最佳化操作", "具有監測功能的快速操作");
+// 新增具有適當配置的 Node
+var optimizedNode = new ActionGraphNode("optimized-operation", "Optimized Operation", "Fast operation with monitoring");
 graph.AddNode(optimizedNode);
 graph.SetStartNode(optimizedNode);
 ```
 
-**預防**：
-* 總是為圖表設定起始節點
-* 配置適當的逾時
-* 使用指標監測效能
-* 為外部資源實現斷路器
+**預防**:
+* 始終為 Graph 設定開始 Node
+* 配置適當的超時
+* 使用指標監控效能
+* 為外部資源實作斷路器
 
 ### 缺少服務或 Null 提供者
 
-**症狀**：
-* 執行圖表時出現 `NullReferenceException`
+**症狀**:
+* 執行 Graph 時出現 `NullReferenceException`
 * 「未註冊服務」錯誤或類似錯誤
 * 特定功能無法運作
 
-**可能原因**：
-* 未呼叫 `AddGraphSupport()`
-* 相依性未在 DI 容器中註冊
+**可能的原因**:
+* 未調用 `AddGraphSupport()`
+* 依賴項未在 DI 容器中註冊
 * 服務註冊順序不正確
 
-**診斷**：
+**診斷**:
 ```csharp
-// 檢查圖表支援是否正確配置
+// 檢查 Graph 支援是否已正確配置
 var serviceProvider = kernel.Services;
 var graphExecutorFactory = serviceProvider.GetService<IGraphExecutorFactory>();
 
 if (graphExecutorFactory == null)
 {
-    Console.WriteLine("未啟用圖表支援！這將導致錯誤。");
+    Console.WriteLine("Graph support not enabled! This will cause errors.");
     
-    // 示範正確的配置方式
-    Console.WriteLine("正確配置應包含：");
+    // 展示配置服務的正確方式
+    Console.WriteLine("Correct configuration should include:");
     Console.WriteLine("builder.AddGraphSupport(options => {");
     Console.WriteLine("    options.EnableMetrics = true;");
     Console.WriteLine("    options.EnableCheckpointing = true;");
@@ -114,27 +114,27 @@ if (graphExecutorFactory == null)
 }
 else
 {
-    Console.WriteLine("圖表支援配置正確");
+    Console.WriteLine("Graph support is properly configured");
 }
 
-// 檢查其他必要的服務
+// 檢查其他基本服務
 var checkpointManager = serviceProvider.GetService<ICheckpointManager>();
 var errorRecoveryEngine = serviceProvider.GetService<ErrorRecoveryEngine>();
 var metricsExporter = serviceProvider.GetService<GraphMetricsExporter>();
 
-Console.WriteLine("服務可用性檢查：");
-Console.WriteLine($"- GraphExecutorFactory：{(graphExecutorFactory != null ? "可用" : "缺少")}");
-Console.WriteLine($"- CheckpointManager：{(checkpointManager != null ? "可用" : "缺少")}");
-Console.WriteLine($"- ErrorRecoveryEngine：{(errorRecoveryEngine != null ? "可用" : "缺少")}");
-Console.WriteLine($"- MetricsExporter：{(metricsExporter != null ? "可用" : "缺少")}");
+Console.WriteLine("Service availability check:");
+Console.WriteLine($"- GraphExecutorFactory: {(graphExecutorFactory != null ? "Available" : "Missing")}");
+Console.WriteLine($"- CheckpointManager: {(checkpointManager != null ? "Available" : "Missing")}");
+Console.WriteLine($"- ErrorRecoveryEngine: {(errorRecoveryEngine != null ? "Available" : "Missing")}");
+Console.WriteLine($"- MetricsExporter: {(metricsExporter != null ? "Available" : "Missing")}");
 ```
 
-**解決方案**：
+**解決方案**:
 ```csharp
-// 正確配置
+// 正確的配置
 var builder = Kernel.CreateBuilder();
 
-// 在其他服務之前新增圖表支援
+// 在其他服務之前新增 Graph 支援
 builder.AddGraphSupport(options => {
     options.EnableMetrics = true;
     options.EnableCheckpointing = true;
@@ -149,26 +149,26 @@ builder.AddOpenAIChatCompletion("gpt-4", "your-api-key");
 var kernel = builder.Build();
 ```
 
-**預防**：
-* 總是在新增其他服務之前呼叫 `AddGraphSupport()`
+**預防**:
+* 始終在新增其他服務之前調用 `AddGraphSupport()`
 * 驗證服務註冊順序
-* 在啟動期間測試服務可用性
+* 在啟動時測試服務可用性
 * 正確使用相依性注入
 
-### REST 工具失敗
+### REST 工具中的失敗
 
-**症狀**：
-* HTTP 呼叫逾時
-* 驗證失敗
-* 異常的 API 回應
+**症狀**:
+* HTTP 呼叫超時
+* 身份驗證失敗
+* 非預期的 API 回應
 
-**可能原因**：
-* 驗證架構不正確
-* 逾時設定過低
-* 驗證問題
-* 外部 API 不可用
+**可能的原因**:
+* 不正確的驗證架構
+* 非常低的超時
+* 身份驗證問題
+* 外部 API 無法使用
 
-**診斷**：
+**診斷**:
 ```csharp
 // 檢查服務可用性
 var serviceProvider = kernel.Services;
@@ -176,30 +176,30 @@ var restApiService = serviceProvider.GetService<GraphRestApi>();
 
 if (restApiService == null)
 {
-    Console.WriteLine("REST API 服務不可用");
+    Console.WriteLine("REST API service not available");
 }
 else
 {
-    Console.WriteLine("REST API 服務配置正確");
+    Console.WriteLine("REST API service is properly configured");
 }
 
-// 檢查日誌配置
+// 檢查日誌記錄配置
 var logger = serviceProvider.GetService<ILogger<GraphExecutor>>();
 if (logger != null)
 {
-    logger.LogInformation("圖表執行日誌配置正確");
+    logger.LogInformation("Graph execution logging is properly configured");
 }
 ```
 
-**解決方案**：
+**解決方案**:
 ```csharp
-// 使用適當設定配置 REST API
+// 使用適當的設定配置 REST API
 builder.AddGraphSupport(options => {
     options.EnableLogging = true;
     options.Logging.ConfigureForProduction();
 });
 
-// 使用適當的逾時配置 HTTP 用戶端
+// 使用適當的超時配置 HTTP 用戶端
 builder.Services.AddHttpClient("GraphRestApi", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -207,28 +207,28 @@ builder.Services.AddHttpClient("GraphRestApi", client =>
 });
 ```
 
-**預防**：
-* 在使用前測試外部 API
-* 實現斷路器
-* 配置合理的逾時
+**預防**:
+* 使用前測試外部 API
+* 實作斷路器
+* 配置現實的超時
 * 驗證輸入/輸出架構
 
 ## 狀態和檢查點問題
 
 ### 檢查點未還原
 
-**症狀**：
-* 執行之間狀態遺失
+**症狀**:
+* 執行之間失去狀態
 * 還原檢查點時出錯
-* 復原後資料不一致
+* 恢復後資料不一致
 
-**可能原因**：
-* 檢查點擴充功能未配置
+**可能的原因**:
+* 未配置檢查點延伸
 * 資料庫集合不存在
 * 狀態版本不相容
 * 序列化問題
 
-**診斷**：
+**診斷**:
 ```csharp
 // 測試檢查點功能
 var serviceProvider = kernel.Services;
@@ -248,7 +248,7 @@ if (checkpointManager != null)
         null, 
         CancellationToken.None);
 
-    Console.WriteLine($"檢查點建立成功：{checkpoint.CheckpointId}");
+    Console.WriteLine($"Checkpoint created successfully: {checkpoint.CheckpointId}");
 
     // 測試檢查點還原
     var restoredState = await checkpointManager.RestoreFromCheckpointAsync(
@@ -258,20 +258,20 @@ if (checkpointManager != null)
     if (restoredState != null)
     {
         var restoredValue = restoredState.GetValue<string>("test_key");
-        Console.WriteLine($"檢查點還原成功。值：{restoredValue}");
+        Console.WriteLine($"Checkpoint restored successfully. Value: {restoredValue}");
     }
     else
     {
-        Console.WriteLine("檢查點還原失敗");
+        Console.WriteLine("Failed to restore checkpoint");
     }
 }
 else
 {
-    Console.WriteLine("檢查點服務不可用");
+    Console.WriteLine("Checkpointing service not available");
 }
 ```
 
-**解決方案**：
+**解決方案**:
 ```csharp
 // 正確配置檢查點
 builder.AddGraphSupport(options => {
@@ -287,25 +287,25 @@ builder.AddGraphSupport(options => {
 });
 ```
 
-**預防**：
-* 總是測試資料庫連接
-* 實現版本狀態驗證
-* 使用健全的序列化
-* 監測磁碟空間
+**預防**:
+* 始終測試資料庫連線
+* 實作版本狀態驗證
+* 使用強大的序列化
+* 監控磁碟空間
 
 ### 序列化問題
 
-**症狀**：
+**症狀**:
 * 「無法序列化類型 X」錯誤
-* 檢查點損毀
-* 狀態儲存失敗
+* 檢查點損壞
+* 無法保存狀態
 
-**可能原因**：
-* 非可序列化類型
-* 循環參考
+**可能的原因**:
+* 無法序列化的類型
+* 迴圈參考
 * 不支援的複雜類型
 
-**診斷**：
+**診斷**:
 ```csharp
 // 測試狀態序列化
 var state = new GraphState();
@@ -318,30 +318,30 @@ try
 
     // 使用 ISerializableState 介面測試序列化
     var serialized = state.Serialize();
-    Console.WriteLine($"狀態序列化成功。大小：{serialized.Length} 位元組");
+    Console.WriteLine($"State serialization successful. Size: {serialized.Length} bytes");
 
-    // 測試複雜類型（可能失敗）
+    // 使用複雜類型測試（這可能會失敗）
     try
     {
         state.SetValue("complex_object", new NonSerializableType());
         var complexSerialized = state.Serialize();
-        Console.WriteLine("複雜物件序列化成功");
+        Console.WriteLine("Complex object serialization successful");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"複雜物件序列化失敗（預期）：{ex.Message}");
-        Console.WriteLine("解決方案：使用簡單類型或實現 ISerializableState");
+        Console.WriteLine($"Complex object serialization failed (expected): {ex.Message}");
+        Console.WriteLine("Solution: Use simple types or implement ISerializableState");
     }
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"狀態序列化失敗：{ex.Message}");
+    Console.WriteLine($"State serialization failed: {ex.Message}");
 }
 ```
 
-**解決方案**：
+**解決方案**:
 ```csharp
-// 為複雜類型實現 ISerializableState
+// 為複雜類型實作 ISerializableState
 public class MyState : ISerializableState
 {
     public string Serialize() => JsonSerializer.Serialize(this);
@@ -354,36 +354,36 @@ state.SetValue("number", 42);
 state.SetValue("array", new[] { 1, 2, 3 });
 ```
 
-**預防**：
+**預防**:
 * 盡可能使用基本類型
-* 為複雜類型實現 `ISerializableState`
-* 避免循環參考
+* 為複雜類型實作 `ISerializableState`
+* 避免迴圈參考
 * 在開發期間測試序列化
 
-## Python 節點問題
+## Python Node 問題
 
 ### Python 執行錯誤
 
-**症狀**：
+**症狀**:
 * 「找不到 python」錯誤
-* Python 執行逾時
+* Python 執行超時
 * .NET 和 Python 之間的通訊失敗
 
-**可能原因**：
+**可能的原因**:
 * Python 不在 PATH 中
 * Python 版本不正確
 * 權限問題
-* 缺少 Python 相依性
+* 缺少 Python 依賴項
 
-**診斷**：
+**診斷**:
 ```csharp
 // 檢查 Python 是否可用
 var pythonNode = new PythonGraphNode("python");
 var isAvailable = await pythonNode.CheckAvailabilityAsync();
-Console.WriteLine($"Python 可用：{isAvailable}");
+Console.WriteLine($"Python available: {isAvailable}");
 ```
 
-**解決方案**：
+**解決方案**:
 ```csharp
 // 明確配置 Python
 var pythonOptions = new PythonNodeOptions
@@ -400,28 +400,28 @@ var pythonOptions = new PythonNodeOptions
 var pythonNode = new PythonGraphNode("python", pythonOptions);
 ```
 
-**預防**：
-* 使用 Python 的絕對路徑
-* 驗證 Python 相依性
+**預防**:
+* 對 Python 使用絕對路徑
+* 驗證 Python 依賴項
 * 配置環境變數
-* 為 Python 節點實現備援
+* 為 Python Node 實作回退
 
 ## 效能問題
 
-### 執行非常緩慢
+### 非常緩慢的執行
 
-**症狀**：
-* 執行時間遠長於預期
-* 過多的 CPU/記憶體使用
-* 簡單圖表需要很長時間
+**症狀**:
+* 執行時間比預期長得多
+* 過度的 CPU/記憶體使用
+* 簡單的 Graph 需要很長時間
 
-**可能原因**：
-* 節點效率不高
-* 缺乏平行處理
-* 不必要的堵塞
-* 次優配置
+**可能的原因**:
+* 效率低下的 Node
+* 缺乏並行性
+* 不必要的阻塞
+* 次優的配置
 
-**診斷**：
+**診斷**:
 ```csharp
 // 分析效能指標
 var serviceProvider = kernel.Services;
@@ -429,33 +429,33 @@ var metricsExporter = serviceProvider.GetService<GraphMetricsExporter>();
 
 if (metricsExporter != null)
 {
-    // 建立示範效能指標
+    // 為演示建立示例效能指標
     var performanceMetrics = new GraphPerformanceMetrics();
     
     // 以不同格式匯出指標
     var jsonMetrics = metricsExporter.ExportMetrics(performanceMetrics, MetricsExportFormat.Json);
-    Console.WriteLine("已成功以 JSON 格式匯出目前指標");
+    Console.WriteLine("Current metrics exported successfully in JSON format");
 
-    // 匯出用於儀表板視覺化
+    // 為儀表板視覺化匯出
     var dashboardMetrics = metricsExporter.ExportForDashboard(performanceMetrics, DashboardType.Grafana);
-    Console.WriteLine("已成功為 Grafana 匯出儀表板指標");
+    Console.WriteLine("Dashboard metrics exported successfully for Grafana");
 
     // 檢查效能異常
     if (jsonMetrics.Contains("error") || jsonMetrics.Contains("failure"))
     {
-        Console.WriteLine("在指標中偵測到效能問題");
-        Console.WriteLine("考慮實現斷路器或備援");
+        Console.WriteLine("Performance issues detected in metrics");
+        Console.WriteLine("Consider implementing circuit breakers or fallbacks");
     }
 }
 else
 {
-    Console.WriteLine("指標匯出工具不可用");
+    Console.WriteLine("Metrics exporter not available");
 }
 ```
 
-**解決方案**：
+**解決方案**:
 ```csharp
-// 啟用平行執行和最佳化
+// 啟用並行執行和最佳化
 var options = new GraphOptions
 {
     EnableMetrics = true,
@@ -464,58 +464,58 @@ var options = new GraphOptions
     EnablePlanCompilation = true
 };
 
-// 配置並發
+// 配置並行
 var concurrencyOptions = new GraphConcurrencyOptions
 {
     MaxParallelNodes = Environment.ProcessorCount,
     EnableOptimizations = true
 };
 
-// 使用最佳化節點
-var optimizedNode = new ActionGraphNode("optimized-operation", "最佳化操作", "具有監測功能的快速操作");
+// 使用最佳化的 Node
+var optimizedNode = new ActionGraphNode("optimized-operation", "Optimized Operation", "Fast operation with monitoring");
 ```
 
-**預防**：
-* 定期監測指標
-* 使用分析找出瓶頸
-* 在適當時實現快取
-* 最佳化關鍵節點
+**預防**:
+* 定期監控指標
+* 使用分析來識別瓶頸
+* 在適當時實作快取
+* 最佳化關鍵 Node
 
 ## 整合問題
 
-### 驗證失敗
+### 身份驗證失敗
 
-**症狀**：
-* 外部 API 上的 401/403 錯誤
-* LLM 驗證失敗
+**症狀**:
+* 外部 API 出現 401/403 錯誤
+* LLM 身份驗證失敗
 * 授權問題
 
-**可能原因**：
+**可能的原因**:
 * 無效的 API 金鑰
-* 權杖已過期
+* 過期的權杖
 * 不正確的認證配置
 * 權限問題
 
-**診斷**：
+**診斷**:
 ```csharp
-// 檢查驗證配置
+// 檢查身份驗證配置
 var serviceProvider = kernel.Services;
 var authService = serviceProvider.GetService<IAuthenticationService>();
 
 if (authService != null)
 {
     var isValid = await authService.ValidateCredentialsAsync();
-    Console.WriteLine($"驗證服務可用：{isValid}");
+    Console.WriteLine($"Authentication service available: {isValid}");
 }
 else
 {
-    Console.WriteLine("驗證服務不可用");
+    Console.WriteLine("Authentication service not available");
 }
 ```
 
-**解決方案**：
+**解決方案**:
 ```csharp
-// 正確配置驗證
+// 正確配置身份驗證
 builder.AddOpenAIChatCompletion(
     modelId: "gpt-4",
     apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
@@ -529,15 +529,15 @@ builder.AddAzureOpenAIChatCompletion(
 );
 ```
 
-**預防**：
-* 使用環境變數儲存認證
-* 實現自動權杖輪換
-* 監測認證過期
-* 使用密碼管理工具
+**預防**:
+* 為認證使用環境變數
+* 實作自動權杖輪換
+* 監控認證過期
+* 使用密碼管理員
 
-## 復原策略
+## 恢復策略
 
-### 自動復原
+### 自動恢復
 ```csharp
 // 配置重試原則
 var retryPolicy = new ExponentialBackoffRetryPolicy(
@@ -545,18 +545,18 @@ var retryPolicy = new ExponentialBackoffRetryPolicy(
     initialDelay: TimeSpan.FromSeconds(1)
 );
 
-// 實現斷路器
+// 實作斷路器
 var circuitBreaker = new CircuitBreaker(
     failureThreshold: 5,
     recoveryTimeout: TimeSpan.FromMinutes(1)
 );
 ```
 
-### 備援和替代方案
+### 回退和替代方案
 ```csharp
-// 實現備援節點
-var errorHandlerNode = new ErrorHandlerGraphNode("error-handler", "錯誤處理器", "處理執行期間的錯誤");
-var fallbackNode = new ActionGraphNode("fallback", "備援操作", "由於錯誤而執行的備援操作");
+// 實作回退 Node
+var errorHandlerNode = new ErrorHandlerGraphNode("error-handler", "Error Handler", "Handles errors during execution");
+var fallbackNode = new ActionGraphNode("fallback", "Fallback Operation", "Fallback operation executed due to error");
 
 // 配置錯誤處理
 errorHandlerNode.ConfigureErrorHandler(GraphErrorType.Validation, ErrorRecoveryAction.Skip);
@@ -564,32 +564,32 @@ errorHandlerNode.ConfigureErrorHandler(GraphErrorType.Network, ErrorRecoveryActi
 errorHandlerNode.AddFallbackNode(GraphErrorType.Unknown, fallbackNode);
 ```
 
-## 監測和警報
+## 監控和警報
 
 ### 警報配置
 ```csharp
-// 配置關鍵問題的警報
+// 為關鍵問題配置警報
 var alertingService = new GraphAlertingService();
 alertingService.AddAlert(new AlertRule
 {
     Condition = metrics => metrics.ErrorRate > 0.1,
     Severity = AlertSeverity.Critical,
-    Message = "錯誤率超過閾值"
+    Message = "Error rate exceeded threshold"
 });
 ```
 
-### 結構化日誌
+### 結構化日誌記錄
 ```csharp
-// 配置詳細日誌
+// 配置詳細的日誌記錄
 var logger = new SemanticKernelGraphLogger();
 logger.LogExecutionStart(graphId, executionId);
 logger.LogNodeExecution(nodeId, executionId, duration);
 logger.LogExecutionComplete(graphId, executionId, result);
 ```
 
-## 完整工作範例
+## 完整的工作示例
 
-以下是展示疑難排解技術的完整工作範例：
+這是展示故障排除技術的完整工作示例：
 
 ```csharp
 using Microsoft.Extensions.Logging;
@@ -614,7 +614,7 @@ public class TroubleshootingExample
 
     public async Task RunAsync()
     {
-        _logger.LogInformation("開始疑難排解示例");
+        _logger.LogInformation("Starting Troubleshooting Examples");
 
         try
         {
@@ -627,41 +627,41 @@ public class TroubleshootingExample
             // 示例 3：狀態和檢查點問題
             await DemonstrateStateCheckpointTroubleshootingAsync();
 
-            // 示例 4：錯誤復原和復原力
+            // 示例 4：錯誤恢復和彈性
             await DemonstrateErrorRecoveryTroubleshootingAsync();
 
-            // 示例 5：效能監測和診斷
+            // 示例 5：效能監控和診斷
             await DemonstratePerformanceMonitoringTroubleshootingAsync();
 
-            _logger.LogInformation("所有疑難排解示例已成功完成");
+            _logger.LogInformation("All troubleshooting examples completed successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "執行疑難排解示例時出錯");
+            _logger.LogError(ex, "Error running troubleshooting examples");
             throw;
         }
     }
 
     private async Task DemonstrateExecutionPerformanceTroubleshootingAsync()
     {
-        _logger.LogInformation("=== 執行效能疑難排解 ===");
+        _logger.LogInformation("=== Execution Performance Troubleshooting ===");
 
         try
         {
-            // 建立可能存在效能問題的圖表
+            // 建立具有潛在效能問題的 Graph
             var graph = new GraphExecutor("performance-test-graph");
             
-            // 新增節點到圖表
-            var slowNode = new ActionGraphNode("slow-operation", "慢速操作", "模擬慢速操作");
-            var fastNode = new ActionGraphNode("fast-operation", "快速操作", "模擬快速操作");
+            // 將 Node 新增至 Graph
+            var slowNode = new ActionGraphNode("slow-operation", "Slow Operation", "Simulates a slow operation");
+            var fastNode = new ActionGraphNode("fast-operation", "Fast Operation", "Simulates a fast operation");
             
             graph.AddNode(slowNode);
             graph.AddNode(fastNode);
 
-            // 設定執行的起始節點
+            // 為執行設定開始 Node
             graph.SetStartNode(slowNode);
 
-            // 執行並進行效能監測
+            // 使用效能監控執行
             var startTime = DateTimeOffset.UtcNow;
             
             // 建立執行的引數
@@ -671,21 +671,21 @@ public class TroubleshootingExample
             var result = await graph.ExecuteAsync(_kernel, arguments, CancellationToken.None);
             var executionTime = DateTimeOffset.UtcNow - startTime;
 
-            _logger.LogInformation("圖表執行完成，耗時 {ExecutionTime:F2}ms", executionTime.TotalMilliseconds);
+            _logger.LogInformation("Graph execution completed in {ExecutionTime:F2}ms", executionTime.TotalMilliseconds);
 
-            // 分析效能指標（如果有的話）
+            // 分析效能指標（如果可用）
             if (result.Metadata != null && result.Metadata.ContainsKey("ExecutionMetrics"))
             {
-                _logger.LogInformation("在結果中繼資料中提供執行指標");
+                _logger.LogInformation("Execution metrics available in result metadata");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "執行效能疑難排解時出錯");
+            _logger.LogError(ex, "Error in execution performance troubleshooting");
         }
     }
 
-    // ... 如上述完整範例所示的其他方法
+    // ... 其他方法如上面的完整示例所示
 }
 ```
 
@@ -693,16 +693,15 @@ public class TroubleshootingExample
 
 * [錯誤處理](../how-to/error-handling-and-resilience.md)
 * [效能調整](../how-to/performance-tuning.md)
-* [監測](../how-to/metrics-and-observability.md)
+* [監控](../how-to/metrics-and-observability.md)
 * [配置](../how-to/configuration.md)
-* [範例](../examples/index.md)
+* [示例](../examples/index.md)
 
 ## 參考
 
 * `GraphExecutionOptions`：執行設定
 * `CheckpointingOptions`：檢查點設定
-* `PythonNodeOptions`：Python 節點設定
+* `PythonNodeOptions`：Python Node 設定
 * `RetryPolicy`：重試原則
-* `CircuitBreaker`：用於復原力的斷路器
+* `CircuitBreaker`：用於彈性的斷路器
 * `GraphAlertingService`：警報系統
-

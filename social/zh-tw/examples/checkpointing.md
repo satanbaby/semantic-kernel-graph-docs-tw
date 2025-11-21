@@ -1,66 +1,66 @@
 # 檢查點範例
 
-此範例示範使用 Semantic Kernel Graph 檢查點系統進行執行狀態持久化和恢復。它展示如何保存、還原和管理執行狀態以實現彈性工作流程。
+此範例示範如何使用 Semantic Kernel Graph 檢查點系統進行執行狀態的持久化和復原。它展示了如何保存、復原和管理執行狀態以實現有韌性的工作流程。
 
 ## 目標
 
-學習如何在基於圖的工作流程中實現檢查點，以便：
+學習如何在基於圖表的工作流程中實現檢查點功能以：
 * 在關鍵點保存執行狀態
-* 從先前的檢查點還原工作流程
+* 從先前的檢查點復原工作流程
 * 實現自動檢查點管理
 * 處理分散式檢查點儲存
-* 監控和優化檢查點效能
+* 監控並優化檢查點效能
 
 ## 先決條件
 
-* **.NET 8.0** 或更高版本
-* **OpenAI API 金鑰**在 `appsettings.json` 中配置
-* **Semantic Kernel Graph 套件**已安裝
-* 對[圖的概念](../concepts/graph-concepts.md)和[狀態管理](../concepts/state.md)的基本理解
+* **.NET 8.0** 或更新版本
+* **OpenAI API Key** 在 `appsettings.json` 中配置
+* **Semantic Kernel Graph package** 已安裝
+* 對 [Graph Concepts](../concepts/graph-concepts.md) 和 [State Management](../concepts/state.md) 的基本理解
 
-## 主要元件
+## 關鍵元件
 
 ### 概念和技術
 
-* **檢查點**：在特定點保存執行狀態以供稍後還原
-* **狀態序列化**：將圖狀態轉換為持久儲存格式
-* **恢復**：從保存的檢查點還原工作流程執行
-* **分散式儲存**：跨多個儲存位置管理檢查點
+* **Checkpointing**: 在特定時間點保存執行狀態以供稍後復原
+* **State Serialization**: 將圖表狀態轉換為持久儲存格式
+* **Recovery**: 從已保存的檢查點復原工作流程執行
+* **Distributed Storage**: 在多個儲存位置管理檢查點
 
 ### 核心類別
 
-* `CheckpointManager`：管理檢查點的建立、儲存和檢索
-* `CheckpointingGraphExecutor`：具有內建檢查點支援的執行器
-* `StateHelpers`：狀態序列化和驗證的工具
-* `CheckpointOptions`：檢查點行為的配置選項
+* `CheckpointManager`: 管理檢查點建立、儲存和檢索
+* `CheckpointingGraphExecutor`: 具有內建檢查點支援的執行器
+* `StateHelpers`: 用於狀態序列化和驗證的工具程式
+* `CheckpointOptions`: 檢查點行為的配置選項
 
-## 執行範例
+## 執行此範例
 
-### 開始使用
+### 入門
 
-此範例示範使用 Semantic Kernel Graph 套件進行檢查點和狀態持久化。下面的程式碼片段展示如何在您自己的應用程式中實現此模式。
+此範例示範 Semantic Kernel Graph package 的檢查點和狀態持久化功能。以下程式碼片段展示如何在您自己的應用程式中實現此模式。
 
 ## 逐步實現
 
 ### 1. 基本檢查點系統
 
-此範例示範基本的檢查點建立和還原。
+此範例示範基本的檢查點建立和復原。
 
 ```csharp
-// 建立具有檢查點支援的核心
+// Create kernel with checkpointing support
 var kernel = CreateKernel();
 
-// 建立檢查點執行器
+// Create checkpointing executor
 var checkpointingExecutor = new CheckpointingGraphExecutor(
     "CheckpointingExample",
-    "基本檢查點演示",
+    "Basic checkpointing demonstration",
     logger);
 
-// 配置檢查點選項
+// Configure checkpoint options
 var checkpointOptions = new CheckpointOptions
 {
     EnableAutoCheckpointing = true,
-    CheckpointInterval = 2, // 每 2 個節點建立一個檢查點
+    CheckpointInterval = 2, // Checkpoint every 2 nodes
     EnableCompression = true,
     MaxCheckpointSize = 1024 * 1024, // 1MB
     StorageProvider = new FileSystemStorageProvider("./checkpoints")
@@ -68,81 +68,81 @@ var checkpointOptions = new CheckpointOptions
 
 checkpointingExecutor.ConfigureCheckpointing(checkpointOptions);
 
-// 建立簡單工作流程
+// Create a simple workflow
 var workflow = CreateCheckpointingWorkflow();
 checkpointingExecutor.AddGraph(workflow);
 
-// 使用檢查點執行
+// Execute with checkpointing
 var arguments = new KernelArguments
 {
-    ["input_data"] = "用於處理的範例資料",
+    ["input_data"] = "Sample data for processing",
     ["checkpoint_id"] = Guid.NewGuid().ToString()
 };
 
-Console.WriteLine("🚀 開始執行具有檢查點的工作流程...");
+Console.WriteLine("🚀 Starting workflow execution with checkpointing...");
 var result = await checkpointingExecutor.ExecuteAsync(kernel, arguments);
 
-Console.WriteLine($"✅ 工作流程完成。最終結果：{result.GetValue<string>()}");
-Console.WriteLine($"📊 建立的檢查點：{checkpointingExecutor.CheckpointManager.GetCheckpointCount()}");
+Console.WriteLine($"✅ Workflow completed. Final result: {result.GetValue<string>()}");
+Console.WriteLine($"📊 Checkpoints created: {checkpointingExecutor.CheckpointManager.GetCheckpointCount()}");
 ```
 
-### 2. 檢查點恢復範例
+### 2. 檢查點復原範例
 
-示範如何從檢查點還原工作流程執行。
+示範如何從檢查點復原工作流程執行。
 
 ```csharp
-// 模擬工作流程中斷和恢復
-Console.WriteLine("\n🔄 模擬工作流程中斷...");
+// Simulate workflow interruption and recovery
+Console.WriteLine("\n🔄 Simulating workflow interruption...");
 
-// 建立長時間運行的工作流程
+// Create a long-running workflow
 var longWorkflow = CreateLongRunningWorkflow();
 var recoveryExecutor = new CheckpointingGraphExecutor(
     "RecoveryExample",
-    "檢查點恢復演示",
+    "Checkpoint recovery demonstration",
     logger);
 
 recoveryExecutor.ConfigureCheckpointing(new CheckpointOptions
 {
     EnableAutoCheckpointing = true,
-    CheckpointInterval = 1, // 在每個節點後建立檢查點
+    CheckpointInterval = 1, // Checkpoint after each node
     EnableCompression = true,
     StorageProvider = new FileSystemStorageProvider("./recovery-checkpoints")
 });
 
 recoveryExecutor.AddGraph(longWorkflow);
 
-// 開始執行
+// Start execution
 var recoveryArgs = new KernelArguments
 {
     ["workflow_id"] = "recovery_001",
-    ["data"] = "用於處理的大型資料集"
+    ["data"] = "Large dataset for processing"
 };
 
 try
 {
-    Console.WriteLine("🚀 開始長時間工作流程...");
+    Console.WriteLine("🚀 Starting long workflow...");
     var recoveryResult = await recoveryExecutor.ExecuteAsync(kernel, recoveryArgs);
-    Console.WriteLine($"✅ 工作流程完成：{recoveryResult.GetValue<string>()}");
+    Console.WriteLine($"✅ Workflow completed: {recoveryResult.GetValue<string>()}");
 }
 catch (OperationCanceledException)
 {
-    Console.WriteLine("⏸️ 工作流程已中斷。檢查點已保存。");
+    Console.WriteLine("⏸️ Workflow was interrupted. Checkpoints saved.");
     
-    // 模擬恢復
-    Console.WriteLine("🔄 從檢查點恢復...");
+    // Simulate recovery
+    Console.WriteLine("🔄 Recovering from checkpoint...");
     var recoveredResult = await recoveryExecutor.RecoverFromLatestCheckpointAsync(
         kernel, recoveryArgs);
     
-    Console.WriteLine($"✅ 恢復成功：{recoveredResult.GetValue<string>()}");
+    Console.WriteLine($"✅ Recovery successful: {recoveredResult.GetValue<string>()}");
 }
 ```
 
 ### 3. 分散式備份範例
 
-展示如何為高可用性實現分散式檢查點儲存。
+展示如何實現分散式檢查點儲存以實現高可用性。
 
 ```csharp
-// 建立分散式儲存提供者
+// Create distributed storage providers
 var localStorage = new FileSystemStorageProvider("./local-checkpoints");
 var cloudStorage = new AzureBlobStorageProvider(connectionString, containerName);
 var distributedStorage = new DistributedStorageProvider(new[]
@@ -151,10 +151,10 @@ var distributedStorage = new DistributedStorageProvider(new[]
     cloudStorage
 });
 
-// 配置分散式檢查點
+// Configure distributed checkpointing
 var distributedExecutor = new CheckpointingGraphExecutor(
     "DistributedExample",
-    "分散式檢查點演示",
+    "Distributed checkpointing demonstration",
     logger);
 
 distributedExecutor.ConfigureCheckpointing(new CheckpointOptions
@@ -163,25 +163,25 @@ distributedExecutor.ConfigureCheckpointing(new CheckpointOptions
     CheckpointInterval = 3,
     EnableCompression = true,
     StorageProvider = distributedStorage,
-    ReplicationFactor = 2, // 儲存在 2 個位置
+    ReplicationFactor = 2, // Store in 2 locations
     EnableAsyncBackup = true
 });
 
-// 建立並執行工作流程
+// Create and execute workflow
 var distributedWorkflow = CreateDistributedWorkflow();
 distributedExecutor.AddGraph(distributedWorkflow);
 
 var distributedArgs = new KernelArguments
 {
     ["workflow_id"] = "distributed_001",
-    ["data"] = "需要備份的關鍵資料"
+    ["data"] = "Critical data requiring backup"
 };
 
-Console.WriteLine("🚀 開始分散式檢查點工作流程...");
+Console.WriteLine("🚀 Starting distributed checkpointing workflow...");
 var distributedResult = await distributedExecutor.ExecuteAsync(kernel, distributedArgs);
 
-Console.WriteLine($"✅ 分散式工作流程完成：{distributedResult.GetValue<string>()}");
-Console.WriteLine($"📊 檢查點儲存在 {distributedStorage.GetActiveProviders().Count()} 個位置");
+Console.WriteLine($"✅ Distributed workflow completed: {distributedResult.GetValue<string>()}");
+Console.WriteLine($"📊 Checkpoints stored in {distributedStorage.GetActiveProviders().Count()} locations");
 ```
 
 ### 4. 監控和分析範例
@@ -189,10 +189,10 @@ Console.WriteLine($"📊 檢查點儲存在 {distributedStorage.GetActiveProvide
 示範檢查點監控和效能分析。
 
 ```csharp
-// 建立啟用監控的執行器
+// Create monitoring-enabled executor
 var monitoringExecutor = new CheckpointingGraphExecutor(
     "MonitoringExample",
-    "檢查點監控演示",
+    "Checkpoint monitoring demonstration",
     logger);
 
 monitoringExecutor.ConfigureCheckpointing(new CheckpointOptions
@@ -205,38 +205,38 @@ monitoringExecutor.ConfigureCheckpointing(new CheckpointOptions
     EnableDetailedLogging = true
 });
 
-// 訂閱檢查點事件
+// Subscribe to checkpoint events
 monitoringExecutor.CheckpointManager.CheckpointCreated += (sender, e) =>
 {
-    Console.WriteLine($"📝 檢查點已建立：{e.CheckpointId}，時間為 {e.Timestamp}");
-    Console.WriteLine($"   大小：{e.SizeBytes} 位元組，壓縮率：{e.CompressionRatio:P1}");
+    Console.WriteLine($"📝 Checkpoint created: {e.CheckpointId} at {e.Timestamp}");
+    Console.WriteLine($"   Size: {e.SizeBytes} bytes, Compression: {e.CompressionRatio:P1}");
 };
 
 monitoringExecutor.CheckpointManager.CheckpointRestored += (sender, e) =>
 {
-    Console.WriteLine($"🔄 檢查點已還原：{e.CheckpointId}，耗時 {e.RestoreTimeMs}ms");
+    Console.WriteLine($"🔄 Checkpoint restored: {e.CheckpointId} in {e.RestoreTimeMs}ms");
 };
 
-// 執行具有監控的工作流程
+// Execute workflow with monitoring
 var monitoringWorkflow = CreateMonitoringWorkflow();
 monitoringExecutor.AddGraph(monitoringWorkflow);
 
 var monitoringArgs = new KernelArguments
 {
     ["workflow_id"] = "monitoring_001",
-    ["data"] = "用於監控演示的資料"
+    ["data"] = "Data for monitoring demonstration"
 };
 
-Console.WriteLine("🚀 開始監控工作流程...");
+Console.WriteLine("🚀 Starting monitored workflow...");
 var monitoringResult = await monitoringExecutor.ExecuteAsync(kernel, monitoringArgs);
 
-// 顯示檢查點分析
+// Display checkpoint analytics
 var analytics = monitoringExecutor.CheckpointManager.GetAnalytics();
-Console.WriteLine("\n📊 檢查點分析：");
-Console.WriteLine($"   總檢查點數：{analytics.TotalCheckpoints}");
-Console.WriteLine($"   平均大小：{analytics.AverageSizeBytes} 位元組");
-Console.WriteLine($"   壓縮率：{analytics.AverageCompressionRatio:P1}");
-Console.WriteLine($"   儲存效率：{analytics.StorageEfficiency:P1}");
+Console.WriteLine("\n📊 Checkpoint Analytics:");
+Console.WriteLine($"   Total checkpoints: {analytics.TotalCheckpoints}");
+Console.WriteLine($"   Average size: {analytics.AverageSizeBytes} bytes");
+Console.WriteLine($"   Compression ratio: {analytics.AverageCompressionRatio:P1}");
+Console.WriteLine($"   Storage efficiency: {analytics.StorageEfficiency:P1}");
 ```
 
 ## 預期輸出
@@ -244,75 +244,75 @@ Console.WriteLine($"   儲存效率：{analytics.StorageEfficiency:P1}");
 ### 基本檢查點範例
 
 ```
-🚀 開始執行具有檢查點的工作流程...
-📝 在節點後建立檢查點：data-processor
-📝 在節點後建立檢查點：data-validator
-📝 在節點後建立檢查點：result-generator
-✅ 工作流程完成。最終結果：經過驗證的已處理資料
-📊 建立的檢查點：3
-📁 檢查點儲存在：./checkpoints/
+🚀 Starting workflow execution with checkpointing...
+📝 Creating checkpoint after node: data-processor
+📝 Creating checkpoint after node: data-validator
+📝 Creating checkpoint after node: result-generator
+✅ Workflow completed. Final result: Processed data with validation
+📊 Checkpoints created: 3
+📁 Checkpoints stored in: ./checkpoints/
    - checkpoint_001.json (2.3 KB)
    - checkpoint_002.json (2.1 KB)
    - checkpoint_003.json (1.8 KB)
 ```
 
-### 恢復範例
+### 復原範例
 
 ```
-🚀 開始長時間工作流程...
-📝 在節點後建立檢查點：data-loader
-📝 在節點後建立檢查點：data-processor
-⏸️ 工作流程已中斷。檢查點已保存。
+🚀 Starting long workflow...
+📝 Creating checkpoint after node: data-loader
+📝 Creating checkpoint after node: data-processor
+⏸️ Workflow was interrupted. Checkpoints saved.
 
-🔄 從檢查點恢復...
-📝 從檢查點恢復：checkpoint_002.json
-🔄 從節點繼續執行：data-validator
-📝 在節點後建立檢查點：data-validator
-📝 在節點後建立檢查點：result-generator
-✅ 恢復成功：使用恢復功能處理的大型資料集
-📊 恢復時間：1.2 秒
-📊 使用的檢查點：1
+🔄 Recovering from checkpoint...
+📝 Restoring from checkpoint: checkpoint_002.json
+🔄 Resuming execution from node: data-validator
+📝 Creating checkpoint after node: data-validator
+📝 Creating checkpoint after node: result-generator
+✅ Recovery successful: Processed large dataset with recovery
+📊 Recovery time: 1.2 seconds
+📊 Checkpoints used: 1
 ```
 
 ### 分散式備份範例
 
 ```
-🚀 開始分散式檢查點工作流程...
-📝 在節點後建立檢查點：data-processor
-   📤 備份到本機儲存
-   📤 備份到雲端儲存
-📝 在節點後建立檢查點：data-validator
-   📤 備份到本機儲存
-   📤 備份到雲端儲存
-📝 在節點後建立檢查點：result-generator
-   📤 備份到本機儲存
-   📤 備份到雲端儲存
+🚀 Starting distributed checkpointing workflow...
+📝 Creating checkpoint after node: data-processor
+   📤 Backing up to local storage
+   📤 Backing up to cloud storage
+📝 Creating checkpoint after node: data-validator
+   📤 Backing up to local storage
+   📤 Backing up to cloud storage
+📝 Creating checkpoint after node: result-generator
+   📤 Backing up to local storage
+   📤 Backing up to cloud storage
 
-✅ 分散式工作流程完成：備份的關鍵資料已處理
-📊 檢查點儲存在 2 個位置
-📁 本機儲存：3 個檢查點
-☁️ 雲端儲存：3 個檢查點
-🔒 複製因子：2x
+✅ Distributed workflow completed: Critical data processed with backup
+📊 Checkpoints stored in 2 locations
+📁 Local storage: 3 checkpoints
+☁️ Cloud storage: 3 checkpoints
+🔒 Replication factor: 2x
 ```
 
 ### 監控範例
 
 ```
-🚀 開始監控工作流程...
-📝 檢查點已建立：cp_001，時間為 2025-08-15 10:30:15
-   大小：2048 位元組，壓縮率：75.2%
-📝 檢查點已建立：cp_002，時間為 2025-08-15 10:30:18
-   大小：1920 位元組，壓縮率：78.1%
-📝 檢查點已建立：cp_003，時間為 2025-08-15 10:30:21
-   大小：1856 位元組，壓縮率：79.8%
-🔄 檢查點已還原：cp_002，耗時 45ms
+🚀 Starting monitored workflow...
+📝 Checkpoint created: cp_001 at 2025-08-15 10:30:15
+   Size: 2048 bytes, Compression: 75.2%
+📝 Checkpoint created: cp_002 at 2025-08-15 10:30:18
+   Size: 1920 bytes, Compression: 78.1%
+📝 Checkpoint created: cp_003 at 2025-08-15 10:30:21
+   Size: 1856 bytes, Compression: 79.8%
+🔄 Checkpoint restored: cp_002 in 45ms
 
-✅ 監控工作流程完成：使用監控處理的資料
-📊 檢查點分析：
-   總檢查點數：3
-   平均大小：1941 位元組
-   壓縮率：77.7%
-   儲存效率：85.2%
+✅ Monitored workflow completed: Data processed with monitoring
+📊 Checkpoint Analytics:
+   Total checkpoints: 3
+   Average size: 1941 bytes
+   Compression ratio: 77.7%
+   Storage efficiency: 85.2%
 ```
 
 ## 配置選項
@@ -322,18 +322,18 @@ Console.WriteLine($"   儲存效率：{analytics.StorageEfficiency:P1}");
 ```csharp
 var checkpointOptions = new CheckpointOptions
 {
-    EnableAutoCheckpointing = true,           // 自動檢查點
-    CheckpointInterval = 2,                   // 每 N 個節點建立檢查點
-    EnableCompression = true,                 // 壓縮檢查點資料
-    MaxCheckpointSize = 1024 * 1024,         // 最大檢查點大小
-    StorageProvider = storageProvider,        // 儲存提供者
-    ReplicationFactor = 2,                   // 儲存位置數
-    EnableAsyncBackup = true,                // 非同步備份
-    EnableMetrics = true,                    // 啟用效能指標
-    EnableDetailedLogging = true,            // 詳細記錄
-    CompressionLevel = CompressionLevel.Optimal, // 壓縮等級
-    EncryptionEnabled = false,               // 啟用加密
-    RetentionPolicy = new RetentionPolicy    // 檢查點保留策略
+    EnableAutoCheckpointing = true,           // Automatic checkpointing
+    CheckpointInterval = 2,                   // Checkpoint every N nodes
+    EnableCompression = true,                 // Compress checkpoint data
+    MaxCheckpointSize = 1024 * 1024,         // Maximum checkpoint size
+    StorageProvider = storageProvider,        // Storage provider
+    ReplicationFactor = 2,                   // Number of storage locations
+    EnableAsyncBackup = true,                // Asynchronous backup
+    EnableMetrics = true,                    // Enable performance metrics
+    EnableDetailedLogging = true,            // Detailed logging
+    CompressionLevel = CompressionLevel.Optimal, // Compression level
+    EncryptionEnabled = false,               // Enable encryption
+    RetentionPolicy = new RetentionPolicy    // Checkpoint retention
     {
         MaxCheckpoints = 100,
         MaxAge = TimeSpan.FromDays(30),
@@ -345,82 +345,82 @@ var checkpointOptions = new CheckpointOptions
 ### 儲存提供者配置
 
 ```csharp
-// 檔案系統儲存
+// File system storage
 var fileStorage = new FileSystemStorageProvider("./checkpoints")
 {
-    MaxFileSize = 10 * 1024 * 1024,         // 10MB 最大檔案大小
-    EnableFileRotation = true,               // 輪轉舊檔案
-    CompressionEnabled = true,               // 啟用檔案壓縮
-    EncryptionEnabled = false                // 停用加密
+    MaxFileSize = 10 * 1024 * 1024,         // 10MB max file size
+    EnableFileRotation = true,               // Rotate old files
+    CompressionEnabled = true,               // Enable file compression
+    EncryptionEnabled = false                // Disable encryption
 };
 
-// Azure Blob 儲存
+// Azure Blob storage
 var azureStorage = new AzureBlobStorageProvider(connectionString, containerName)
 {
-    BlobTier = BlobTier.Cool,                // 使用冷層以節省成本
-    EnableSoftDelete = true,                 // 啟用虛刪除
-    RetentionDays = 90,                      // 90 天保留期
-    EnableVersioning = true                  // 啟用 Blob 版本控制
+    BlobTier = BlobTier.Cool,                // Use cool tier for cost
+    EnableSoftDelete = true,                 // Enable soft delete
+    RetentionDays = 90,                      // 90-day retention
+    EnableVersioning = true                  // Enable blob versioning
 };
 
-// 分散式儲存
+// Distributed storage
 var distributedStorage = new DistributedStorageProvider(new[]
 {
     fileStorage,
     azureStorage
 })
 {
-    PrimaryProvider = fileStorage,            // 主要儲存
-    FailoverEnabled = true,                  // 啟用容錯移轉
-    ConsistencyLevel = ConsistencyLevel.Eventual, // 最終一致性
+    PrimaryProvider = fileStorage,            // Primary storage
+    FailoverEnabled = true,                  // Enable failover
+    ConsistencyLevel = ConsistencyLevel.Eventual, // Eventual consistency
     RetryPolicy = new ExponentialBackoffRetryPolicy(3, TimeSpan.FromSeconds(1))
 };
 ```
 
-## 疑難排解
+## 故障排除
 
 ### 常見問題
 
 #### 檢查點建立失敗
 ```bash
-# 問題：檢查點建立失敗
-# 解決方案：檢查儲存權限和磁碟空間
+# Problem: Checkpoints fail to create
+# Solution: Check storage permissions and disk space
 EnableDetailedLogging = true;
 StorageProvider = new FileSystemStorageProvider("./checkpoints");
 ```
 
 #### 檢查點操作緩慢
 ```bash
-# 問題：檢查點操作速度慢
-# 解決方案：優化壓縮和儲存
+# Problem: Checkpoint operations are slow
+# Solution: Optimize compression and storage
 CompressionLevel = CompressionLevel.Fastest;
 EnableAsyncBackup = true;
 StorageProvider = new FastStorageProvider();
 ```
 
-#### 恢復失敗
+#### 復原失敗
 ```bash
-# 問題：檢查點恢復失敗
-# 解決方案：驗證檢查點完整性和儲存
+# Problem: Checkpoint recovery fails
+# Solution: Validate checkpoint integrity and storage
 EnableCheckpointValidation = true;
 ValidateOnRestore = true;
 ```
 
-### 偵錯模式
+### 除錯模式
 
-啟用詳細記錄以進行疑難排解：
+啟用詳細記錄以進行故障排除：
 
 ```csharp
-// 啟用偵錯記錄
+// Enable debug logging
 var logger = LoggerFactory.Create(builder =>
 {
     builder.AddConsole();
     builder.SetMinimumLevel(LogLevel.Debug);
 }).CreateLogger<CheckpointingExample>();
 
-// 使用偵錯記錄配置執行器
+// Configure executor with debug logging
 var debugExecutor = new CheckpointingGraphExecutor(
-    "DebugExample", "偵錯檢查點", logger);
+    "DebugExample", "Debug checkpointing", logger);
 
 debugExecutor.ConfigureCheckpointing(new CheckpointOptions
 {
@@ -431,17 +431,17 @@ debugExecutor.ConfigureCheckpointing(new CheckpointOptions
 });
 ```
 
-## 高級模式
+## 進階模式
 
-### 自訂檢查點觸發器
+### 自訂檢查點觸發程序
 
 ```csharp
-// 實現自訂檢查點觸發器
+// Implement custom checkpoint triggers
 var customTrigger = new CustomCheckpointTrigger
 {
     ShouldCheckpoint = (context) =>
     {
-        // 在特定條件下建立檢查點
+        // Checkpoint on specific conditions
         var nodeId = context.CurrentNode?.NodeId;
         var executionStep = context.ExecutionStep;
         
@@ -457,14 +457,14 @@ checkpointingExecutor.CheckpointTrigger = customTrigger;
 ### 增量檢查點
 
 ```csharp
-// 實現大型狀態的增量檢查點
+// Implement incremental checkpointing for large states
 var incrementalOptions = new IncrementalCheckpointOptions
 {
     EnableIncrementalCheckpointing = true,
-    IncrementThreshold = 1024 * 1024,        // 1MB 閾值
-    DeltaCompression = true,                 // 壓縮差異
-    MergeStrategy = MergeStrategy.Optimistic, // 樂觀合併
-    ValidationStrategy = ValidationStrategy.Checksum // 校驗和驗證
+    IncrementThreshold = 1024 * 1024,        // 1MB threshold
+    DeltaCompression = true,                 // Compress deltas
+    MergeStrategy = MergeStrategy.Optimistic, // Optimistic merging
+    ValidationStrategy = ValidationStrategy.Checksum // Checksum validation
 };
 
 checkpointingExecutor.ConfigureIncrementalCheckpointing(incrementalOptions);
@@ -473,7 +473,7 @@ checkpointingExecutor.ConfigureIncrementalCheckpointing(incrementalOptions);
 ### 檢查點協調
 
 ```csharp
-// 跨多個工作流程協調檢查點
+// Orchestrate checkpoints across multiple workflows
 var orchestrator = new CheckpointOrchestrator
 {
     GlobalCheckpointInterval = TimeSpan.FromMinutes(5),
@@ -492,14 +492,14 @@ orchestrator.StartOrchestration();
 
 ## 相關範例
 
-* [狀態管理](./state-management.md)：圖狀態和引數處理
-* [串流執行](./streaming-execution.md)：即時執行監控
-* [多代理](./multi-agent.md)：協調的多代理工作流程
-* [圖指標](./graph-metrics.md)：效能監控和優化
+* [State Management](./state-management.md): 圖表狀態和引數處理
+* [Streaming Execution](./streaming-execution.md): 即時執行監控
+* [Multi-Agent](./multi-agent.md): 協調的多代理工作流程
+* [Graph Metrics](./graph-metrics.md): 效能監控和優化
 
-## 另請參閱
+## 參閱
 
-* [檢查點概念](../concepts/checkpointing.md)：了解狀態持久化
-* [狀態管理](../concepts/state.md)：圖狀態基礎
-* [效能監控](../how-to/metrics-and-observability.md)：指標和優化
-* [API 參考](../api/)：完整的 API 文件
+* [Checkpointing Concepts](../concepts/checkpointing.md): 瞭解狀態持久化
+* [State Management](../concepts/state.md): Graph 狀態基礎
+* [Performance Monitoring](../how-to/metrics-and-observability.md): 指標和優化
+* [API Reference](../api/): 完整 API 文件

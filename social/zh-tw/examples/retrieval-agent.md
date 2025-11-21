@@ -1,57 +1,57 @@
 # 檢索代理範例
 
-此範例演示了一個問答代理，該代理從知識庫中檢索相關內容，並使用檢索增強生成（RAG）綜合答案。
+此範例演示一個問答代理，可從知識庫檢索相關內容，並使用檢索增強生成 (RAG) 合成答案。
 
 ## 目標
 
-了解如何在語義核心圖中實現檢索增強生成工作流，以：
-* 創建具有三個步驟的線性檢索問答管道
+學習如何在 Semantic Kernel Graph 中實現檢索增強生成工作流程：
+* 建立包含三個步驟的線性檢索問答管道
 * 實現問題分析和搜尋查詢生成
 * 從知識庫檢索相關內容
-* 使用檢索到的內容綜合全面的答案
-* 演示 RAG 風格的問答能力
+* 使用檢索到的內容合成完整答案
+* 展示 RAG 風格的問答能力
 
 ## 先決條件
 
-* **.NET 8.0** 或更高版本
-* **OpenAI API 金鑰**在 `appsettings.json` 中配置
-* **語義核心圖套件**已安裝
-* **內核記憶體**為知識庫操作配置
-* 對[圖概念](../concepts/graph-concepts.md)和 [RAG 模式](../patterns/rag.md)的基本理解
-* 熟悉[記憶和檢索](../concepts/memory.md)
+* **.NET 8.0** 或更新版本
+* **OpenAI API 金鑰**已在 `appsettings.json` 中設定
+* **Semantic Kernel Graph 套件**已安裝
+* **Kernel Memory** 已為知識庫操作設定
+* 對 [Graph Concepts](../concepts/graph-concepts.md) 和 [RAG Patterns](../patterns/rag.md) 的基本了解
+* 熟悉 [Memory and Retrieval](../concepts/memory.md)
 
-## 主要組件
+## 關鍵元件
 
 ### 概念和技術
 
-* **檢索增強生成（RAG）**：將檢索與生成結合以獲得準確答案
-* **問題分析**：理解和重新表述用戶問題以改善檢索
-* **內容檢索**：從知識庫尋找相關信息
-* **答案綜合**：使用檢索到的內容生成全面答案
-* **知識庫管理**：索引和搜尋結構化信息
+* **檢索增強生成 (RAG)**：結合檢索和生成以獲得準確答案
+* **問題分析**：理解和重新表述使用者問題以改進檢索
+* **上下文檢索**：從知識庫尋找相關資訊
+* **答案合成**：使用檢索到的內容生成完整答案
+* **知識庫管理**：索引和搜尋結構化資訊
 
 ### 核心類別
 
-* `GraphExecutor`：檢索代理工作流的執行器
-* `FunctionGraphNode`：用於問題分析、檢索和答案綜合的節點
-* `KernelMemoryGraphProvider`：用於知識庫操作的提供者
-* `ConditionalEdge`：用於工作流控制的圖邊
-* `GraphState`：用於檢索結果和內容的狀態管理
+* `GraphExecutor`：檢索代理工作流程的執行器
+* `FunctionGraphNode`：用於問題分析、檢索和答案合成的節點
+* `KernelMemoryGraphProvider`：知識庫操作的提供者
+* `ConditionalEdge`：工作流程控制的圖邊
+* `GraphState`：檢索結果和內容的狀態管理
 
 ## 執行範例
 
-### 入門
+### 開始使用
 
-此範例演示了語義核心圖套件中的檢索增強生成（RAG）模式。下面的代碼片段展示了如何在自己的應用程序中實現此模式。
+此範例使用 Semantic Kernel Graph 套件演示檢索增強生成 (RAG) 模式。下面的程式碼片段顯示如何在自己的應用程式中實現此模式。
 
-## 分步實現
+## 逐步實現
 
-### 1. 知識庫設置
+### 1. 知識庫設定
 
-該範例首先設置一個包含示例內容的知識庫。
+此範例首先使用範例內容設定知識庫。
 
 ```csharp
-// 創建一個輕量級的內存提供者，並用示例文件為集合填充
+// Create a lightweight in-memory provider and seed the collection with sample docs
 var memoryProvider = new SimpleMemoryProvider();
 var collection = "kb_general";
 
@@ -59,7 +59,7 @@ await SeedKnowledgeBaseAsync(memoryProvider, collection);
 
 private static async Task SeedKnowledgeBaseAsync(SimpleMemoryProvider provider, string collection)
 {
-    // 將幾個簡短的文件添加到內存知識庫
+    // Add a few short documents to the in-memory knowledge base
     await provider.SaveInformationAsync(collection,
         "The Semantic Kernel Graph is a powerful extension to build complex workflows with graphs, enabling conditional routing, memory integration, and performance metrics.",
         "kb-001",
@@ -82,18 +82,18 @@ private static async Task SeedKnowledgeBaseAsync(SimpleMemoryProvider provider, 
 }
 ```
 
-### 2. 創建檢索代理
+### 2. 建立檢索代理
 
-該代理由線性三步管道組成：分析、檢索和綜合。
+代理以線性三步管道構建：分析、檢索和答案。
 
 ```csharp
-// 組合一個簡單的線性圖：分析 -> 檢索 -> 綜合
+// Compose a simple linear graph: analyze -> retrieve -> synthesize
 var executor = new GraphExecutor(kernel);
 
 var analyze = new FunctionGraphNode(
     kernel.CreateFunctionFromMethod((KernelArguments args) =>
     {
-        // 實現在下面的分析函數片段中提供
+        // Implementation provided below in the Analysis function snippet
         var question = args.TryGetValue("user_question", out var q) ? q?.ToString() ?? string.Empty : string.Empty;
         var searchQuery = question.ToLowerInvariant()
             .Replace("what", string.Empty)
@@ -109,7 +109,7 @@ var analyze = new FunctionGraphNode(
 var retrieve = new FunctionGraphNode(
     kernel.CreateFunctionFromMethod(async (KernelArguments args) =>
     {
-        // 實現在下面的檢索函數片段中提供
+        // Implementation provided below in the Retrieval function snippet
         return "retrieved";
     }, functionName: "retrieve_context", description: "Retrieve relevant context"),
     "retrieve_context").StoreResultAs("retrieved_context");
@@ -117,7 +117,7 @@ var retrieve = new FunctionGraphNode(
 var synth = new FunctionGraphNode(
     kernel.CreateFunctionFromMethod((KernelArguments args) =>
     {
-        // 實現在下面的綜合片段中提供
+        // Implementation provided below in the Synthesis snippet
         return "answer";
     }, functionName: "synthesize_answer", description: "Synthesize the final answer"),
     "synthesize_answer").StoreResultAs("final_answer");
@@ -135,10 +135,10 @@ return executor;
 
 ### 3. 問題分析函數
 
-分析函數理解用戶問題並生成重點搜尋查詢。
+分析函數理解使用者問題並生成聚焦的搜尋查詢。
 
 ```csharp
-// 分析函數：將自由形式的問題轉換為簡潔搜尋查詢
+// Analysis function: converts a free-form question into a compact search query
 private static KernelFunction CreateAnalyzeQuestionFunction(Kernel kernel)
 {
     return KernelFunctionFactory.CreateFromMethod(
@@ -146,7 +146,7 @@ private static KernelFunction CreateAnalyzeQuestionFunction(Kernel kernel)
         {
             var question = args.TryGetValue("user_question", out var q) ? q?.ToString() ?? string.Empty : string.Empty;
 
-            // 簡化問題文本並擴展某些術語以改善檢索
+            // Simplify question text and expand some terms to improve retrieval
             var searchQuery = question.ToLowerInvariant()
                 .Replace("what", string.Empty)
                 .Replace("how", string.Empty)
@@ -176,10 +176,10 @@ private static KernelFunction CreateAnalyzeQuestionFunction(Kernel kernel)
 
 ### 4. 內容檢索函數
 
-檢索函數搜尋知識庫以查找相關信息。
+檢索函數在知識庫中搜尋相關資訊。
 
 ```csharp
-// 檢索函數：查詢知識庫並格式化結果以進行綜合
+// Retrieval function: queries the knowledge base and formats results for synthesis
 private static KernelFunction CreateRetrieveContextFunction(Kernel kernel, SimpleMemoryProvider memoryProvider, string collection)
 {
     return KernelFunctionFactory.CreateFromMethod(
@@ -189,7 +189,7 @@ private static KernelFunction CreateRetrieveContextFunction(Kernel kernel, Simpl
             var topK = args.TryGetValue("top_k", out var tk) && tk is int k ? k : 5;
             var minScore = args.TryGetValue("min_score", out var ms) && ms is double s ? s : 0.0;
 
-            // 從內存提供者檢索相關內容
+            // Retrieve relevant context from the in-memory provider
             var results = await memoryProvider.SearchAsync(collection, query, topK, minScore);
 
             if (!results.Any())
@@ -198,7 +198,7 @@ private static KernelFunction CreateRetrieveContextFunction(Kernel kernel, Simpl
                 return "No relevant context retrieved";
             }
 
-            // 為答案綜合格式化檢索到的內容
+            // Format retrieved context for answer synthesis
             var context = string.Join("\n\n", results.Select(r =>
                 $"Source: {r.Metadata.GetValueOrDefault("source", "Unknown")}\nContent: {r.Text}"));
 
@@ -214,12 +214,12 @@ private static KernelFunction CreateRetrieveContextFunction(Kernel kernel, Simpl
 }
 ```
 
-### 5. 答案綜合函數
+### 5. 答案合成函數
 
-綜合函數將檢索到的內容組合成全面的答案。
+合成函數將檢索到的內容合併為完整答案。
 
 ```csharp
-// 綜合函數：將檢索到的內容組合成可讀答案
+// Synthesis function: combine retrieved context into a readable answer
 private static KernelFunction CreateSynthesizeAnswerFunction(Kernel kernel)
 {
     return KernelFunctionFactory.CreateFromMethod(
@@ -235,7 +235,7 @@ private static KernelFunction CreateSynthesizeAnswerFunction(Kernel kernel)
                 return "I don't have enough information to answer that question accurately. Please try rephrasing.";
             }
 
-            // 使用檢索到的內容構建簡潔答案
+            // Build a concise answer using retrieved context
             var answer = $"Based on the available information:\n\n{context}\n\n" +
                         $"This answer was synthesized from {retrievalCount} relevant sources (confidence: {retrievalScore:F2}).";
 
@@ -250,10 +250,10 @@ private static KernelFunction CreateSynthesizeAnswerFunction(Kernel kernel)
 
 ### 6. 問題處理
 
-該範例處理多個問題以演示檢索能力。
+此範例透過檢索代理處理多個問題，以展示檢索功能。
 
 ```csharp
-// 通過檢索代理執行幾個示例問題以演示行為
+// Run a few sample questions through the retrieval agent to demonstrate behavior
 var questions = new[]
 {
     "What benefits does the Semantic Kernel Graph provide?",
@@ -280,7 +280,7 @@ foreach (var q in questions)
 
 ### 7. 增強的知識庫內容
 
-該範例包括更全面的知識庫內容以改善檢索。
+此範例包括更多全面的知識庫內容，以改進檢索。
 
 ```csharp
 private static async Task SeedKnowledgeBaseAsync(KernelMemoryGraphProvider provider, string collection)
@@ -333,21 +333,21 @@ private static async Task SeedKnowledgeBaseAsync(KernelMemoryGraphProvider provi
 }
 ```
 
-### 8. 高級檢索選項
+### 8. 進階檢索選項
 
-該範例支持可配置的檢索參數以適應不同用例。
+此範例支援可配置的檢索參數，適用於不同的使用情況。
 
 ```csharp
-// 根據問題複雜性配置檢索參數
+// Configure retrieval parameters based on question complexity
 var retrievalParams = question.ToLowerInvariant() switch
 {
     var q when q.Contains("benefits") || q.Contains("features") => 
-        new { TopK = 3, MinScore = 0.4 }, // 特定主題的重點檢索
+        new { TopK = 3, MinScore = 0.4 }, // Focused retrieval for specific topics
     var q when q.Contains("how") || q.Contains("process") => 
-        new { TopK = 5, MinScore = 0.35 }, // 用於流程問題的更廣泛檢索
+        new { TopK = 5, MinScore = 0.35 }, // Broader retrieval for process questions
     var q when q.Contains("what") && q.Contains("improvements") => 
-        new { TopK = 4, MinScore = 0.3 }, // 用於改進問題的全面檢索
-    _ => new { TopK = 5, MinScore = 0.35 } // 默認參數
+        new { TopK = 4, MinScore = 0.3 }, // Comprehensive retrieval for improvement questions
+    _ => new { TopK = 5, MinScore = 0.35 } // Default parameters
 };
 
 var args = new KernelArguments
@@ -360,35 +360,35 @@ var args = new KernelArguments
 
 ## 預期輸出
 
-該範例生成全面的輸出，顯示：
+此範例生成詳細輸出，顯示：
 
-* 🧑‍💻 用戶問題和搜尋查詢分析
+* 🧑‍💻 使用者問題和搜尋查詢分析
 * 🔍 從知識庫檢索內容
 * 📊 檢索分數和結果計數
-* 🤖 使用檢索到的內容綜合的答案
-* ✅ 完整的 RAG 工作流執行
-* 📚 知識庫內容和檢索質量
+* 🤖 使用檢索到的內容合成答案
+* ✅ 完整的 RAG 工作流程執行
+* 📚 知識庫內容和檢索品質
 
 ## 故障排除
 
 ### 常見問題
 
-1. **知識庫連接失敗**：確保內核記憶體正確配置
-2. **檢索質量問題**：調整 top_k 和 min_score 參數以獲得更好的結果
+1. **知識庫連線失敗**：確保 Kernel Memory 已正確設定
+2. **檢索品質問題**：調整 top_k 和 min_score 參數以獲得更好的結果
 3. **內容不足**：驗證知識庫內容和搜尋查詢生成
-4. **答案綜合失敗**：檢查內容格式化和綜合邏輯
+4. **答案合成失敗**：檢查內容格式和合成邏輯
 
 ### 調試提示
 
-* 監視搜尋查詢生成和改進
+* 監控搜尋查詢生成和改進
 * 驗證知識庫內容索引和搜尋功能
-* 檢查檢索參數和評分閾值
-* 監視答案綜合質量和內容利用
+* 檢查檢索參數和計分閾值
+* 監控答案合成品質和內容利用
 
 ## 另請參閱
 
-* [RAG 模式](../patterns/rag.md)
-* [記憶和檢索](../concepts/memory.md)
-* [問答系統](../concepts/qa-systems.md)
-* [知識庫管理](../how-to/knowledge-base.md)
-* [內容檢索](../concepts/retrieval.md)
+* [RAG Patterns](../patterns/rag.md)
+* [Memory and Retrieval](../concepts/memory.md)
+* [Question Answering](../concepts/qa-systems.md)
+* [Knowledge Base Management](../how-to/knowledge-base.md)
+* [Context Retrieval](../concepts/retrieval.md)

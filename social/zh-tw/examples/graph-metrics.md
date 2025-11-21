@@ -1,32 +1,32 @@
-# 圖形指標範例
+# Graph Metrics 範例
 
-本範例展示如何在語義核心圖形工作流中收集、監控和分析效能指標。它說明如何為圖形執行實施全面的可觀測性，包括節點級指標、執行路徑和效能分析。
+此範例演示了如何在 Semantic Kernel Graph 工作流程中收集、監控和分析效能指標。它展示了如何為 Graph 執行實施全面的可觀測性，包括節點層級的指標、執行路徑和效能分析。
 
 ## 目標
 
-學習如何在基於圖形的工作流中實施全面的指標和監控，以便：
-* 在圖形執行期間收集即時效能指標
-* 監控節點執行時間、成功率和資源使用
+學習如何在基於 Graph 的工作流程中實施全面的指標和監控，以便：
+* 在 Graph 執行期間收集即時效能指標
+* 監控節點執行時間、成功率和資源使用狀況
 * 分析執行路徑並識別效能瓶頸
 * 將指標匯出到各種監控系統和儀表板
-* 為生產工作流實施自訂指標和告警
+* 為生產工作流程實施自訂指標和警示
 
-## 先決條件
+## 前置條件
 
-* **.NET 8.0** 或更高版本
-* **OpenAI API 密鑰**配置在 `appsettings.json`
-* **語義核心圖形套件**已安裝
-* 基本了解[圖形概念](../concepts/graph-concepts.md)和[指標概念](../concepts/metrics.md)
+* **.NET 8.0** 或更新版本
+* **OpenAI API 金鑰**已配置在 `appsettings.json` 中
+* 已安裝 **Semantic Kernel Graph 套件**
+* 對 [Graph Concepts](../concepts/graph-concepts.md) 和 [Metrics Concepts](../concepts/metrics.md) 的基本理解
 
 ## 主要元件
 
 ### 概念和技術
 
-* **效能指標**：執行效能資料的收集和分析
-* **節點監控**：個別節點執行的即時監控
-* **執行路徑分析**：追蹤和分析透過圖形的執行流程
-* **資源監控**：監控 CPU、記憶體和其他資源使用
-* **指標匯出**：將指標匯出到監控系統和儀表板
+* **Performance Metrics**：執行效能資料的收集和分析
+* **Node Monitoring**：個別節點執行的即時監控
+* **Execution Path Analysis**：透過 Graph 追蹤和分析執行流
+* **Resource Monitoring**：監控 CPU、記憶體和其他資源使用
+* **Metrics Export**：將指標匯出到監控系統和儀表板
 
 ### 核心類別
 
@@ -37,78 +37,78 @@
 
 ## 執行範例
 
-### 開始使用
+### 入門指南
 
-此範例展示使用語義核心圖形套件的指標收集和效能監控。下面的程式碼片段說明如何在自己的應用程式中實施此模式。
+此範例使用 Semantic Kernel Graph 套件演示了指標收集和效能監控。下列程式碼片段展示了如何在自己的應用程式中實施此模式。
 
 ## 逐步實施
 
 ### 1. 基本指標收集
 
-此範例展示圖形執行期間的基本指標收集。
+此範例演示了在 Graph 執行期間進行基本指標收集。
 
 ```csharp
-// 建立開發友善的指標選項（示範用短間隔）
+// Create development-friendly metrics options (short intervals for demos)
 var options = GraphMetricsOptions.CreateDevelopmentOptions();
-options.EnableResourceMonitoring = false; // 保持示範確定性
+options.EnableResourceMonitoring = false; // keep the demo deterministic
 
-// 使用選項建立指標收集器
+// Create the metrics collector using the options
 using var metrics = new GraphPerformanceMetrics(options);
 
-// 模擬幾個節點執行並為每個記錄指標
+// Simulate a few node executions and record metrics for each
 for (int i = 0; i < 5; i++)
 {
     var execId = $"exec-{i}";
 
-    // 開始追蹤節點執行
+    // Start tracking a node execution
     var tracker = metrics.StartNodeTracking($"node-{i}", $"node-name-{i}", execId);
 
-    // 模擬工作
+    // Simulate work
     await Task.Delay(10 + i * 5);
 
-    // 標記完成並記錄執行路徑以供分析
+    // Mark completion and record an execution path for analysis
     metrics.CompleteNodeTracking(tracker, success: true, result: null);
     metrics.RecordExecutionPath(execId, new[] { tracker.NodeId }, TimeSpan.FromMilliseconds(10 + i * 5), success: true);
 }
 
-// 使用指標匯出器匯出預覽
+// Export a preview using the metrics exporter
 using var exporter = new GraphMetricsExporter();
 var json = exporter.ExportMetrics(metrics, MetricsExportFormat.Json, TimeSpan.FromMinutes(10));
-Console.WriteLine("\n--- JSON 匯出預覽 ---\n");
+Console.WriteLine("\n--- JSON Export Preview ---\n");
 Console.WriteLine(json.Substring(0, Math.Min(800, json.Length)));
 
 var prometheus = exporter.ExportMetrics(metrics, MetricsExportFormat.Prometheus, TimeSpan.FromMinutes(10));
-Console.WriteLine("\n--- Prometheus 匯出預覽 ---\n");
+Console.WriteLine("\n--- Prometheus Export Preview ---\n");
 Console.WriteLine(prometheus.Substring(0, Math.Min(800, prometheus.Length)));
 ```
 
 ### 2. 進階效能監控
 
-展示具有詳細指標收集的全面效能監控。
+演示具有詳細指標收集的全面效能監控。
 
 ```csharp
-// 建立開發選項和適合進行分析示範的指標收集器
+// Create development options and a metrics collector suitable for profiling demos
 var options = GraphMetricsOptions.CreateDevelopmentOptions();
 using var metrics = new GraphPerformanceMetrics(options);
 
-// 模擬昂貴的操作並記錄詳細的計時資訊
+// Simulate an expensive operation and record detailed timing information
 var execId = "advanced-exec-1";
 var tracker = metrics.StartNodeTracking("performance-node", "performance-node", execId);
 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-// 模擬 CPU 繁重的工作，偶爾等待以避免封鎖執行緒池
+// Simulate CPU-bound work with occasional awaits to avoid blocking the thread pool
 int iterations = 10_000;
 long result = 0;
 for (int i = 0; i < iterations; i++)
 {
     result += i * i;
-    if (i % 1000 == 0) await Task.Delay(1); // 協作暫停以保持回應性
+    if (i % 1000 == 0) await Task.Delay(1); // cooperative pause to keep responsiveness
 }
 
 stopwatch.Stop();
 metrics.CompleteNodeTracking(tracker, success: true, result: result);
 
-// 使用匯出器在模擬工作負載後檢查指標
+// Use exporter to inspect metrics after the simulated workload
 using var exporter = new GraphMetricsExporter();
 Console.WriteLine(exporter.ExportMetrics(metrics, MetricsExportFormat.Json, TimeSpan.FromMinutes(10)));
 ```
@@ -118,52 +118,52 @@ Console.WriteLine(exporter.ExportMetrics(metrics, MetricsExportFormat.Json, Time
 展示如何實施即時指標視覺化和監控。
 
 ```csharp
-// 使用指標收集器的資源採樣展示基本的即時採樣
+// Demonstrate basic real-time sampling using the metrics collector's resource sampling
 var options = GraphMetricsOptions.CreateDevelopmentOptions();
 options.EnableResourceMonitoring = true;
 using var metrics = new GraphPerformanceMetrics(options);
 
-// 模擬一連串的短執行並顯示採樣的 CPU/記憶體
+// Simulate a stream of short executions and display sampled CPU/memory
 for (int i = 0; i < 10; i++)
 {
     var execId = $"rt-{i}";
     var tracker = metrics.StartNodeTracking("data-generator", "data-generator", execId);
 
-    // 模擬一些處理延遲
+    // Simulate some processing latency
     await Task.Delay(Random.Shared.Next(50, 200));
 
     metrics.CompleteNodeTracking(tracker, success: true);
 
-    // 讀取目前採樣的系統指標（收集器定期更新它們）
-    Console.WriteLine($"迭代 {i + 1}：CPU={metrics.CurrentCpuUsage:F1}% 記憶體={metrics.CurrentAvailableMemoryMB:F0} MB");
+    // Read current sampled system metrics (collector updates them periodically)
+    Console.WriteLine($"Iteration {i + 1}: CPU={metrics.CurrentCpuUsage:F1}% Memory={metrics.CurrentAvailableMemoryMB:F0} MB");
 
-    await Task.Delay(500); // 節流更新以進行示範
+    await Task.Delay(500); // throttle updates for the demo
 }
 
-Console.WriteLine("✅ 即時採樣示範完成");
+Console.WriteLine("✅ Real-time sampling demo completed");
 ```
 
 ### 4. 指標匯出和整合
 
-展示將指標匯出到外部監控系統和儀表板。
+演示將指標匯出到外部監控系統和儀表板。
 
 ```csharp
-// 使用指標匯出器直接匯出範例
+// Export example using the metrics exporter directly
 using var exporter = new GraphMetricsExporter(new GraphMetricsExportOptions { IndentedOutput = true });
 
-// 匯出 JSON
+// Export JSON
 var jsonExport = exporter.ExportMetrics(metrics, MetricsExportFormat.Json, TimeSpan.FromMinutes(10));
-Console.WriteLine("--- JSON 匯出 ---");
+Console.WriteLine("--- JSON Export ---");
 Console.WriteLine(jsonExport);
 
-// 匯出 CSV
+// Export CSV
 var csvExport = exporter.ExportMetrics(metrics, MetricsExportFormat.Csv, TimeSpan.FromMinutes(10));
-Console.WriteLine("--- CSV 匯出 ---");
-Console.WriteLine(csvExport.Split('\n').Take(20)); // 預覽前幾行
+Console.WriteLine("--- CSV Export ---");
+Console.WriteLine(csvExport.Split('\n').Take(20)); // preview first lines
 
-// 匯出 Prometheus
+// Export Prometheus
 var promExport = exporter.ExportMetrics(metrics, MetricsExportFormat.Prometheus, TimeSpan.FromMinutes(10));
-Console.WriteLine("--- Prometheus 匯出 ---");
+Console.WriteLine("--- Prometheus Export ---");
 Console.WriteLine(promExport);
 ```
 
@@ -172,107 +172,107 @@ Console.WriteLine(promExport);
 ### 基本指標收集範例
 
 ```
-📊 測試指標收集：範例資料 1
-   處理時間：234.56 毫秒
-   輸入大小：12 個字元
-   收集的指標：5 個指標
+📊 Testing metrics collection: Sample data 1
+   Processing Time: 234.56 ms
+   Input Size: 12 characters
+   Metrics Collected: 5 metrics
 
-📊 測試指標收集：範例資料 2
-   處理時間：187.23 毫秒
-   輸入大小：12 個字元
-   收集的指標：5 個指標
+📊 Testing metrics collection: Sample data 2
+   Processing Time: 187.23 ms
+   Input Size: 12 characters
+   Metrics Collected: 5 metrics
 ```
 
 ### 進階效能監控範例
 
 ```
-🚀 測試效能監控：低複雜度任務
-   複雜度級別：1
-   處理時間：156.78 毫秒
-   迭代次數：1,000
-   吞吐量：6,374 次/秒
-   效能分數：85.67
-   瓶頸：CPU 繁重
+🚀 Testing performance monitoring: Low complexity task
+   Complexity Level: 1
+   Processing Time: 156.78 ms
+   Iterations: 1,000
+   Throughput: 6,374 ops/sec
+   Performance Score: 85.67
+   Bottleneck: CPU-bound
 
-🚀 測試效能監控：高複雜度任務
-   複雜度級別：10
-   處理時間：1,234.56 毫秒
-   迭代次數：10,000
-   吞吐量：8,101 次/秒
-   效能分數：92.34
-   瓶頸：記憶體繁重
+🚀 Testing performance monitoring: High complexity task
+   Complexity Level: 10
+   Processing Time: 1,234.56 ms
+   Iterations: 10,000
+   Throughput: 8,101 ops/sec
+   Performance Score: 92.34
+   Bottleneck: Memory-bound
 ```
 
 ### 即時指標儀表板範例
 
 ```
-📊 開始即時指標收集...
-   儀表板每 500 毫秒更新一次
-   按任意鍵停止...
-   迭代 1：目前：87.45、平均：87.45、趨勢：穩定
-   迭代 2：目前：112.34、平均：99.90、趨勢：上升
-   迭代 3：目前：95.67、平均：98.49、趨勢：下降
-✅ 即時指標收集完成
+📊 Starting real-time metrics collection...
+   Dashboard will update every 500ms
+   Press any key to stop...
+   Iteration 1: Current: 87.45, Avg: 87.45, Trend: stable
+   Iteration 2: Current: 112.34, Avg: 99.90, Trend: increasing
+   Iteration 3: Current: 95.67, Avg: 98.49, Trend: decreasing
+✅ Real-time metrics collection completed
 ```
 
 ### 指標匯出範例
 
 ```
-📤 測試指標匯出：10 個執行
-   成功率：90.0%
-   平均時間：150.00 毫秒
-   匯出格式：json、csv、prometheus、monitoring
+📤 Testing metrics export: 10 executions
+   Success Rate: 90.0%
+   Average Time: 150.00 ms
+   Export Formats: json, csv, prometheus, monitoring
 
-📤 測試指標匯出：50 個執行
-   成功率：96.0%
-   平均時間：150.00 毫秒
-   匯出格式：json、csv、prometheus、monitoring
+📤 Testing metrics export: 50 executions
+   Success Rate: 96.0%
+   Average Time: 150.00 ms
+   Export Formats: json, csv, prometheus, monitoring
 ```
 
-## 組態選項
+## 設定選項
 
-### 指標組態
+### 指標設定
 
 ```csharp
 var metricsOptions = new GraphMetricsOptions
 {
-    EnableNodeMetrics = true,                        // 啟用節點級指標
-    EnableExecutionMetrics = true,                   // 啟用執行級指標
-    EnableResourceMetrics = true,                    // 啟用資源使用指標
-    EnableCustomMetrics = true,                      // 啟用自訂指標
-    EnablePerformanceProfiling = true,               // 啟用效能分析
-    EnableRealTimeMetrics = true,                    // 啟用即時指標
-    EnableMetricsStreaming = true,                   // 啟用指標串流
-    EnableMetricsDashboard = true,                   // 啟用指標儀表板
-    EnableMetricsExport = true,                      // 啟用指標匯出
-    EnableMetricsPersistence = true,                 // 啟用指標持久化
-    MetricsCollectionInterval = TimeSpan.FromMilliseconds(100), // 收集間隔
-    DashboardUpdateInterval = TimeSpan.FromMilliseconds(500),   // 儀表板更新間隔
-    ExportInterval = TimeSpan.FromSeconds(5),        // 匯出間隔
-    MetricsStoragePath = "./metrics-data",           // 指標儲存路徑
-    ExportFormats = new[] { "json", "csv", "prometheus" },     // 匯出格式
-    EnableMetricsCompression = true,                 // 啟用指標壓縮
-    MaxMetricsHistory = 10000,                       // 最大指標歷史記錄
-    EnableMetricsAggregation = true,                 // 啟用指標聚合
-    AggregationInterval = TimeSpan.FromMinutes(1)    // 聚合間隔
+    EnableNodeMetrics = true,                        // Enable node-level metrics
+    EnableExecutionMetrics = true,                   // Enable execution-level metrics
+    EnableResourceMetrics = true,                    // Enable resource usage metrics
+    EnableCustomMetrics = true,                      // Enable custom metrics
+    EnablePerformanceProfiling = true,               // Enable performance profiling
+    EnableRealTimeMetrics = true,                    // Enable real-time metrics
+    EnableMetricsStreaming = true,                   // Enable metrics streaming
+    EnableMetricsDashboard = true,                   // Enable metrics dashboard
+    EnableMetricsExport = true,                      // Enable metrics export
+    EnableMetricsPersistence = true,                 // Enable metrics persistence
+    MetricsCollectionInterval = TimeSpan.FromMilliseconds(100), // Collection interval
+    DashboardUpdateInterval = TimeSpan.FromMilliseconds(500),   // Dashboard update interval
+    ExportInterval = TimeSpan.FromSeconds(5),        // Export interval
+    MetricsStoragePath = "./metrics-data",           // Metrics storage path
+    ExportFormats = new[] { "json", "csv", "prometheus" },     // Export formats
+    EnableMetricsCompression = true,                 // Enable metrics compression
+    MaxMetricsHistory = 10000,                       // Maximum metrics history
+    EnableMetricsAggregation = true,                 // Enable metrics aggregation
+    AggregationInterval = TimeSpan.FromMinutes(1)    // Aggregation interval
 };
 ```
 
-### 效能分析組態
+### 效能分析設定
 
 ```csharp
 var profilingOptions = new PerformanceProfilingOptions
 {
-    EnableDetailedProfiling = true,                  // 啟用詳細分析
-    EnableMemoryProfiling = true,                    // 啟用記憶體分析
-    EnableCpuProfiling = true,                       // 啟用 CPU 分析
-    EnableNetworkProfiling = true,                   // 啟用網路分析
-    ProfilingSamplingRate = 0.1,                     // 分析採樣率 (10%)
-    EnableHotPathAnalysis = true,                    // 啟用熱路徑分析
-    EnableBottleneckDetection = true,                // 啟用瓶頸偵測
-    ProfilingOutputPath = "./profiling-data",         // 分析輸出路徑
-    EnableProfilingVisualization = true,             // 啟用分析視覺化
-    MaxProfilingDataSize = 100 * 1024 * 1024        // 最大分析資料大小 (100MB)
+    EnableDetailedProfiling = true,                  // Enable detailed profiling
+    EnableMemoryProfiling = true,                    // Enable memory profiling
+    EnableCpuProfiling = true,                       // Enable CPU profiling
+    EnableNetworkProfiling = true,                   // Enable network profiling
+    ProfilingSamplingRate = 0.1,                     // Profiling sampling rate (10%)
+    EnableHotPathAnalysis = true,                    // Enable hot path analysis
+    EnableBottleneckDetection = true,                // Enable bottleneck detection
+    ProfilingOutputPath = "./profiling-data",         // Profiling output path
+    EnableProfilingVisualization = true,             // Enable profiling visualization
+    MaxProfilingDataSize = 100 * 1024 * 1024        // Max profiling data size (100MB)
 };
 ```
 
@@ -282,8 +282,8 @@ var profilingOptions = new PerformanceProfilingOptions
 
 #### 未收集指標
 ```bash
-# 問題：未收集指標
-# 解決方案：啟用指標收集並檢查組態
+# Problem: Metrics are not being collected
+# Solution: Enable metrics collection and check configuration
 EnableNodeMetrics = true;
 EnableExecutionMetrics = true;
 MetricsCollectionInterval = TimeSpan.FromMilliseconds(100);
@@ -291,17 +291,17 @@ MetricsCollectionInterval = TimeSpan.FromMilliseconds(100);
 
 #### 效能影響
 ```bash
-# 問題：指標收集影響效能
-# 解決方案：調整收集間隔並啟用採樣
+# Problem: Metrics collection impacts performance
+# Solution: Adjust collection interval and enable sampling
 MetricsCollectionInterval = TimeSpan.FromSeconds(1);
 EnableMetricsSampling = true;
-SamplingRate = 0.1; // 10% 採樣
+SamplingRate = 0.1; // 10% sampling
 ```
 
 #### 記憶體問題
 ```bash
-# 問題：指標消耗過多記憶體
-# 解決方案：啟用壓縮並限制歷史記錄
+# Problem: Metrics consume too much memory
+# Solution: Enable compression and limit history
 EnableMetricsCompression = true;
 MaxMetricsHistory = 1000;
 EnableMetricsAggregation = true;
@@ -309,17 +309,17 @@ EnableMetricsAggregation = true;
 
 ### 除錯模式
 
-啟用詳細記錄以進行疑難排解：
+啟用詳細日誌以進行疑難排解：
 
 ```csharp
-// 啟用除錯記錄
+// Enable debug logging
 var logger = LoggerFactory.Create(builder =>
 {
     builder.AddConsole();
     builder.SetMinimumLevel(LogLevel.Debug);
 }).CreateLogger<GraphMetricsExample>();
 
-// 以除錯記錄組態指標
+// Configure metrics with debug logging
 var debugMetricsOptions = new GraphMetricsOptions
 {
     EnableNodeMetrics = true,
@@ -336,19 +336,19 @@ var debugMetricsOptions = new GraphMetricsOptions
 ### 自訂指標收集
 
 ```csharp
-// 實施自訂指標收集
+// Implement custom metrics collection
 public class CustomMetricsCollector : IMetricsCollector
 {
     public async Task<Dictionary<string, object>> CollectMetricsAsync(MetricsContext context)
     {
         var customMetrics = new Dictionary<string, object>();
         
-        // 收集自訂業務指標
+        // Collect custom business metrics
         customMetrics["business_value"] = await CalculateBusinessValue(context);
         customMetrics["user_satisfaction"] = await MeasureUserSatisfaction(context);
         customMetrics["cost_per_execution"] = await CalculateCostPerExecution(context);
         
-        // 收集領域特定指標
+        // Collect domain-specific metrics
         customMetrics["domain_accuracy"] = await MeasureDomainAccuracy(context);
         customMetrics["processing_efficiency"] = await MeasureProcessingEfficiency(context);
         
@@ -357,10 +357,10 @@ public class CustomMetricsCollector : IMetricsCollector
 }
 ```
 
-### 指標聚合和分析
+### 指標彙總和分析
 
 ```csharp
-// 實施自訂指標聚合
+// Implement custom metrics aggregation
 public class MetricsAggregator : IMetricsAggregator
 {
     public async Task<AggregatedMetrics> AggregateMetricsAsync(IEnumerable<MetricsSnapshot> snapshots)
@@ -369,18 +369,18 @@ public class MetricsAggregator : IMetricsAggregator
         
         foreach (var snapshot in snapshots)
         {
-            // 聚合效能指標
+            // Aggregate performance metrics
             aggregated.TotalExecutions += snapshot.ExecutionCount;
             aggregated.TotalProcessingTime += snapshot.TotalProcessingTime;
             aggregated.SuccessCount += snapshot.SuccessCount;
             aggregated.ErrorCount += snapshot.ErrorCount;
             
-            // 追蹤趨勢
+            // Track trends
             aggregated.ExecutionTrends.Add(snapshot.Timestamp, snapshot.ExecutionCount);
             aggregated.PerformanceTrends.Add(snapshot.Timestamp, snapshot.AverageProcessingTime);
         }
         
-        // 計算衍生指標
+        // Calculate derived metrics
         aggregated.SuccessRate = (double)aggregated.SuccessCount / aggregated.TotalExecutions;
         aggregated.AverageProcessingTime = aggregated.TotalProcessingTime / aggregated.TotalExecutions;
         aggregated.ErrorRate = (double)aggregated.ErrorCount / aggregated.TotalExecutions;
@@ -390,10 +390,10 @@ public class MetricsAggregator : IMetricsAggregator
 }
 ```
 
-### 即時告警
+### 即時警示
 
 ```csharp
-// 實施即時指標告警
+// Implement real-time metrics alerting
 public class MetricsAlerting : IMetricsAlerting
 {
     private readonly List<AlertRule> _alertRules;
@@ -421,7 +421,7 @@ public class MetricsAlerting : IMetricsAlerting
     }
 }
 
-// 告警規則範例
+// Example alert rules
 public class AlertRule
 {
     public string RuleId { get; set; }
@@ -434,7 +434,7 @@ public class AlertRule
         {
             RuleId = "high_error_rate",
             Severity = AlertSeverity.Critical,
-            Condition = async (metrics) => metrics.ErrorRate > 0.1 // 10% 錯誤率
+            Condition = async (metrics) => metrics.ErrorRate > 0.1 // 10% error rate
         };
     }
 }
@@ -442,14 +442,14 @@ public class AlertRule
 
 ## 相關範例
 
-* [圖形視覺化](./graph-visualization.md)：指標的視覺表示
-* [效能最佳化](./performance-optimization.md)：使用指標進行最佳化
-* [串流執行](./streaming-execution.md)：即時指標串流
-* [除錯和檢查](./debug-inspection.md)：用於除錯的指標
+* [Graph Visualization](./graph-visualization.md)：視覺化指標表示
+* [Performance Optimization](./performance-optimization.md)：使用指標進行最佳化
+* [Streaming Execution](./streaming-execution.md)：即時指標串流
+* [Debug and Inspection](./debug-inspection.md)：用於除錯的指標
 
 ## 另請參閱
 
-* [指標和可觀測性](../concepts/metrics.md)：理解指標概念
-* [效能監控](../how-to/performance-monitoring.md)：效能監控模式
-* [除錯和檢查](../how-to/debug-and-inspection.md)：使用指標進行除錯
-* [API 參考](../api/)：完整 API 文件
+* [Metrics and Observability](../concepts/metrics.md)：瞭解指標概念
+* [Performance Monitoring](../how-to/performance-monitoring.md)：效能監控模式
+* [Debug and Inspection](../how-to/debug-and-inspection.md)：使用指標進行除錯
+* [API Reference](../api/)：完整 API 文件

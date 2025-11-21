@@ -1,61 +1,61 @@
 # 文件分析管道範例
 
-此範例展示使用語義核心圖表的綜合文件處理工作流程。它展示如何使用並行處理和錯誤處理構建多階段文件攝入、分析、分類和資訊擷取管道。
+本範例演示了使用 Semantic Kernel Graph 的綜合文件處理工作流程。它展示了如何建立一個多階段管道，用於文件攝取、分析、分類和資訊提取，並具有並行處理和錯誤處理功能。
 
 ## 目標
 
-了解如何在基於圖表的工作流程中實現文件分析管道，以：
+學習如何在基於 Graph 的工作流程中實現文件分析管道，以便：
 * 通過多個分析階段處理文件
-* 實現並行處理以優化效能
+* 為性能優化實現並行處理
 * 處理不同的文件類型和格式
-* 從非結構化文本提取結構化資訊
-* 使用錯誤處理和恢復構建彈性管道
-* 跨多個工作程序擴展文件處理
+* 從非結構化文本中提取結構化資訊
+* 使用錯誤處理和恢復建立具有彈性的管道
+* 跨多個背景工作者擴展文件處理
 
-## 前提條件
+## 先決條件
 
-* **.NET 8.0** 或更高版本
-* **OpenAI API 金鑰**配置在 `appsettings.json` 中
-* **語義核心圖表套件**已安裝
-* 對[圖表概念](../concepts/graph-concepts.md)和[節點類型](../concepts/node-types.md)的基本了解
+* **.NET 8.0** 或更新版本
+* **OpenAI API 金鑰**已在 `appsettings.json` 中配置
+* **Semantic Kernel Graph 套件**已安裝
+* 對 [Graph 概念](../concepts/graph-concepts.md)和[Node 類型](../concepts/node-types.md)的基本理解
 
-## 主要元件
+## 關鍵組件
 
 ### 概念和技術
 
-* **管道處理**：文件分析階段的順序執行
-* **並行處理**：獨立分析任務的並行執行
-* **文件分類**：按類型和內容自動分類文件
-* **資訊擷取**：從非結構化文本提取結構化資料
-* **錯誤處理**：優雅處理處理失敗和恢復
+* **Pipeline Processing**：文件分析階段的順序執行
+* **Parallel Processing**：獨立分析任務的並行執行
+* **Document Classification**：按類型和內容自動分類文件
+* **Information Extraction**：從非結構化文本提取結構化數據
+* **Error Handling**：優雅地處理處理失敗和恢復
 
 ### 核心類別
 
-* `FunctionGraphNode`：執行文件處理功能
-* `ConditionalGraphNode`：基於類型和內容路由文件
+* `FunctionGraphNode`：執行文件處理函數
+* `ConditionalGraphNode`：根據類型和內容路由文件
 * `GraphExecutor`：協調文件分析管道
-* `GraphState`：在整個處理過程中管理文件狀態和元資料
+* `GraphState`：在整個處理過程中管理文件狀態和元數據
 
-## 執行範例
+## 運行範例
 
 ### 入門
 
-此範例展示使用語義核心圖表套件的文件分析管道工作流程。以下程式碼片段展示如何在自己的應用程式中實現此模式。
+本範例展示了如何使用 Semantic Kernel Graph 套件進行文件分析管道工作流程。下面的代碼片段展示了如何在自己的應用程式中實現此模式。
 
-## 逐步實現
+## 分步實現
 
 ### 1. 基本文件分析管道
 
-此範例展示一個簡單的三階段文件處理工作流程。
+此範例演示了一個簡單的三階段文件處理工作流程。
 
 ```csharp
-// 使用模擬配置建立核心
+// Create kernel with mock configuration
 var kernel = CreateKernel();
 
-// 建立文件分析管道
+// Create document analysis pipeline
 var pipeline = new GraphExecutor("DocumentAnalysisPipeline", "Basic document analysis", logger);
 
-// 階段 1：文件攝入
+// Stage 1: Document Ingestion
 var documentIngestion = new FunctionGraphNode(
     "document-ingestion",
     "Ingest and validate document",
@@ -64,7 +64,7 @@ var documentIngestion = new FunctionGraphNode(
         var documentPath = context.GetValue<string>("document_path");
         var documentContent = await File.ReadAllTextAsync(documentPath);
         
-        // 提取基本元資料
+        // Extract basic metadata
         var fileInfo = new FileInfo(documentPath);
         var metadata = new Dictionary<string, object>
         {
@@ -75,17 +75,17 @@ var documentIngestion = new FunctionGraphNode(
             ["content_length"] = documentContent.Length
         };
 
-        // 在執行內容上儲存內容和元資料，供下游節點使用
+        // Store content and metadata on the execution context for downstream nodes
         context.SetValue("document_content", documentContent);
         context.SetValue("document_metadata", metadata);
-        // 同時直接公開文件副檔名以簡化下游存取
+        // Also expose the file extension directly to simplify downstream access
         context.SetValue("file_extension", fileInfo.Extension);
         context.SetValue("processing_status", "ingested");
         
         return $"Document ingested: {fileInfo.Name} ({fileInfo.Length} bytes)";
     });
 
-// 階段 2：文件分類
+// Stage 2: Document Classification
 var documentClassification = new FunctionGraphNode(
     "document-classification",
     "Classify document by type and content",
@@ -94,7 +94,7 @@ var documentClassification = new FunctionGraphNode(
         var content = context.GetValue<string>("document_content");
         var extension = context.GetValue<string>("file_extension");
         
-        // 簡單的分類邏輯
+        // Simple classification logic
         var documentType = extension.ToLower() switch
         {
             ".txt" => "text",
@@ -105,7 +105,7 @@ var documentClassification = new FunctionGraphNode(
             _ => "unknown"
         };
         
-        // 基於內容的分類
+        // Content-based classification
         var contentCategory = content.ToLower() switch
         {
             var c when c.Contains("invoice") || c.Contains("bill") => "financial",
@@ -115,7 +115,7 @@ var documentClassification = new FunctionGraphNode(
             _ => "general"
         };
         
-        // 將分類結果保留在內容中
+        // Persist classification results to the context
         context.SetValue("document_type", documentType);
         context.SetValue("content_category", contentCategory);
         context.SetValue("processing_status", "classified");
@@ -123,7 +123,7 @@ var documentClassification = new FunctionGraphNode(
         return $"Document classified as {documentType} ({contentCategory})";
     });
 
-// 階段 3：內容分析
+// Stage 3: Content Analysis
 var contentAnalysis = new FunctionGraphNode(
     "content-analysis",
     "Analyze document content and extract key information",
@@ -133,7 +133,7 @@ var contentAnalysis = new FunctionGraphNode(
         var documentType = context.GetValue<string>("document_type");
         var contentCategory = context.GetValue<string>("content_category");
         
-        // 根據文件類型提取關鍵資訊
+        // Extract key information based on document type
         var analysis = new Dictionary<string, object>();
         
         switch (contentCategory)
@@ -160,7 +160,7 @@ var contentAnalysis = new FunctionGraphNode(
                 break;
         }
         
-        // 儲存分析結果並更新處理狀態
+        // Store analysis results and update processing status
         context.SetValue("content_analysis", analysis);
         context.SetValue("processing_status", "analyzed");
         context.SetValue("analysis_timestamp", DateTime.UtcNow);
@@ -168,15 +168,15 @@ var contentAnalysis = new FunctionGraphNode(
         return $"Content analysis completed for {documentType} document";
     });
 
-// 將節點新增到管道
+// Add nodes to pipeline
 pipeline.AddNode(documentIngestion);
 pipeline.AddNode(documentClassification);
 pipeline.AddNode(contentAnalysis);
 
-// 設定開始節點
+// Set start node
 pipeline.SetStartNode(documentIngestion.NodeId);
 
-// 使用示例文件測試
+// Test with sample documents
 var testDocuments = new[]
 {
     "sample_invoice.txt",
@@ -212,13 +212,13 @@ foreach (var docPath in testDocuments)
 
 ### 2. 具有並行處理的進階管道
 
-展示獨立分析任務的並行執行以改進效能。
+演示了獨立分析任務的並行執行，以提高性能。
 
 ```csharp
-// 使用並行處理建立進階管道
+// Create advanced pipeline with parallel processing
 var advancedPipeline = new GraphExecutor("AdvancedDocumentPipeline", "Parallel document analysis", logger);
 
-// 文件攝入（順序）
+// Document ingestion (sequential)
 var advancedIngestion = new FunctionGraphNode(
     "advanced-ingestion",
     "Advanced document ingestion with validation",
@@ -227,13 +227,13 @@ var advancedIngestion = new FunctionGraphNode(
         var documentPath = context.GetValue<string>("document_path");
         var documentContent = await File.ReadAllTextAsync(documentPath);
         
-        // 驗證文件
+        // Validate document
         if (string.IsNullOrWhiteSpace(documentContent))
         {
             throw new InvalidOperationException("Document content is empty");
         }
         
-        // 提取全面的元資料
+        // Extract comprehensive metadata
         var fileInfo = new FileInfo(documentPath);
         var metadata = new Dictionary<string, object>
         {
@@ -254,7 +254,7 @@ var advancedIngestion = new FunctionGraphNode(
         return $"Advanced ingestion completed: {fileInfo.Name}";
     });
 
-// 並行分析任務
+// Parallel analysis tasks
 var textAnalysis = new FunctionGraphNode(
     "text-analysis",
     "Analyze text content and structure",
@@ -262,7 +262,7 @@ var textAnalysis = new FunctionGraphNode(
     {
         var content = context.GetValue<string>("document_content");
         
-        // 文本分析
+        // Text analysis
         var analysis = new Dictionary<string, object>
         {
             ["readability_score"] = CalculateReadabilityScore(content),
@@ -283,7 +283,7 @@ var structureAnalysis = new FunctionGraphNode(
     {
         var content = context.GetValue<string>("document_content");
         
-        // 結構分析
+        // Structure analysis
         var structure = new Dictionary<string, object>
         {
             ["sections"] = IdentifySections(content),
@@ -304,7 +304,7 @@ var semanticAnalysis = new FunctionGraphNode(
     {
         var content = context.GetValue<string>("document_content");
         
-        // 語意分析
+        // Semantic analysis
         var semantic = new Dictionary<string, object>
         {
             ["topics"] = ExtractTopics(content),
@@ -318,7 +318,7 @@ var semanticAnalysis = new FunctionGraphNode(
         return "Semantic analysis completed";
     });
 
-// 結果聚合
+// Results aggregation
 var resultsAggregation = new FunctionGraphNode(
     "results-aggregation",
     "Aggregate all analysis results",
@@ -329,7 +329,7 @@ var resultsAggregation = new FunctionGraphNode(
         var semanticAnalysis = context.GetValue<Dictionary<string, object>>("semantic_analysis");
         var metadata = context.GetValue<Dictionary<string, object>>("document_metadata");
         
-        // 組合所有結果
+        // Combine all results
         var comprehensiveAnalysis = new Dictionary<string, object>
         {
             ["metadata"] = metadata,
@@ -345,17 +345,17 @@ var resultsAggregation = new FunctionGraphNode(
         return "Results aggregation completed";
     });
 
-// 將節點新增到管道
+// Add nodes to pipeline
 advancedPipeline.AddNode(advancedIngestion);
 advancedPipeline.AddNode(textAnalysis);
 advancedPipeline.AddNode(structureAnalysis);
 advancedPipeline.AddNode(semanticAnalysis);
 advancedPipeline.AddNode(resultsAggregation);
 
-// 設定開始節點
+// Set start node
 advancedPipeline.SetStartNode(advancedIngestion.NodeId);
 
-// 測試進階管道
+// Test advanced pipeline
 var advancedArgs = new KernelArguments
 {
     ["document_path"] = "complex_document.txt"
@@ -373,13 +373,13 @@ Console.WriteLine($"   Semantic Analysis: {comprehensiveAnalysis["semantic_analy
 
 ### 3. 錯誤處理和恢復管道
 
-展示如何使用錯誤處理和恢復機制實現彈性文件處理。
+展示如何使用錯誤處理和恢復機制實現具有彈性的文件處理。
 
 ```csharp
-// 使用錯誤處理建立彈性管道
+// Create resilient pipeline with error handling
 var resilientPipeline = new GraphExecutor("ResilientDocumentPipeline", "Error handling and recovery", logger);
 
-// 具有驗證的文件攝入
+// Document ingestion with validation
 var resilientIngestion = new FunctionGraphNode(
     "resilient-ingestion",
     "Resilient document ingestion",
@@ -407,7 +407,7 @@ var resilientIngestion = new FunctionGraphNode(
                 return "Empty document content";
             }
             
-            // 成功路徑
+            // Success path
             context.SetValue("document_content", documentContent);
             context.SetValue("processing_status", "ingested");
             context.SetValue("error_type", "none");
@@ -423,7 +423,7 @@ var resilientIngestion = new FunctionGraphNode(
         }
     });
 
-// 基於攝入狀態的條件路由
+// Conditional routing based on ingestion status
 var ingestionRouter = new ConditionalGraphNode(
     "ingestion-router",
     "Route based on ingestion status",
@@ -434,7 +434,7 @@ var ingestionRouter = new ConditionalGraphNode(
     FalseNodeId = "error-handler"
 };
 
-// 用於成功攝入的內容處理程式
+// Content processor for successful ingestion
 var contentProcessor = new FunctionGraphNode(
     "content-processor",
     "Process document content",
@@ -444,7 +444,7 @@ var contentProcessor = new FunctionGraphNode(
         {
             var content = context.GetValue<string>("document_content");
             
-            // 處理內容
+            // Process content
             var processedContent = await ProcessContentAsync(content);
             context.SetValue("processed_content", processedContent);
             context.SetValue("processing_status", "processed");
@@ -460,7 +460,7 @@ var contentProcessor = new FunctionGraphNode(
         }
     });
 
-// 用於失敗操作的錯誤處理程式
+// Error handler for failed operations
 var errorHandler = new FunctionGraphNode(
     "error-handler",
     "Handle processing errors",
@@ -469,10 +469,10 @@ var errorHandler = new FunctionGraphNode(
         var errorType = context.GetValue<string>("error_type");
         var errorMessage = context.GetValue<string>("error_message");
         
-        // 記錄錯誤
+        // Log error
         Console.WriteLine($"❌ Error in document processing: {errorType} - {errorMessage}");
         
-        // 根據錯誤類型嘗試恢復
+        // Attempt recovery based on error type
         var recoveryAction = errorType switch
         {
             "file_not_found" => "Request document resubmission",
@@ -488,16 +488,16 @@ var errorHandler = new FunctionGraphNode(
         return $"Error handled. Recovery action: {recoveryAction}";
     });
 
-// 將節點新增到彈性管道
+// Add nodes to resilient pipeline
 resilientPipeline.AddNode(resilientIngestion);
 resilientPipeline.AddNode(ingestionRouter);
 resilientPipeline.AddNode(contentProcessor);
 resilientPipeline.AddNode(errorHandler);
 
-// 設定開始節點
+// Set start node
 resilientPipeline.SetStartNode(resilientIngestion.NodeId);
 
-// 測試錯誤處理情況
+// Test error handling scenarios
 var errorTestScenarios = new[]
 {
     new { Path = "nonexistent_file.txt", ExpectedError = "file_not_found" },
@@ -531,13 +531,13 @@ foreach (var scenario in errorTestScenarios)
 
 ### 4. 多文件批次處理
 
-展示使用結果聚合的多個文件並行處理。
+演示了並行處理多個文件並進行結果聚合的功能。
 
 ```csharp
-// 建立批次處理管道
+// Create batch processing pipeline
 var batchPipeline = new GraphExecutor("BatchDocumentPipeline", "Multi-document batch processing", logger);
 
-// 文件批次處理程式
+// Document batch processor
 var batchProcessor = new FunctionGraphNode(
     "batch-processor",
     "Process multiple documents in batch",
@@ -546,7 +546,7 @@ var batchProcessor = new FunctionGraphNode(
         var documentPaths = context.GetValue<string[]>("document_paths");
         var batchResults = new List<Dictionary<string, object>>();
         
-        // 並行處理文件
+        // Process documents in parallel
         var processingTasks = documentPaths.Select(async (docPath, index) =>
         {
             try
@@ -564,7 +564,7 @@ var batchProcessor = new FunctionGraphNode(
                     ["processing_timestamp"] = DateTime.UtcNow
                 };
                 
-                // 基本分析
+                // Basic analysis
                 result["word_count"] = content.Split(' ').Length;
                 result["line_count"] = content.Split('\n').Length;
                 result["key_topics"] = ExtractTopics(content);
@@ -595,7 +595,7 @@ var batchProcessor = new FunctionGraphNode(
         return $"Batch processing completed: {batchResults.Count} documents processed";
     });
 
-// 批次結果分析器
+// Batch results analyzer
 var batchAnalyzer = new FunctionGraphNode(
     "batch-analyzer",
     "Analyze batch processing results",
@@ -606,7 +606,7 @@ var batchAnalyzer = new FunctionGraphNode(
         var successfulDocuments = context.GetValue<int>("successful_documents");
         var failedDocuments = context.GetValue<int>("failed_documents");
         
-        // 計算統計資料
+        // Calculate statistics
         var totalSize = batchResults
             .Where(r => r["processing_status"].ToString() == "processed")
             .Sum(r => Convert.ToInt64(r["file_size"]));
@@ -634,14 +634,14 @@ var batchAnalyzer = new FunctionGraphNode(
         return "Batch analysis completed";
     });
 
-// 將節點新增到批次管道
+// Add nodes to batch pipeline
 batchPipeline.AddNode(batchProcessor);
 batchPipeline.AddNode(batchAnalyzer);
 
-// 設定開始節點
+// Set start node
 batchPipeline.SetStartNode(batchProcessor.NodeId);
 
-// 測試批次處理
+// Test batch processing
 var batchArgs = new KernelArguments
 {
     ["document_paths"] = new[]
@@ -731,39 +731,39 @@ Console.WriteLine($"   Total Words: {Convert.ToInt32(batchAnalysis["total_words"
    Total Words: 12,345
 ```
 
-## 配置選項
+## 組態選項
 
-### 管道配置
+### 管道組態
 
 ```csharp
 var pipelineOptions = new DocumentPipelineOptions
 {
-    EnableParallelProcessing = true,              // 啟用並行執行
-    MaxConcurrency = Environment.ProcessorCount, // 最大並行任務數
-    EnableErrorHandling = true,                   // 啟用錯誤處理
-    EnableRecovery = true,                        // 啟用自動恢復
-    BatchSize = 100,                              // 每批文件數
-    ProcessingTimeout = TimeSpan.FromMinutes(30), // 處理逾時
-    EnableProgressTracking = true,                 // 追蹤處理進度
-    EnableResultCaching = true,                   // 快取分析結果
+    EnableParallelProcessing = true,              // Enable parallel execution
+    MaxConcurrency = Environment.ProcessorCount, // Maximum parallel tasks
+    EnableErrorHandling = true,                   // Enable error handling
+    EnableRecovery = true,                        // Enable automatic recovery
+    BatchSize = 100,                              // Documents per batch
+    ProcessingTimeout = TimeSpan.FromMinutes(30), // Processing timeout
+    EnableProgressTracking = true,                 // Track processing progress
+    EnableResultCaching = true,                   // Cache analysis results
     StorageProvider = new FileSystemStorageProvider("./pipeline-results")
 };
 ```
 
-### 文件處理配置
+### 文件處理組態
 
 ```csharp
 var processingOptions = new DocumentProcessingOptions
 {
     SupportedFormats = new[] { ".txt", ".md", ".pdf", ".doc", ".docx" },
-    MaxFileSize = 100 * 1024 * 1024,             // 100MB 最大檔案大小
-    EnableContentValidation = true,                // 驗證文件內容
-    EnableMetadataExtraction = true,               // 提取文件元資料
-    EnableContentAnalysis = true,                  // 執行內容分析
-    EnableStructureAnalysis = true,                // 分析文件結構
-    EnableSemanticAnalysis = true,                 // 執行語意分析
-    AnalysisDepth = AnalysisDepth.Comprehensive,   // 分析深度等級
-    EnableResultPersistence = true                 // 保留分析結果
+    MaxFileSize = 100 * 1024 * 1024,             // 100MB max file size
+    EnableContentValidation = true,                // Validate document content
+    EnableMetadataExtraction = true,               // Extract document metadata
+    EnableContentAnalysis = true,                  // Perform content analysis
+    EnableStructureAnalysis = true,                // Analyze document structure
+    EnableSemanticAnalysis = true,                 // Perform semantic analysis
+    AnalysisDepth = AnalysisDepth.Comprehensive,   // Analysis depth level
+    EnableResultPersistence = true                 // Persist analysis results
 };
 ```
 
@@ -771,43 +771,43 @@ var processingOptions = new DocumentProcessingOptions
 
 ### 常見問題
 
-#### 文件攝入失敗
+#### 文件攝取失敗
 ```bash
-# 問題：文件無法攝入
-# 解決方案：檢查檔案權限並驗證檔案格式
+# Problem: Documents fail to ingest
+# Solution: Check file permissions and validate file format
 EnableContentValidation = true;
 SupportedFormats = new[] { ".txt", ".md", ".pdf" };
 ```
 
 #### 並行處理問題
 ```bash
-# 問題：並行處理導致錯誤
-# 解決方案：降低並行性並啟用錯誤處理
+# Problem: Parallel processing causes errors
+# Solution: Reduce concurrency and enable error handling
 MaxConcurrency = 2;
 EnableErrorHandling = true;
 ```
 
 #### 記憶體問題
 ```bash
-# 問題：大型文件導致記憶體問題
-# 解決方案：啟用串流並設定記憶體限制
-MaxFileSize = 50 * 1024 * 1024; // 50MB 限制
+# Problem: Large documents cause memory issues
+# Solution: Enable streaming and set memory limits
+MaxFileSize = 50 * 1024 * 1024; // 50MB limit
 EnableStreaming = true;
 ```
 
-### 偵錯模式
+### 調試模式
 
-啟用詳細記錄以進行疑難排解：
+為疑難排解啟用詳細日誌記錄：
 
 ```csharp
-// 啟用偵錯記錄
+// Enable debug logging
 var logger = LoggerFactory.Create(builder =>
 {
     builder.AddConsole();
     builder.SetMinimumLevel(LogLevel.Debug);
 }).CreateLogger<DocumentAnalysisPipelineExample>();
 
-// 使用偵錯記錄配置管道
+// Configure pipeline with debug logging
 var debugPipeline = new GraphExecutor("DebugPipeline", "Debug document analysis", logger);
 debugPipeline.EnableDebugMode = true;
 debugPipeline.LogProcessingSteps = true;
@@ -816,10 +816,10 @@ debugPipeline.LogErrorDetails = true;
 
 ## 進階模式
 
-### 自訂文件處理程式
+### 自訂文件處理器
 
 ```csharp
-// 實現自訂文件處理程式
+// Implement custom document processors
 public class CustomDocumentProcessor : IDocumentProcessor
 {
     public async Task<DocumentAnalysisResult> ProcessAsync(DocumentContext context)
@@ -827,7 +827,7 @@ public class CustomDocumentProcessor : IDocumentProcessor
         var content = context.Content;
         var metadata = context.Metadata;
         
-        // 自訂處理邏輯
+        // Custom processing logic
         var customAnalysis = await PerformCustomAnalysis(content, metadata);
         
         return new DocumentAnalysisResult
@@ -841,8 +841,8 @@ public class CustomDocumentProcessor : IDocumentProcessor
     
     private async Task<Dictionary<string, object>> PerformCustomAnalysis(string content, Dictionary<string, object> metadata)
     {
-        // 實現自訂分析邏輯
-        await Task.Delay(100); // 模擬處理
+        // Implement custom analysis logic
+        await Task.Delay(100); // Simulate processing
         
         return new Dictionary<string, object>
         {
@@ -856,7 +856,7 @@ public class CustomDocumentProcessor : IDocumentProcessor
 ### 管道協調
 
 ```csharp
-// 協調多個文件處理管道
+// Orchestrate multiple document processing pipelines
 var orchestrator = new DocumentPipelineOrchestrator
 {
     PipelineDefinitions = new Dictionary<string, PipelineDefinition>
@@ -887,7 +887,7 @@ var selectedPipeline = orchestrator.SelectPipeline(documentContext);
 ### 實時處理
 
 ```csharp
-// 實現實時文件處理
+// Implement real-time document processing
 var realTimePipeline = new RealTimeDocumentPipeline
 {
     InputQueue = new DocumentQueue(),
@@ -897,10 +897,10 @@ var realTimePipeline = new RealTimeDocumentPipeline
     ProcessingMode = ProcessingMode.RealTime
 };
 
-// 啟動實時處理
+// Start real-time processing
 await realTimePipeline.StartAsync();
 
-// 訂閱實時結果
+// Subscribe to real-time results
 realTimePipeline.ResultPublished += (sender, e) =>
 {
     Console.WriteLine($"📊 Real-time result: {e.DocumentId} - {e.AnalysisSummary}");
@@ -909,14 +909,14 @@ realTimePipeline.ResultPublished += (sender, e) =>
 
 ## 相關範例
 
-* [條件節點](./conditional-nodes.md)：動態路由和決策
+* [條件式 Node](./conditional-nodes.md)：動態路由和決策制定
 * [串流執行](./streaming-execution.md)：實時處理和監控
 * [多代理](./multi-agent.md)：協調文件處理
-* [檢查點](./checkpointing.md)：狀態持續性和恢復
+* [檢查點](./checkpointing.md)：狀態持久化和恢復
 
-## 另見
+## 另請參閱
 
-* [文件處理概念](../concepts/document-processing.md)：了解文件分析
-* [管道模式](../patterns/pipeline.md)：建置處理管道
-* [效能最佳化](../how-to/performance-optimization.md)：優化處理效能
+* [文件處理概念](../concepts/document-processing.md)：瞭解文件分析
+* [Pipeline 模式](../patterns/pipeline.md)：建立處理管道
+* [性能優化](../how-to/performance-optimization.md)：優化處理性能
 * [API 參考](../api/)：完整的 API 文件

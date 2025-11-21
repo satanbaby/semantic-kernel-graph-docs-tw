@@ -1,39 +1,39 @@
 # 公開 REST API
 
-本指南說明如何透過 REST API、串流端點、Webhook 和 GraphQL 訂閱來公開 SemanticKernel.Graph 功能，以便與外部服務和應用程式整合。
+本指南說明如何透過 REST API、串流端點、Webhook 和 GraphQL 訂閱公開 SemanticKernel.Graph 功能，以便與外部服務和應用程式進行整合。
 
 ## 概述
 
-SemanticKernel.Graph 提供全面的 API 層，可讓外部系統：
+SemanticKernel.Graph 提供全面的 API 層，能讓外部系統：
 
-* **遠端執行圖表** - 透過具有驗證和速率限制的 REST 端點執行
+* **遠端執行圖形** - 透過具有身份驗證和速率限制的 REST 端點執行
 * **即時串流執行事件** - 透過 WebSocket、Server-Sent Events 或 HTTP 輪詢串流
-* **監控執行狀態** - 追蹤執行狀態並以非同步方式擷取結果
-* **整合 Webhook** - 用於事件驅動的架構
-* **訂閱 GraphQL 訂閱** - 進行即時更新和檢查
+* **監控執行狀態** - 非同步追蹤和擷取結果
+* **與 Webhook 整合** - 用於事件驅動架構
+* **訂閱 GraphQL 訂閱** - 即時更新和檢查
 
 ## 核心 REST API 元件
 
 ### GraphRestApi：主要 API 服務
 
-`GraphRestApi` 類別提供一個與框架無關的服務層，可適應任何 HTTP 框架：
+`GraphRestApi` 類別提供與框架無關的服務層，可適配任何 HTTP 框架：
 
-* **圖表執行**：執行圖表並與參數一起擷取結果
-* **圖表管理**：列出、註冊和管理圖表定義
-* **執行監控**：追蹤執行狀態並擷取結果
-* **安全性**：API 金鑰和承載令牌驗證
-* **速率限制**：可設定的要求限流和配額
+* **Graph Execution** - 使用參數執行 Graph 並擷取結果
+* **Graph Management** - 列出、註冊和管理 Graph 定義
+* **Execution Monitoring** - 追蹤執行狀態並擷取結果
+* **Security** - API 金鑰和 Bearer Token 身份驗證
+* **Rate Limiting** - 可配置的請求節流和配額
 
-### API 設定選項
+### API 組態選項
 
-透過 `GraphRestApiOptions` 設定 REST API 行為：
+透過 `GraphRestApiOptions` 配置 REST API 行為：
 
 ```csharp
 using SemanticKernel.Graph.Integration;
 
 var apiOptions = new GraphRestApiOptions
 {
-    // 驗證
+    // 身份驗證
     ApiKey = "your-api-key",
     RequireAuthentication = true,
     EnableBearerTokenAuth = true,
@@ -61,9 +61,9 @@ var apiOptions = new GraphRestApiOptions
 
 ## REST API 端點
 
-### 基本圖表操作
+### 基本 Graph 操作
 
-#### 列出已註冊的圖表
+#### 列出已註冊的 Graph
 
 ```csharp
 // GET /graphs
@@ -74,7 +74,7 @@ app.MapGet("/graphs", async () =>
 });
 ```
 
-#### 執行圖表
+#### 執行 Graph
 
 ```csharp
 // POST /graphs/execute
@@ -86,7 +86,7 @@ app.MapPost("/graphs/execute", async (ExecuteGraphRequest request, HttpContext h
 });
 ```
 
-#### 加入佇列執行
+#### 排入執行隊列
 
 ```csharp
 // POST /graphs/enqueue
@@ -98,7 +98,7 @@ app.MapPost("/graphs/enqueue", async (EnqueueExecutionRequest request, HttpConte
 });
 ```
 
-### 要求和回應模型
+### 請求和回應模型
 
 #### ExecuteGraphRequest
 
@@ -112,9 +112,9 @@ var request = new ExecuteGraphRequest
         ["user_id"] = "user123",
         ["priority"] = "high"
     },
-    StartNodeId = "start-node", // 選用
-    TimeoutSeconds = 300,       // 選用
-    IdempotencyKey = "req-123"  // 選用
+    StartNodeId = "start-node", // 選擇性
+    TimeoutSeconds = 300,       // 選擇性
+    IdempotencyKey = "req-123"  // 選擇性
 };
 ```
 
@@ -303,9 +303,9 @@ app.MapGet("/graphs/{graphId}/stream/poll", async (string graphId, string? lastE
 
 ## Webhook 整合
 
-### Webhook 設定
+### Webhook 組態
 
-為外部服務通知設定 Webhook：
+為外部服務通知配置 Webhook：
 
 ```csharp
 public sealed class WebhookConfiguration
@@ -355,7 +355,7 @@ public sealed class WebhookService
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
-            // 添加簽名以確保安全
+            // 新增簽名以保障安全性
             var signature = ComputeSignature(json, webhook.Secret);
             content.Headers.Add("X-Webhook-Signature", signature);
             
@@ -384,7 +384,7 @@ public sealed class WebhookService
 ### Webhook 事件處理
 
 ```csharp
-// 為特定事件類型設定 Webhook
+// 為特定事件類型配置 Webhook
 var webhookService = new WebhookService(httpClient, logger);
 
 webhookService.RegisterWebhook(new WebhookConfiguration
@@ -405,7 +405,7 @@ var eventStream = executor.ExecuteStreamAsync(kernel, arguments);
 
 await foreach (var @event in eventStream)
 {
-    // 在本地處理事件
+    // 在本機處理事件
     await ProcessEventAsync(@event);
     
     // 通知 Webhook
@@ -415,9 +415,9 @@ await foreach (var @event in eventStream)
 
 ## GraphQL 訂閱
 
-### GraphQL 架構
+### GraphQL Schema
 
-定義用於即時訂閱的 GraphQL 架構：
+定義 GraphQL Schema 以支援即時訂閱：
 
 ```graphql
 type GraphExecutionEvent {
@@ -523,7 +523,7 @@ public sealed class GraphQLSubscriptionService
             NodeId = @event.NodeId ?? string.Empty,
             Status = @event.EventType.ToString(),
             StartTime = @event.Timestamp.ToString("O"),
-            // 根據事件類型對應其他屬性
+            // 根據事件類型映射其他屬性
         };
     }
     
@@ -550,7 +550,7 @@ public sealed class GraphQLSubscriptionService
 
 ### 即時螢光筆
 
-使用 `GraphRealtimeHighlighter` 進行實時執行視覺化：
+使用 `GraphRealtimeHighlighter` 進行即時執行視覺化：
 
 ```csharp
 using SemanticKernel.Graph.Core;
@@ -562,11 +562,11 @@ var highlighter = new GraphRealtimeHighlighter(
     options
 );
 
-// 訂閱實時更新
+// 訂閱即時更新
 highlighter.NodeExecutionStarted += (sender, e) =>
 {
     Console.WriteLine($"Node {e.NodeId} started execution");
-    // 使用節點螢光筆更新 UI
+    // 使用 Node 螢光筆更新 UI
 };
 
 highlighter.NodeExecutionCompleted += (sender, e) =>
@@ -575,10 +575,10 @@ highlighter.NodeExecutionCompleted += (sender, e) =>
     // 使用完成狀態更新 UI
 };
 
-// 開始為執行進行螢光筆標示
+// 開始為執行進行螢光筆標記
 await highlighter.StartHighlightingAsync("exec-123");
 
-// 取得實時螢光筆狀態
+// 取得即時螢光筆狀態
 var highlightState = highlighter.GetHighlightState("exec-123");
 ```
 
@@ -627,7 +627,7 @@ private async Task HandleVisualizationWebSocketAsync(string graphId, WebSocket w
         await SendWebSocketMessageAsync(webSocket, highlightEvent);
     };
     
-    // 保持連接活躍
+    // 保持連線活動
     var buffer = new byte[1024];
     while (webSocket.State == WebSocketState.Open)
     {
@@ -664,7 +664,7 @@ private async Task SendWebSocketMessageAsync(WebSocket webSocket, object message
     }
     catch
     {
-        // 處理連接錯誤
+        // 處理連線錯誤
     }
 }
 ```
@@ -684,7 +684,7 @@ builder.Services.AddSingleton<WebhookService>();
 
 var app = builder.Build();
 
-// 設定 REST API
+// 配置 REST API
 var graphApi = app.Services.GetRequiredService<GraphRestApi>();
 var subscriptionService = app.Services.GetRequiredService<GraphQLSubscriptionService>();
 
@@ -703,7 +703,7 @@ app.MapGet("/graphs/{graphId}/visualize/ws", HandleVisualizationWebSocket);
 app.Run();
 ```
 
-### ASP.NET Core 控制器
+### ASP.NET Core Controller
 
 ```csharp
 [ApiController]
@@ -761,9 +761,9 @@ public class GraphExecutionController : ControllerBase
 }
 ```
 
-## 安全性和驗證
+## 安全性和身份驗證
 
-### API 金鑰驗證
+### API 金鑰身份驗證
 
 ```csharp
 var apiOptions = new GraphRestApiOptions
@@ -787,7 +787,7 @@ app.Use(async (context, next) =>
 });
 ```
 
-### 承載令牌驗證
+### Bearer Token 身份驗證
 
 ```csharp
 var apiOptions = new GraphRestApiOptions
@@ -798,74 +798,74 @@ var apiOptions = new GraphRestApiOptions
     RequiredAppRoles = new[] { "GraphUser" }
 };
 
-// 註冊承載令牌驗證器
+// 註冊 Bearer Token 驗證器
 builder.Services.AddSingleton<IBearerTokenValidator, AzureAdBearerTokenValidator>();
 ```
 
-## 最佳實踐
+## 最佳實務
 
 ### 效能最佳化
 
-1. **連線池**：為外部服務呼叫使用連線池
-2. **事件批處理**：盡可能批處理事件以減少開銷
-3. **壓縮**：為大型事件裝載啟用壓縮
-4. **快取**：快取經常存取的圖表定義和結果
+1. **連線集區** - 對外部服務呼叫使用連線集區
+2. **事件批次處理** - 盡可能進行批次事件以減少負荷
+3. **壓縮** - 為大型事件承載啟用壓縮
+4. **快取** - 快取頻繁存取的 Graph 定義和結果
 
 ### 安全考量
 
-1. **速率限制**：為每個用戶端/租戶實作適當的速率限制
-2. **輸入驗證**：驗證所有輸入參數並清理資料
-3. **驗證**：使用強驗證機制（API 金鑰、OAuth）
-4. **HTTPS**：在生產環境中始終使用 HTTPS
+1. **速率限制** - 為每個用戶端/租用戶實作適當的速率限制
+2. **輸入驗證** - 驗證所有輸入參數並清理資料
+3. **身份驗證** - 使用強大的身份驗證機制 (API 金鑰、OAuth)
+4. **HTTPS** - 在生產環境中一律使用 HTTPS
 
 ### 監控和可觀測性
 
-1. **計量**：追蹤 API 使用情況、回應時間和錯誤率
-2. **記錄**：記錄所有 API 要求和回應以供除錯
-3. **追蹤**：使用分散式追蹤進行要求關聯
-4. **健康檢查**：實作健康檢查端點
+1. **指標** - 追蹤 API 使用、回應時間和錯誤率
+2. **日誌記錄** - 記錄所有 API 請求和回應以供偵錯
+3. **追蹤** - 使用分散式追蹤進行請求相關性
+4. **健康檢查** - 實作健康檢查端點
 
 ## 疑難排解
 
 ### 常見問題
 
-**WebSocket 連接失敗**
-* 檢查 WebSocket 協定支援
-* 驗證連接升級標頭
+**WebSocket 連線失敗**
+* 檢查 WebSocket 通訊協定支援
+* 確認連線升級標頭
 * 檢查防火牆和代理設定
 
 **串流效能問題**
-* 根據消費者速度調整緩衝區大小
-* 為大型裝載啟用壓縮
+* 根據使用者速度調整緩衝區大小
+* 為大型承載啟用壓縮
 * 監控背壓指標
 
-**驗證問題**
+**身份驗證問題**
 * 驗證 API 金鑰格式和有效性
-* 檢查承載令牌過期和範圍
-* 驗證必需的應用程式角色
+* 檢查 Bearer Token 過期和範圍
+* 驗證必要的應用程式角色
 
-### 除錯提示
+### 偵錯提示
 
-1. **啟用詳細記錄**：為 API 要求使用結構化記錄
-2. **監控事件串流**：檢查事件串流健康狀況和效能
-3. **測試端點**：使用 Postman 或 curl 等工具測試端點
-4. **檢查網路**：驗證網路連線和防火牆規則
+1. **啟用詳細日誌記錄** - 使用結構化日誌記錄進行 API 請求
+2. **監控事件串流** - 檢查事件串流健康和效能
+3. **測試端點** - 使用 Postman 或 curl 等工具測試端點
+4. **檢查網路** - 驗證網路連線和防火牆規則
 
 ## 另請參閱
 
-* [串流執行](../concepts/streaming.md) - 實時執行和事件串流
-* [安全性和資料處理](../how-to/security-and-data.md) - API 安全性和驗證
+* [串流執行](../concepts/streaming.md) - 即時執行和事件串流
+* [安全性和資料處理](../how-to/security-and-data.md) - API 安全和身份驗證
 * [整合和擴充](../how-to/integration-and-extensions.md) - 核心整合模式
-* [API 參考](../api/) - REST 和串流類型的完整 API 文件
+* [API 參考](../api/) - REST 和串流型別的完整 API 文件
 
 ## 範例實作和測試
 
 - REST API 整合的可執行範例實作於 `semantic-kernel-graph-docs/examples/RestApiExample.cs`。
-- 此範例已編譯並執行，以驗證本文件中的程式碼片段，並遵循 C# 最佳實踐和英文註解。
+- 此範例已編譯並執行以驗證本文件中的程式碼片段，並遵循 C# 最佳實務且附有英文註解。
 - 若要從存放庫根目錄執行範例：
 
 ```bash
 dotnet run --project semantic-kernel-graph-docs/examples/Examples.csproj -- rest-api
 ```
 
-本文件中的所有程式碼片段都已審查，以符合測試的範例。如果您發現不一致，請優先考慮以 `semantic-kernel-graph-docs/examples/RestApiExample.cs` 的範例實作作為規範來源。
+本文件中的所有程式碼片段皆已檢查以符合經測試的範例。如果您發現不一致之處，請將 `semantic-kernel-graph-docs/examples/RestApiExample.cs` 的範例實作作為正式來源。

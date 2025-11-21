@@ -1,33 +1,33 @@
 # 除錯與檢查
 
-SemanticKernel.Graph 中的除錯和檢查功能提供了全面的工具，用於理解、解決問題和分析圖執行。本指南涵蓋除錯工作階段、中斷點、GraphInspectionApi、圖視覺化和執行重播。
+SemanticKernel.Graph 中的除錯和檢查功能提供了全面的工具，用於理解、排查故障和分析 Graph 執行。本指南涵蓋除錯工作階段、斷點、GraphInspectionApi、Graph 視覺化和執行重新播放。
 
 ## 您將學到的內容
 
-* 如何建立和設置除錯工作階段
-* 設置不同類型的中斷點
-* 使用 GraphInspectionApi 進行運行時監控
-* 以多種格式生成圖視覺化
-* 重播執行歷史進行分析
-* 複雜工作流程除錯的最佳實踐
+* 如何建立和配置除錯工作階段
+* 設定不同類型的斷點
+* 使用 GraphInspectionApi 進行執行時監控
+* 以多種格式產生 Graph 視覺化
+* 重新播放執行歷史進行分析
+* 複雜工作流程的除錯最佳實踐
 
-## 概念和技術
+## 概念與技術
 
-**除錯工作階段**：受控的執行環境，允許在圖執行過程中進行逐步執行、中斷點管理和狀態檢查。
+**Debug Session（除錯工作階段）**：一個受控執行環境，允許在 Graph 執行期間進行逐步執行、斷點管理和狀態檢查。
 
-**中斷點**：暫停在特定節點執行的條件，允許在該點檢查狀態和變數。
+**Breakpoint（斷點）**：一個條件，在特定 Node 處暫停執行，允許檢查該點的狀態和變數。
 
-**GraphInspectionApi**：運行時 API，用於實時檢查圖結構、執行狀態和效能指標。
+**GraphInspectionApi**：用於即時檢查 Graph 結構、執行狀態和效能指標的執行時 API。
 
-**圖視覺化**：導出功能，用於生成 DOT、Mermaid、JSON 和其他格式的圖表，並突出顯示執行路徑。
+**Graph Visualization（Graph 視覺化）**：可匯出功能，用於以 DOT、Mermaid、JSON 和其他格式產生圖表，並突出顯示執行路徑。
 
-**執行重播**：能夠逐步重播已完成的執行進行分析和除錯。
+**Execution Replay（執行重新播放）**：能夠逐步重新播放已完成的執行以進行分析和除錯。
 
-## 先決條件
+## 必要條件
 
-* 已完成[首個圖表教程](../first-graph-5-minutes.md)
-* 對圖執行概念的基本理解
-* 熟悉狀態管理和條件節點
+* [First Graph Tutorial](../first-graph-5-minutes.md) 已完成
+* 對 Graph 執行概念有基本了解
+* 熟悉狀態管理和條件 Node
 
 ## 除錯工作階段
 
@@ -39,49 +39,49 @@ SemanticKernel.Graph 中的除錯和檢查功能提供了全面的工具，用�
 using SemanticKernel.Graph.Debug;
 using SemanticKernel.Graph.Core;
 
-// 建立 GraphExecutor（如果您的情況需要，請關聯 Kernel）
+// 建立 GraphExecutor（根據場景需要關聯 Kernel）
 var graphExecutor = new GraphExecutor(kernel);
 
-// 建立執行上下文（kernel + 初始圖狀態）
+// 建立執行內容（kernel + 初始 Graph 狀態）
 var graphState = new GraphState(new KernelArguments { ["input"] = "demo" });
 var executionContext = new GraphExecutionContext(kernel, graphState);
 
-// 流暢的建構器：設置中斷點和初始模式，然後建立工作階段
+// Fluent builder：配置斷點和初始模式，然後建立工作階段
 var debugSession = await DebugSessionBuilder
     .ForExecution(graphExecutor, executionContext)
     .WithInitialMode(DebugExecutionMode.StepOver)
-    .WithBreakpoint("decision_node", "{{user_score}} > 80", "高分數中斷點")
-    .WithBreakpoint("error_handler", state => state.GetValue<bool>("has_error"), "錯誤條件")
+    .WithBreakpoint("decision_node", "{{user_score}} > 80", "High score breakpoint")
+    .WithBreakpoint("error_handler", state => state.GetValue<bool>("has_error"), "Error condition")
     .BuildAsync();
 
-// 替代方案（便利）：運行執行並通過幫助器獲得除錯工作階段
+// 替代方案（便利）：執行並通過幫助程式取得除錯工作階段
 var (result, session) = await graphExecutor.ExecuteWithDebugAsync(kernel, arguments, DebugExecutionMode.StepOver);
 ```
 
 ### 除錯執行模式
 
-不同的模式控制在除錯期間執行如何流動：
+不同的模式控制除錯期間的執行流程：
 
 ```csharp
-// 逐步跳過：執行當前節點並暫停在下一個
+// Step-over：執行目前 Node 並在下一個暫停
 await debugSession.ResumeAsync(DebugExecutionMode.StepOver);
 
-// 逐步進入：如果可用，進入子圖執行
+// Step-into：如果可用，進入子 Graph 執行
 await debugSession.ResumeAsync(DebugExecutionMode.StepInto);
 
-// 逐步退出：繼續直到退出當前上下文
+// Step-out：繼續執行直到退出目前內容
 await debugSession.ResumeAsync(DebugExecutionMode.StepOut);
 
-// 繼續：執行到下一個中斷點
+// Continue：執行到下一個斷點
 await debugSession.ResumeAsync(DebugExecutionMode.Continue);
 
-// 暫停：在當前點停止執行
+// Pause：在目前位置停止執行
 await debugSession.PauseAsync();
 ```
 
 ### 除錯工作階段控制
 
-管理除錯工作階段的生命週期和執行流：
+管理除錯工作階段的生命週期和執行流程：
 
 ```csharp
 // 啟動工作階段
@@ -92,126 +92,126 @@ if (debugSession.IsPaused)
 {
     var pausedNode = debugSession.PausedAtNode;
     var currentState = debugSession.CurrentState;
-    Console.WriteLine($"暫停於：{pausedNode?.Name}");
+    Console.WriteLine($"Paused at: {pausedNode?.Name}");
 }
 
 // 逐步執行
 await debugSession.StepAsync();
 
-// 恢復執行
+// 繼續執行
 await debugSession.ResumeAsync(DebugExecutionMode.Continue);
 
 // 停止工作階段
 await debugSession.StopAsync();
 ```
 
-## 中斷點
+## 斷點
 
-### 中斷點類型
+### 斷點類型
 
-SemanticKernel.Graph 支持多種中斷點類型，用於不同的除錯情景：
+SemanticKernel.Graph 支援多種斷點類型以應對不同的除錯場景：
 
-#### 條件中斷點
+#### 條件斷點
 
-當滿足特定條件時中斷：
+在符合特定條件時中斷：
 
 ```csharp
-// 基於函數的條件
+// 基於函式的條件
 var breakpointId = debugSession.AddBreakpoint(
     "validation_node",
     state => state.GetValue<int>("attempt_count") > 3,
-    "嘗試 3 次後中斷"
+    "Break after 3 attempts"
 );
 
-// 使用樣板的基於表達式的條件
+// 使用範本的基於運算式的條件
 var expressionBreakpoint = debugSession.AddBreakpoint(
     "decision_node",
     "{{user_role}} == 'admin' && {{permission_level}} >= 5",
-    "管理員權限檢查"
+    "Admin permission check"
 );
 ```
 
-#### 數據中斷點
+#### 資料斷點
 
-當特定變數改變時暫停執行：
+當特定變數發生變化時暫停執行：
 
 ```csharp
-// 當 error_count 改變時中斷
+// 當 error_count 變化時中斷
 var dataBreakpoint = debugSession.AddDataBreakpoint(
     "error_count",
-    "監控錯誤計數變化"
+    "Monitor error count changes"
 );
 
-// 當組中的任何變數改變時中斷
+// 當群組中的任何變數變化時中斷
 var groupBreakpoint = debugSession.AddDataBreakpoint(
     "user_preferences",
-    "監控使用者偏好設置變化"
+    "Monitor user preference changes"
 );
 ```
 
-#### 自動過期中斷點
+#### 自動過期斷點
 
-被擊中後自動移除自身的中斷點：
+在被觸發後自動移除本身的斷點：
 
 ```csharp
-// 僅在前 3 次中斷
+// 僅中斷前 3 次
 var limitedBreakpoint = debugSession.AddBreakpoint(
     "retry_node",
     "{{retry_count}} > 0",
-    3, // 最大擊中計數
-    "在前 3 次重試時中斷"
+    3, // Max hit count
+    "Break on first 3 retries"
 );
 
-// 基於表達式且有擊中限制
+// 基於運算式，並且有觸發次數限制
 var expressionLimited = debugSession.AddBreakpoint(
     "validation_node",
     "{{validation_errors}}.Count > 5",
-    2, // 最大擊中計數
-    "驗證錯誤超過 5 時中斷"
+    2, // Max hit count
+    "Break when validation errors exceed 5"
 );
 ```
 
-### 中斷點管理
+### 斷點管理
 
-在整個除錯工作階段管理中斷點：
+在整個除錯工作階段中管理斷點：
 
 ```csharp
-// 獲取所有活動的中斷點
+// 取得所有作用中的斷點
 var breakpoints = debugSession.GetBreakpoints();
 foreach (var bp in breakpoints)
 {
-    Console.WriteLine($"中斷點：{bp.BreakpointId} 在 {bp.NodeId}");
-    Console.WriteLine($"描述：{bp.Description}");
-    Console.WriteLine($"擊中計數：{bp.HitCount}");
+    Console.WriteLine($"Breakpoint: {bp.BreakpointId} at {bp.NodeId}");
+    Console.WriteLine($"Description: {bp.Description}");
+    Console.WriteLine($"Hit count: {bp.HitCount}");
 }
 
-// 移除特定中斷點
+// 移除特定斷點
 debugSession.RemoveBreakpoint(breakpointId);
 
-// 清除所有中斷點
+// 清除所有斷點
 debugSession.ClearBreakpoints();
 ```
 
 ## 狀態檢查
 
-### 檢查當前狀態
+### 檢查目前狀態
 
 在除錯期間檢查變數和狀態：
 
 ```csharp
-// 獲取所有當前變數
+// 取得所有目前變數
 var variables = debugSession.GetCurrentVariables();
 foreach (var kvp in variables)
 {
-    Console.WriteLine($"{kvp.Key}：{kvp.Value}");
+    Console.WriteLine($"{kvp.Key}: {kvp.Value}");
 }
 
-// 獲取具有類型安全性的特定變數
+// 使用類型安全取得特定變數
 var userName = debugSession.GetVariable<string>("user_name");
 var userScore = debugSession.GetVariable<int>("user_score");
 var isActive = debugSession.GetVariable<bool>("is_active");
 
-// 在除錯期間設置變數
+// 在除錯期間設定變數
 debugSession.SetVariable("debug_mode", true);
 debugSession.SetVariable("test_value", 42);
 ```
@@ -221,32 +221,32 @@ debugSession.SetVariable("test_value", 42);
 追蹤和分析執行步驟：
 
 ```csharp
-// 獲取完整的執行歷史
+// 取得完整執行歷史
 var history = debugSession.GetExecutionHistory();
 foreach (var step in history)
 {
-    Console.WriteLine($"步驟：{step.Node.Name} ({step.Node.NodeId})");
-    Console.WriteLine($"耗時：{step.Duration.TotalMilliseconds:F2}ms");
-    Console.WriteLine($"狀態：{step.Status}");
+    Console.WriteLine($"Step: {step.Node.Name} ({step.Node.NodeId})");
+    Console.WriteLine($"Duration: {step.Duration.TotalMilliseconds:F2}ms");
+    Console.WriteLine($"Status: {step.Status}");
     
     // 存取執行前後的狀態
     var stateBefore = step.StateBefore;
     var stateAfter = step.StateAfter;
 }
 
-// 從當前位置獲取可用的下一個節點
+// 從目前位置取得可用的下一個 Node
 var nextNodes = debugSession.GetAvailableNextNodes();
 foreach (var node in nextNodes)
 {
-    Console.WriteLine($"下一個：{node.Name} ({node.NodeId})");
+    Console.WriteLine($"Next: {node.Name} ({node.NodeId})");
 }
 ```
 
 ## GraphInspectionApi
 
-### 運行時檢查
+### 執行時檢查
 
-GraphInspectionApi 提供全面的運行時監控功能：
+GraphInspectionApi 提供全面的執行時監控功能：
 
 ```csharp
 using SemanticKernel.Graph.Core;
@@ -260,17 +260,17 @@ var inspectionApi = new GraphInspectionApi(
     }
 );
 
-// 獲取圖結構資訊
+// 取得 Graph 結構資訊
 var structureInfo = inspectionApi.GetGraphStructure(executionId);
-Console.WriteLine($"圖：{structureInfo.GraphName}");
-Console.WriteLine($"節點：{structureInfo.NodeCount}");
-Console.WriteLine($"邊：{structureInfo.EdgeCount}");
+Console.WriteLine($"Graph: {structureInfo.GraphName}");
+Console.WriteLine($"Nodes: {structureInfo.NodeCount}");
+Console.WriteLine($"Edges: {structureInfo.EdgeCount}");
 
-// 獲取執行狀態
+// 取得執行狀態
 var status = inspectionApi.GetExecutionStatus(executionId);
-Console.WriteLine($"狀態：{status.Status}");
-Console.WriteLine($"開始時間：{status.StartTime}");
-Console.WriteLine($"耗時：{status.Duration}");
+Console.WriteLine($"Status: {status.Status}");
+Console.WriteLine($"Start time: {status.StartTime}");
+Console.WriteLine($"Duration: {status.Duration}");
 ```
 
 ### 效能監控
@@ -278,20 +278,20 @@ Console.WriteLine($"耗時：{status.Duration}");
 監控執行效能和指標：
 
 ```csharp
-// 獲取特定節點的效能指標
+// 取得特定 Node 的效能指標
 var nodeMetrics = inspectionApi.GetNodeMetrics(executionId, "processing_node");
 if (nodeMetrics != null)
 {
-    Console.WriteLine($"總執行次數：{nodeMetrics.TotalExecutions}");
-    Console.WriteLine($"平均時間：{nodeMetrics.AverageExecutionTime.TotalMilliseconds:F2}ms");
-    Console.WriteLine($"成功率：{nodeMetrics.SuccessRate:P}");
+    Console.WriteLine($"Total executions: {nodeMetrics.TotalExecutions}");
+    Console.WriteLine($"Average time: {nodeMetrics.AverageExecutionTime.TotalMilliseconds:F2}ms");
+    Console.WriteLine($"Success rate: {nodeMetrics.SuccessRate:P}");
 }
 
-// 獲取整體效能摘要
+// 取得整體效能摘要
 var performanceSummary = inspectionApi.GetPerformanceSummary(executionId);
-Console.WriteLine($"總執行時間：{performanceSummary.TotalExecutionTime.TotalMilliseconds:F2}ms");
-Console.WriteLine($"平均節點時間：{performanceSummary.AverageNodeExecutionTime.TotalMilliseconds:F2}ms");
-Console.WriteLine($"最慢節點：{performanceSummary.SlowestNode?.NodeId}");
+Console.WriteLine($"Total execution time: {performanceSummary.TotalExecutionTime.TotalMilliseconds:F2}ms");
+Console.WriteLine($"Average node time: {performanceSummary.AverageNodeExecutionTime.TotalMilliseconds:F2}ms");
+Console.WriteLine($"Slowest node: {performanceSummary.SlowestNode?.NodeId}");
 ```
 
 ### 除錯資訊
@@ -299,29 +299,29 @@ Console.WriteLine($"最慢節點：{performanceSummary.SlowestNode?.NodeId}");
 在執行期間存取除錯特定資訊：
 
 ```csharp
-// 獲取特定節點的除錯資訊
+// 取得特定 Node 的除錯資訊
 var debugInfo = inspectionApi.GetNodeDebugInfo(executionId, "decision_node");
 if (debugInfo != null)
 {
-    Console.WriteLine($"有中斷點：{debugInfo.HasBreakpoints}");
-    Console.WriteLine($"已暫停：{debugInfo.IsPaused}");
+    Console.WriteLine($"Has breakpoints: {debugInfo.HasBreakpoints}");
+    Console.WriteLine($"Is paused: {debugInfo.IsPaused}");
     
     if (debugInfo.Breakpoints != null)
     {
         foreach (var bp in debugInfo.Breakpoints)
         {
-            Console.WriteLine($"中斷點：{bp.Description}");
-            Console.WriteLine($"擊中計數：{bp.HitCount}");
+            Console.WriteLine($"Breakpoint: {bp.Description}");
+            Console.WriteLine($"Hit count: {bp.HitCount}");
         }
     }
 }
 ```
 
-## 圖視覺化
+## Graph 視覺化
 
-### 導出格式
+### 匯出格式
 
-為不同用例生成多種格式的視覺化：
+為不同的用例以多種格式產生視覺化：
 
 ```csharp
 using SemanticKernel.Graph.Core;
@@ -334,19 +334,19 @@ var visualizationEngine = new GraphVisualizationEngine(
     }
 );
 
-// 生成 GraphViz 的 DOT 格式
+// 產生 DOT 格式供 GraphViz 使用
 var dotOptions = new DotSerializationOptions
 {
-    GraphName = "我的工作流程",
+    GraphName = "My Workflow",
     LayoutDirection = DotLayoutDirection.LeftToRight,
     EnableClustering = true
 };
 var dotGraph = visualizationEngine.SerializeToDot(visualizationData, dotOptions);
 
-// 生成 Mermaid 圖表
+// 產生 Mermaid 圖表
 var mermaidOptions = new MermaidGenerationOptions
 {
-    Direction = "TB", // 從上到下
+    Direction = "TB", // Top to bottom
     IncludeTitle = true,
     EnableStyling = true,
     HighlightExecutionPath = true
@@ -356,7 +356,7 @@ var mermaidDiagram = visualizationEngine.GenerateEnhancedMermaidDiagram(
     mermaidOptions
 );
 
-// 生成用於 API 使用的 JSON
+// 產生 JSON 供 API 使用
 var jsonOptions = new JsonSerializationOptions
 {
     Indented = true,
@@ -368,26 +368,26 @@ var jsonGraph = visualizationEngine.SerializeToJson(visualizationData, jsonOptio
 
 ### 除錯工作階段視覺化
 
-在除錯工作階段期間生成視覺化：
+在除錯工作階段期間產生視覺化：
 
 ```csharp
-// 使用當前狀態突出顯示生成視覺化
+// 使用目前狀態突顯產生視覺化
 var visualization = debugSession.GenerateVisualization(highlightCurrent: true);
 
-// 導出工作階段數據進行分析
+// 匯出工作階段資料進行分析
 var sessionData = debugSession.ExportSessionData(includeHistory: true);
 
-// 為除錯上下文生成 Mermaid 圖表
+// 為除錯內容產生 Mermaid 圖表
 var debugDiagram = debugSession.GenerateMermaidDiagram(highlightCurrent: true);
 Console.WriteLine(debugDiagram);
 ```
 
-### 實時更新
+### 即時更新
 
-視覺化可以包含實時執行資訊：
+視覺化可以包含即時執行資訊：
 
 ```csharp
-// 使用執行路徑建立視覺化數據
+// 建立包含執行路徑的視覺化資料
 var visualizationData = new GraphVisualizationData
 {
     Nodes = graphNodes.Select(n => new NodeVisualizationData
@@ -413,14 +413,14 @@ var visualizationData = new GraphVisualizationData
 };
 ```
 
-## 執行重播
+## 執行重新播放
 
-### 建立重播
+### 建立重新播放
 
-重播已完成的執行進行分析和除錯：
+重新播放已完成的執行以進行分析和除錯：
 
 ```csharp
-// 從除錯工作階段建立重播
+// 從除錯工作階段建立重新播放
 var replay = debugSession.CreateReplay();
 
 // 或從執行歷史建立
@@ -434,43 +434,43 @@ var replayFromHistory = new ExecutionReplay(
 );
 ```
 
-### 重播控制
+### 重新播放控制
 
-控制重播執行和分析：
+控制重新播放執行和分析：
 
 ```csharp
-// 啟動重播
+// 啟動重新播放
 await replay.StartAsync();
 
-// 逐步向前進行重播
+// 逐步執行重新播放
 await replay.StepForwardAsync();
 await replay.StepBackwardAsync();
 
-// 跳轉到特定步驟
+// 跳至特定步驟
 await replay.JumpToStepAsync(5);
 
-// 獲取當前重播狀態
+// 取得目前重新播放狀態
 var currentStep = replay.CurrentStep;
 var currentState = replay.CurrentState;
 var stepIndex = replay.CurrentStepIndex;
 
-// 檢查重播狀態
+// 檢查重新播放狀態
 if (replay.IsAtEnd)
 {
-    Console.WriteLine("重播完成");
+    Console.WriteLine("Replay completed");
 }
 else if (replay.IsAtBeginning)
 {
-    Console.WriteLine("重播在開始");
+    Console.WriteLine("Replay at start");
 }
 ```
 
 ### 假設分析
 
-在重播期間修改變數以測試不同情景：
+在重新播放期間修改變數以測試不同的場景：
 
 ```csharp
-// 修改當前步驟的變數
+// 在目前步驟修改變數
 replay.ModifyVariable("user_score", 95);
 replay.ModifyVariable("user_role", "admin");
 
@@ -487,17 +487,17 @@ var modifiedResult = replay.GetModifiedResult();
 
 ### 條件除錯
 
-使用條件表達式實現複雜的中斷點邏輯：
+使用條件運算式進行複雜的斷點邏輯：
 
 ```csharp
-// 複雜的條件中斷點
+// 複雜的條件斷點
 var complexBreakpoint = debugSession.AddBreakpoint(
     "workflow_node",
     "{{user_role}} == 'admin' && {{permission_level}} >= 5 && {{session_duration}}.TotalMinutes > 30",
-    "具有高權限和長工作階段的管理員"
+    "Admin with high permissions and long session"
 );
 
-// 帶有狀態比較的中斷點
+// 含有狀態比較的斷點
 var stateBreakpoint = debugSession.AddBreakpoint(
     "validation_node",
     state => {
@@ -505,13 +505,13 @@ var stateBreakpoint = debugSession.AddBreakpoint(
         var warnings = state.GetValue<List<string>>("validation_warnings") ?? new();
         return errors.Count > 5 || warnings.Count > 10;
     },
-    "高錯誤/警告計數"
+    "High error/warning count"
 );
 ```
 
 ### 效能除錯
 
-使用專門的中斷點除錯效能問題：
+使用特殊斷點除錯效能問題：
 
 ```csharp
 // 在執行緩慢時中斷
@@ -519,19 +519,19 @@ var performanceBreakpoint = debugSession.AddBreakpoint(
     "slow_node",
     state => {
         var executionTime = state.GetValue<TimeSpan>("node_execution_time");
-        return executionTime.TotalMilliseconds > 1000; // 1 秒
+        return executionTime.TotalMilliseconds > 1000; // 1 second
     },
-    "在執行緩慢時中斷"
+    "Break on slow execution"
 );
 
-// 在記憶體使用時中斷
+// 在記憶體使用量高時中斷
 var memoryBreakpoint = debugSession.AddBreakpoint(
     "memory_intensive_node",
     state => {
         var memoryUsage = state.GetValue<long>("memory_usage_bytes");
         return memoryUsage > 100 * 1024 * 1024; // 100 MB
     },
-    "在高記憶體使用時中斷"
+    "Break on high memory usage"
 );
 ```
 
@@ -550,14 +550,14 @@ var errorBreakpoint = debugSession.AddBreakpoint(
         
         return hasError && (errorCount > 3 || lastError?.Contains("timeout") == true);
     },
-    "在嚴重錯誤時中斷"
+    "Break on critical errors"
 );
 
 // 在重試嘗試時中斷
 var retryBreakpoint = debugSession.AddBreakpoint(
     "retry_node",
-    "{{retry_count}} > {{max_retries}} * 0.8", // 在最大重試的 80% 時中斷
-    "在重試限制附近中斷"
+    "{{retry_count}} > {{max_retries}} * 0.8", // Break at 80% of max retries
+    "Break near retry limit"
 );
 ```
 
@@ -565,56 +565,56 @@ var retryBreakpoint = debugSession.AddBreakpoint(
 
 ### 除錯工作階段管理
 
-* **工作階段生命週期**：始終處置除錯工作階段以釋放資源
-* **模式選擇**：為不同的情景選擇適當的除錯模式
-* **中斷點策略**：謹慎使用條件中斷點以避免過度暫停
-* **狀態檢查**：在關鍵決策點而不是每個節點檢查狀態
+* **工作階段生命週期**：始終釋放除錯工作階段以釋放資源
+* **模式選擇**：為不同的場景選擇適當的除錯模式
+* **斷點策略**：謹慎使用條件斷點以避免過度暫停
+* **狀態檢查**：在關鍵決策點檢查狀態，而不是每個 Node
 
 ### 效能考量
 
-* **中斷點影響**：每個中斷點為執行增加了開銷
-* **歷史大小**：大的執行歷史消耗記憶體
-* **視覺化生成**：複雜的視覺化對於大型圖表可能很昂貴
-* **重播記憶體**：長重播需要大量記憶體來進行狀態快照
+* **斷點影響**：每個斷點都會對執行增加額外開銷
+* **歷史大小**：大型執行歷史會消耗記憶體
+* **視覺化產生**：複雜視覺化對大型 Graph 可能很昂貴
+* **重新播放記憶體**：長重新播放需要大量記憶體來進行狀態快照
 
 ### 除錯工作流程
 
-* **開始簡單**：使用基本的逐步跳過除錯開始以理解流程
-* **添加中斷點**：逐步在關鍵決策點添加中斷點
-* **使用重播**：利用重播進行執行後分析
-* **記錄問題**：使用除錯工作階段導出進行問題報告
+* **從簡單開始**：開始使用基本的逐步執行除錯來了解流程
+* **新增斷點**：逐漸在關鍵決策點新增斷點
+* **使用重新播放**：利用重新播放進行執行後分析
+* **記錄問題**：使用除錯工作階段匯出進行問題報告
 
-## 故障排除
+## 疑難排解
 
 ### 常見問題
 
-**除錯工作階段未暫停**：確保中斷點已正確設置且條件得以滿足。
+**除錯工作階段不暫停**：確保斷點已正確配置且條件已符合。
 
-**效能下降**：限制活動中斷點的數量並謹慎使用條件中斷點。
+**效能降低**：限制作用中斷點的數量，並明智地使用條件斷點。
 
 **記憶體問題**：監控執行歷史大小並清除舊的除錯工作階段。
 
-**視覺化錯誤**：檢查圖結構數據是否有效且完整。
+**視覺化錯誤**：檢查 Graph 結構資料是否有效且完整。
 
 ### 除錯工作階段恢復
 
 ```csharp
-// 從已處置的工作階段恢復
+// 從已釋放的工作階段復原
 if (debugSession.IsDisposed)
 {
-    // 從現有上下文建立新工作階段
+    // 從現有內容建立新工作階段
     var newSession = executor.CreateDebugSession(context);
     await newSession.StartAsync(DebugExecutionMode.Continue);
 }
 
-// 在處置前導出工作階段數據
+// 在釋放前匯出工作階段資料
 var sessionData = debugSession.ExportSessionData(includeHistory: true);
-// 保存到文件或數據庫以供稍後分析
+// 儲存到檔案或資料庫以進行後續分析
 ```
 
 ## 另請參閱
 
-* [條件節點](../conditional-nodes.md) - 理解條件邏輯和路由
-* [狀態管理](../state.md) - 使用圖狀態和變數
-* [圖執行](../execution.md) - 理解執行流和生命週期
-* [示例](../../examples/) - 除錯工作流程的實踐示例
+* [Conditional Nodes](../conditional-nodes.md) - 了解條件邏輯和路由
+* [State Management](../state.md) - 使用 Graph 狀態和變數
+* [Graph Execution](../execution.md) - 了解執行流程和生命週期
+* [Examples](../../examples/) - 除錯工作流程的實際範例

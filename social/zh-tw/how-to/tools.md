@@ -1,30 +1,30 @@
 # 整合工具
 
-本指南說明如何將外部工具和 REST API 整合到您的 SemanticKernel.Graph 工作流程中。您將學習如何使用工具登錄表、建立工具綱要，以及實現自動轉換器以實現無縫整合。
+本指南說明如何將外部工具和 REST API 整合到您的 SemanticKernel.Graph 工作流程中。您將了解如何使用工具登錄、建立工具結構描述，以及實作自動轉換器以實現無縫整合。
 
 ## 概述
 
-工具整合系統使您能夠：
-* **封裝外部 API** 為可執行的圖形節點
-* **自動驗證輸入/輸出綱要**
-* **快取回應** 以改善效能
-* **處理身份驗證** 和錯誤情境
-* **透過標準化綱要整合任何 REST 服務**
+工具整合系統可讓您：
+* **將外部 API 包裝**為可執行圖表節點
+* **自動驗證輸入/輸出結構描述**
+* **快取回應**以改善效能
+* **處理驗證**和錯誤情境
+* **透過標準化結構描述與任何 REST 服務整合**
 
 ## 核心元件
 
-### 工具登錄表
+### 工具登錄
 
-`IToolRegistry` 提供可用工具的集中式管理：
+`IToolRegistry` 提供可用工具的集中管理：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 using SemanticKernel.Graph.Integration;
 
-// 從您的服務提供者獲取工具登錄表
+// 從您的服務提供者取得工具登錄
 var toolRegistry = serviceProvider.GetRequiredService<IToolRegistry>();
 
-// 列出可用工具
+// 列出可用的工具
 var availableTools = await toolRegistry.ListAsync();
 foreach (var tool in availableTools)
 {
@@ -32,7 +32,7 @@ foreach (var tool in availableTools)
 }
 ```
 
-### 工具綱要
+### 工具結構描述
 
 使用 `RestToolSchema` 定義外部工具的結構和行為：
 
@@ -61,17 +61,17 @@ var weatherTool = new RestToolSchema
 };
 ```
 
-### 工具綱要轉換器
+### 工具結構描述轉換器
 
-自動將綱要轉換為可執行的節點：
+自動將結構描述轉換為可執行節點：
 
 ```csharp
 var converter = serviceProvider.GetRequiredService<IToolSchemaConverter>();
 
-// 將綱要轉換為可執行節點
+// 將結構描述轉換為可執行節點
 var weatherNode = converter.ConvertToNode(weatherTool);
 
-// 新增至您的圖形
+// 新增到您的 Graph
 graph.AddNode(weatherNode)
      .AddEdge("start", "weather_api")
      .AddEdge("weather_api", "process_weather");
@@ -109,7 +109,7 @@ var restTool = new RestToolSchema
 
 ### 動態參數對應
 
-將圖形狀態變數對應至 API 參數：
+將圖表狀態變數對應到 API 參數：
 
 ```csharp
 var dynamicTool = new RestToolSchema
@@ -137,9 +137,9 @@ var dynamicTool = new RestToolSchema
 
 ## 進階工具模式
 
-### 連鎖工具呼叫
+### 鏈式工具呼叫
 
-建立鏈接多個工具呼叫的工作流程：
+建立可鏈式多個工具呼叫的工作流程：
 
 ```csharp
 var dataFetchTool = new RestToolSchema
@@ -166,7 +166,7 @@ var dataProcessTool = new RestToolSchema
     }"
 };
 
-// 在您的圖形中鏈接工具
+// 在您的 Graph 中鏈式這些工具
 graph.AddNode(converter.ConvertToNode(dataFetchTool))
      .AddNode(converter.ConvertToNode(dataProcessTool))
      .AddEdge("start", "fetch_data")
@@ -175,7 +175,7 @@ graph.AddNode(converter.ConvertToNode(dataFetchTool))
 
 ### 條件式工具執行
 
-使用條件邏輯來決定執行哪些工具：
+使用條件邏輯來決定要執行哪些工具：
 
 ```csharp
 var highPriorityTool = new RestToolSchema
@@ -200,7 +200,7 @@ var standardTool = new RestToolSchema
     TimeoutSeconds = 30
 };
 
-// 根據優先級路由至不同的工具
+// 根據優先順序路由到不同的工具
 graph.AddConditionalEdge("decision", "high_priority_api", 
     condition: state => state.GetString("priority") == "high")
 .AddConditionalEdge("decision", "standard_api", 
@@ -217,7 +217,7 @@ var resultProcessor = new FunctionGraphNode(
         var apiResult = state.GetValue<object>("api_response");
         var processedData = ProcessApiResult(apiResult);
         
-        // 儲存已處理的資料
+        // 儲存處理後的資料
         state["processed_data"] = processedData;
         state["processing_timestamp"] = DateTimeOffset.UtcNow;
         
@@ -230,11 +230,11 @@ graph.AddEdge("external_api", "process_results")
      .AddEdge("process_results", "next_step");
 ```
 
-## 身份驗證和安全性
+## 驗證和安全性
 
-### API 金鑰身份驗證
+### API 金鑰驗證
 
-使用 API 金鑰身份驗證來配置工具：
+使用 API 金鑰驗證設定工具：
 
 ```csharp
 var authenticatedTool = new RestToolSchema
@@ -252,7 +252,7 @@ var authenticatedTool = new RestToolSchema
     }
 };
 
-// 在狀態中儲存敏感認證資訊
+// 在狀態中儲存敏感認證
 var authNode = new FunctionGraphNode(
     kernelFunction: (state) => {
         state["api_key"] = Environment.GetEnvironmentVariable("API_KEY");
@@ -263,9 +263,9 @@ var authNode = new FunctionGraphNode(
 );
 ```
 
-### 秘密管理
+### 機密管理
 
-使用秘密解析器進行安全的認證資訊處理：
+使用機密解析器進行安全的認證處理：
 
 ```csharp
 var secretResolver = new EnvironmentSecretResolver();
@@ -284,7 +284,7 @@ var secureTool = new RestToolSchema
     }
 };
 
-// 秘密解析器會自動解析 {secret_key}
+// 機密解析器會自動解析 {secret_key}
 var secureNode = converter.ConvertToNode(secureTool, secretResolver);
 ```
 
@@ -307,13 +307,13 @@ var cachedTool = new RestToolSchema
     CacheTtlSeconds = 600 // 10 minutes
 };
 
-// 快取鍵會根據方法、URL 和參數自動產生
+// 快取金鑰根據方法、URL 和參數自動產生
 var cachedNode = converter.ConvertToNode(cachedTool);
 ```
 
-### 自訂快取鍵
+### 自訂快取金鑰
 
-實現自訂快取策略：
+實作自訂快取策略：
 
 ```csharp
 var customCacheTool = new RestToolSchema
@@ -328,7 +328,7 @@ var customCacheTool = new RestToolSchema
     CacheTtlSeconds = 300
 };
 
-// 自訂快取鍵產生
+// 自訂快取金鑰產生
 var customCacheNode = new RestToolGraphNode(customCacheTool, httpClient)
 {
     CustomCacheKeyGenerator = (request) => {
@@ -343,7 +343,7 @@ var customCacheNode = new RestToolGraphNode(customCacheTool, httpClient)
 
 ### 工具錯誤復原
 
-妥善處理工具失敗：
+適當地處理工具失敗：
 
 ```csharp
 var errorHandlingTool = new RestToolSchema
@@ -368,9 +368,9 @@ graph.AddEdge("resilient_api", "tool_error_handler")
      .AddEdge("tool_error_handler", "fallback_service");
 ```
 
-### 備用工具
+### 後備工具
 
-當主要工具失敗時提供替代工具：
+在主要工具失敗時提供替代工具：
 
 ```csharp
 var primaryTool = new RestToolSchema
@@ -393,7 +393,7 @@ var fallbackTool = new RestToolSchema
     Method = HttpMethod.Get
 };
 
-// 在主要失敗時路由至備用
+// 在主要失敗時路由到後備
 graph.AddConditionalEdge("primary_api", "success", 
     condition: state => state.GetBool("primary_succeeded", false))
 .AddConditionalEdge("primary_api", "fallback_api", 
@@ -402,7 +402,7 @@ graph.AddConditionalEdge("primary_api", "success",
 
 ## 監控和可觀測性
 
-### 工具度量
+### 工具指標
 
 追蹤工具效能和使用情況：
 
@@ -418,13 +418,13 @@ var monitoredTool = new RestToolSchema
     TelemetryDependencyName = "external_api_service"
 };
 
-// 度量會透過 IGraphTelemetry 自動收集
+// 指標會透過 IGraphTelemetry 自動收集
 var monitoredNode = converter.ConvertToNode(monitoredTool);
 ```
 
 ### 自訂遙測
 
-為工具實現自訂遙測：
+為工具實作自訂遙測：
 
 ```csharp
 var customTelemetryTool = new RestToolSchema
@@ -448,7 +448,7 @@ var telemetryNode = new RestToolGraphNode(customTelemetryTool, httpClient)
         var startTime = context.GraphState.GetValue<DateTimeOffset>("tool_start_time");
         var duration = DateTimeOffset.UtcNow - startTime;
         
-        // 記錄自訂度量
+        // 記錄自訂指標
         context.GraphState["tool_duration"] = duration;
         context.GraphState["tool_success"] = result.IsSuccess;
         
@@ -457,64 +457,64 @@ var telemetryNode = new RestToolGraphNode(customTelemetryTool, httpClient)
 };
 ```
 
-## 最佳實踐
+## 最佳做法
 
 ### 工具設計
 
-1. **清晰的命名** - 為工具 ID 和描述使用描述性名稱
-2. **參數驗證** - 在工具執行之前驗證必要的參數
-3. **錯誤處理** - 實現適當的錯誤處理和備用策略
-4. **效能最佳化** - 適當使用快取和連線集區
+1. **清晰命名** - 為工具 ID 和描述使用清楚的名稱
+2. **參數驗證** - 在工具執行前驗證必要的參數
+3. **錯誤處理** - 實作適當的錯誤處理和後備策略
+4. **效能最佳化** - 在適當之處使用快取和連線池
 
-### 安全性考量
+### 安全考量
 
-1. **認證資訊管理** - 使用秘密解析器管理敏感資訊
+1. **認證管理** - 對敏感資訊使用機密解析器
 2. **輸入驗證** - 驗證所有輸入以防止注入攻擊
-3. **HTTPS 強制執行** - 始終對外部 API 呼叫使用 HTTPS
-4. **速率限制** - 實現速率限制以防止 API 濫用
+3. **HTTPS 強制** - 外部 API 呼叫務必使用 HTTPS
+4. **速率限制** - 實作速率限制以防止 API 濫用
 
 ### 監控和維護
 
 1. **效能追蹤** - 監控工具回應時間和成功率
-2. **錯誤記錄** - 記錄所有工具失敗以進行除錯和改進
-3. **健康檢查** - 為重要的外部工具實現健康檢查
-4. **文件** - 保持工具綱要和使用範例最新
+2. **錯誤記錄** - 記錄所有工具失敗以進行偵錯和改進
+3. **健全檢查** - 對重要的外部工具實作健全檢查
+4. **文件** - 保持工具結構描述和使用範例最新
 
 ## 疑難排解
 
 ### 常見問題
 
-**身份驗證失敗**：驗證 API 金鑰和持有人權杖是否正確配置
+**驗證失敗**: 驗證 API 金鑰和持有人權杖是否正確設定
 
-**逾時錯誤**：檢查網路連線和調整逾時設定
+**逾時錯誤**: 檢查網路連線並調整逾時設定
 
-**快取問題**：驗證快取配置，如需要清除快取
+**快取問題**: 驗證快取設定並在需要時清除快取
 
-**參數對應錯誤**：確保狀態變數與綱要參數名稱相符
+**參數對應錯誤**: 確保狀態變數與結構描述參數名稱相符
 
-### 除錯提示
+### 偵錯祕訣
 
-1. **啟用詳細記錄** 以追蹤工具執行
-2. **檢查 HTTP 要求** 在網路監控工具中
-3. **驗證工具綱要** 在執行之前
-4. **獨立測試工具** 以隔離問題
+1. **啟用詳細記錄**以追蹤工具執行
+2. **檢查 HTTP 要求**在網路監視工具中
+3. **驗證工具結構描述**執行前
+4. **獨立測試工具**以隔離問題
 
 ## 概念和技術
 
-**RestToolSchema**：定義外部 REST API 工具的結構和行為的配置物件。它指定 API 端點、HTTP 方法、參數、標題和快取行為。
+**RestToolSchema**: 定義外部 REST API 工具結構和行為的設定物件。它指定 API 端點、HTTP 方法、參數、標頭和快取行為。
 
-**IToolRegistry**：集中式服務，用於管理圖形系統中可用工具的登錄、發現和生命週期。
+**IToolRegistry**: 集中服務，在圖表系統中管理可用工具的註冊、探索和生命週期。
 
-**IToolSchemaConverter**：一種服務，可自動將工具綱要轉換為可執行的圖形節點，從而實現外部 API 的無縫整合。
+**IToolSchemaConverter**: 服務，自動將工具結構描述轉換為可執行圖表節點，實現外部 API 的無縫整合。
 
-**RestToolGraphNode**：封裝外部 REST API 呼叫的可執行圖形節點。它處理參數對應、HTTP 要求、回應處理和錯誤處理。
+**RestToolGraphNode**: 包裝外部 REST API 呼叫的可執行圖表節點。它處理參數對應、HTTP 要求、回應處理和錯誤處理。
 
-**工具快取**：效能最佳化機制，儲存 API 回應以避免對相同要求進行重複呼叫，從而改善回應時間並減少外部 API 使用量。
+**工具快取**: 效能最佳化機制，儲存 API 回應以避免對相同要求重複呼叫，改善回應時間並減少外部 API 使用。
 
-## 另請參閱
+## 參見
 
 * [REST 工具整合](rest-tools-integration.md) - REST 工具整合的完整指南
-* [建立圖形](build-a-graph.md) - 學習如何使用工具節點建構圖形
-* [錯誤處理和復原力](error-handling-and-resilience.md) - 妥善處理工具失敗
-* [安全性和資料](security-and-data.md) - 安全工具整合實踐
-* [範例：工具整合](../examples/plugin-system-example.md) - 完整的工具整合工作範例
+* [建立 Graph](build-a-graph.md) - 了解如何使用工具節點建構圖表
+* [錯誤處理和復原力](error-handling-and-resilience.md) - 適當地處理工具失敗
+* [安全和資料](security-and-data.md) - 安全工具整合做法
+* [範例：工具整合](../examples/plugin-system-example.md) - 工具整合的完整工作範例

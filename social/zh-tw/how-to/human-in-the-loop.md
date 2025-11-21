@@ -1,78 +1,78 @@
-# 人工介入迴圈 (HITL)
+# 人類在環中（HITL）
 
-SemanticKernel.Graph 中的人工介入迴圈 (HITL) 提供了在圖執行期間進行人工干預的精密機制。此系統為需要人工監督或決策的場景啟用了條件暫停、人工批准、基於信心度的路由和全面的稽核。
+SemanticKernel.Graph 中的人類在環（HITL）提供了在圖形執行期間進行人類干預的複雜機制。此系統為需要人類監督或決策的場景啟用條件暫停、人類批准、基於信心的路由和全面的審計。
 
-## 您將學到的內容
+## 你將學到什麼
 
-* 如何實作具有可配置條件的人工批准節點
-* 使用信心度閘門根據不確定性級別路由執行
-* 配置多個交互通道（主控台、Web API、CLI）
-* 設定 SLA、逾時和自動備用動作
-* 實作批次批准系統以實現高效處理
-* 人工交互的全面稽核和追蹤
-* 生產工作流中 HITL 整合的最佳實踐
+* 如何使用可配置的條件實現人類批准節點
+* 使用信心閘門根據不確定性級別路由執行
+* 配置多個互動渠道（Console、Web API、CLI）
+* 設置 SLA、超時和自動回退操作
+* 實現批量批准系統以進行高效處理
+* 全面的人類互動審計和追蹤
+* HITL 在生產工作流程中的最佳實踐
 
 ## 概念和技術
 
-**HumanApprovalGraphNode**：特殊節點，在圖執行期間暫停並等待人工批准後才繼續，支援條件激活和多個批准選項。
+**HumanApprovalGraphNode**：專門的 Node，在繼續前暫停 Graph 執行並等待人類批准，支持條件激活和多個批准選項。
 
-**ConfidenceGateGraphNode**：監視信心度評分的節點，在信心度低於配置的閾值時自動觸發人工干預。
+**ConfidenceGateGraphNode**：Node 監視信心分數，當信心低於配置的閾值時自動觸發人類干預。
 
-**IHumanInteractionChannel**：不同通信通道（主控台、Web API、CLI）的抽象介面，用於處理人工交互。
+**IHumanInteractionChannel**：不同通信渠道（Console、Web API、CLI）的抽象界面，用於處理人類互動。
 
-**HumanApprovalBatchManager**：管理多個批准請求的分組和處理，實現高效的批次操作。
+**HumanApprovalBatchManager**：管理多個批准請求的分組和處理以進行高效的批量操作。
 
-**HumanInteractionTimeout**：可配置的逾時設定，在未收到人工回應時自動進行備用動作。
+**HumanInteractionTimeout**：可配置的超時設置，當未收到人類回應時採用自動回退操作。
 
-**InterruptionType**：不同類型人工干預的分類系統（ManualApproval、ConfidenceGate、HumanInput、ResultValidation）。
+**InterruptionType**：不同類型人類干預的分類系統（ManualApproval、ConfidenceGate、HumanInput、ResultValidation）。
 
-## 先決條件
+## 前提條件
 
-* [第一個圖教學](../first-graph-5-minutes.md)已完成
-* 基本了解圖執行概念
-* 熟悉條件節點和路由
-* 理解信心度評分和品質指標
+* [第一個 Graph 教程](../first-graph-5-minutes.md)已完成
+* 對 Graph 執行概念的基本理解
+* 熟悉條件 Node 和路由
+* 對信心計分和品質指標的理解
 
-## 人工批准節點
+## 人類批准節點
 
-### 基本人工批准
+### 基本人類批准
 
-建立需要人工批准才能繼續執行的節點：
+建立在繼續執行前需要人類批准的 Node：
 
 ```csharp
 using SemanticKernel.Graph.Nodes;
 using SemanticKernel.Graph.Core;
 
-// 建立主控台交互通道
+// 建立控制台互動渠道
 var consoleChannel = new ConsoleHumanInteractionChannel();
 
-// 建立人工批准節點
+// 建立人類批准節點
 var approvalNode = new HumanApprovalGraphNode(
     "approval-1",
-    "需要文件審查",
-    "請審查生成的文件的準確性和完整性",
+    "Document Review Required",
+    "Please review the generated document for accuracy and completeness",
     consoleChannel);
 
-// 新增至圖
+// 添加到圖形
 graph.AddNode(approvalNode);
 graph.AddEdge(startNode, approvalNode);
 ```
 
-### 條件人工批准
+### 條件人類批准
 
-配置只在特定條件下啟用的批准節點：
+配置只在特定條件下啟用的批准 Node：
 
 ```csharp
 // 建立條件批准節點
 var conditionalApproval = HumanApprovalGraphNode.CreateConditional(
     "conditional-approval",
-    "高風險交易批准",
-    "超過閾值的交易需要批准",
+    "High-Risk Transaction Approval",
+    "Approval required for transactions above threshold",
     state => state.GetValue<decimal>("transaction_amount") > 10000m,
     consoleChannel,
     "conditional-approval");
 
-// 根據批准結果新增路由
+// 根據批准結果添加路由
 graph.AddConditionalEdge(conditionalApproval, approvedNode,
     edge => edge.Condition = "ApprovalResult == true");
 graph.AddConditionalEdge(conditionalApproval, rejectedNode,
@@ -81,33 +81,33 @@ graph.AddConditionalEdge(conditionalApproval, rejectedNode,
 
 ### 批准選項和路由
 
-配置多個批准選項和自訂路由：
+配置多個批准選項並進行自訂路由：
 
 ```csharp
-// 新增批准選項
+// 添加批准選項
 approvalNode.ApprovalOptions.Add(new HumanInteractionOption
 {
     OptionId = "approve",
-    DisplayText = "批准並繼續",
+    DisplayText = "Approve and Continue",
     Value = true,
     IsDefault = true,
-    Description = "批准文件並繼續處理"
+    Description = "Approve the document and continue processing"
 });
 
 approvalNode.ApprovalOptions.Add(new HumanInteractionOption
 {
     OptionId = "reject",
-    DisplayText = "拒絕並停止",
+    DisplayText = "Reject and Stop",
     Value = false,
-    Description = "拒絕文件並停止處理"
+    Description = "Reject the document and stop processing"
 });
 
 approvalNode.ApprovalOptions.Add(new HumanInteractionOption
 {
     OptionId = "modify",
-    DisplayText = "要求修改",
+    DisplayText = "Request Modifications",
     Value = "modify",
-    Description = "在批准前要求進行變更"
+    Description = "Request changes before approval"
 });
 
 // 根據批准選項配置路由
@@ -119,42 +119,42 @@ graph.AddConditionalEdge(approvalNode, modificationNode,
     edge => edge.Condition = "ApprovalResult == 'modify'");
 ```
 
-## 信心度閘門
+## 信心閘門
 
-### 基本信心度閘門
+### 基本信心閘門
 
-建立根據信心度級別自動觸發人工干預的節點：
+建立根據信心級別自動觸發人類干預的 Node：
 
 ```csharp
-// 建立信心度閘門，閾值為 0.7
+// 建立信心閘門，閾值為 0.7
 var confidenceGate = new ConfidenceGateGraphNode(
-    0.7,  // 信心度閾值
+    0.7,  // 信心閾值
     "quality-gate");
 
-// 配置信心度來源
+// 配置信心來源
 confidenceGate.SetConfidenceSource(state => 
     state.GetValue<double>("llm_confidence_score"));
 
-// 新增路由路徑
+// 添加路由路徑
 confidenceGate.AddHighConfidenceNode(highQualityProcessNode);
 confidenceGate.AddLowConfidenceNode(humanReviewNode);
 
-// 新增至圖
+// 添加到圖形
 graph.AddNode(confidenceGate);
 graph.AddEdge(previousNode, confidenceGate);
 ```
 
-### 進階信心度分析
+### 進階信心分析
 
-配置具有多個來源的全面信心度評估：
+使用多個來源配置全面的信心評估：
 
 ```csharp
-// 建立具有多個來源的信心度閘門
+// 建立具有多個來源的信心閘門
 var advancedGate = new ConfidenceGateGraphNode(
     0.8,  // 關鍵決策的更高閾值
     "critical-quality-gate");
 
-// 配置多個信心度來源及其權重
+// 配置具有權重的多個信心來源
 advancedGate.SetConfidenceSources(new Dictionary<string, Func<GraphState, double>>
 {
     ["llm_confidence"] = state => state.GetValue<double>("llm_confidence") * 0.6,
@@ -166,30 +166,30 @@ advancedGate.SetConfidenceSources(new Dictionary<string, Func<GraphState, double
 advancedGate.EnableUncertaintyAnalysis = true;
 advancedGate.SetUncertaintyThreshold(0.3);
 
-// 為低信心度新增人工交互通道
+// 添加人類互動渠道以應對低信心
 advancedGate.SetInteractionChannel(consoleChannel);
 ```
 
-### 信心度閘門模式
+### 信心閘門模式
 
-為信心度閘門配置不同的操作模式：
+為信心閘門配置不同的操作模式：
 
 ```csharp
-// 寬鬆模式 - 允許執行並發出警告
+// 寬鬆模式 - 允許執行但有警告
 var permissiveGate = new ConfidenceGateGraphNode(0.6, "permissive-gate")
 {
     Mode = ConfidenceGateMode.Permissive,
     AllowManualBypass = true
 };
 
-// 嚴格模式 - 低信心度時需要人工批准
+// 嚴格模式 - 對於低信心需要人類批准
 var strictGate = new ConfidenceGateGraphNode(0.8, "strict-gate")
 {
     Mode = ConfidenceGateMode.Strict,
     RequireHumanApproval = true
 };
 
-// 學習模式 - 根據回饋調整閾值
+// 學習模式 - 根據反饋調整閾值
 var learningGate = new ConfidenceGateGraphNode(0.7, "learning-gate")
 {
     Mode = ConfidenceGateMode.Learning,
@@ -197,19 +197,19 @@ var learningGate = new ConfidenceGateGraphNode(0.7, "learning-gate")
 };
 ```
 
-## 交互通道
+## 互動渠道
 
-### 主控台通道
+### 控制台渠道
 
-在開發和測試中使用主控台型交互：
+為開發和測試使用基於控制台的互動：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 
-// 建立具有自訂配置的主控台通道
+// 使用自訂配置建立控制台渠道
 var consoleChannel = new ConsoleHumanInteractionChannel();
 
-// 配置主控台設定
+// 配置控制台設定
 await consoleChannel.InitializeAsync(new Dictionary<string, object>
 {
     ["enable_colors"] = true,
@@ -218,22 +218,22 @@ await consoleChannel.InitializeAsync(new Dictionary<string, object>
     ["prompt_style"] = "detailed"
 });
 
-// 在批准節點中使用
+// 在批准 Node 中使用
 var approvalNode = new HumanApprovalGraphNode(
     "console-approval",
-    "主控台批准",
-    "請批准此動作",
+    "Console Approval",
+    "Please approve this action",
     consoleChannel);
 ```
 
-### Web API 通道
+### Web API 渠道
 
-實作用於生產部署的網頁型交互：
+為生產部署實現基於網路的互動：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 
-// 建立具有支援存放區的 Web API 通道
+// 使用備份存儲建立 Web API 渠道
 var interactionStore = new InMemoryHumanInteractionStore();
 var webApiChannel = new WebApiHumanInteractionChannel(interactionStore);
 
@@ -248,24 +248,24 @@ await webApiChannel.InitializeAsync(new Dictionary<string, object>
 // 訂閱事件
 webApiChannel.ResponseReceived += (sender, response) =>
 {
-    Console.WriteLine($"已接收回應: {response.Status}");
+    Console.WriteLine($"Received response: {response.Status}");
 };
 
 webApiChannel.RequestTimedOut += (sender, request) =>
 {
-    Console.WriteLine($"請求已逾時: {request.RequestId}");
+    Console.WriteLine($"Request timed out: {request.RequestId}");
 };
 ```
 
-### 自訂通道實作
+### 自訂渠道實現
 
-為特定需求建立自訂交互通道：
+為特定需求建立自訂互動渠道：
 
 ```csharp
 public class EmailInteractionChannel : IHumanInteractionChannel
 {
     public HumanInteractionChannelType ChannelType => HumanInteractionChannelType.Email;
-    public string ChannelName => "電子郵件交互通道";
+    public string ChannelName => "Email Interaction Channel";
     public bool IsAvailable => true;
     public bool SupportsBatchOperations => false;
 
@@ -273,36 +273,36 @@ public class EmailInteractionChannel : IHumanInteractionChannel
         HumanInterruptionRequest request,
         CancellationToken cancellationToken = default)
     {
-        // 發送含有批准連結的電子郵件
+        // 傳送含有批准連結的電子郵件
         var emailContent = CreateApprovalEmail(request);
         await SendEmailAsync(request.UserEmail, emailContent);
         
-        // 透過 webhook 或輪詢等待回應
+        // 等待透過 webhook 或輪詢的回應
         return await WaitForEmailResponseAsync(request.RequestId, cancellationToken);
     }
 
-    // 實作其他介面方法...
+    // 實現其他介面方法...
 }
 
-// 使用自訂通道
+// 使用自訂渠道
 var emailChannel = new EmailInteractionChannel();
 var approvalNode = new HumanApprovalGraphNode(
     "email-approval",
-    "電子郵件批准",
-    "請檢查您的電子郵件以進行批准",
+    "Email Approval",
+    "Please check your email for approval",
     emailChannel);
 ```
 
-## 逾時配置和 SLA
+## 超時配置和 SLA
 
-### 基本逾時配置
+### 基本超時配置
 
-配置具有自動備用動作的逾時：
+配置超時和自動回退操作：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 
-// 建立逾時配置
+// 建立超時配置
 var timeoutConfig = new HumanInteractionTimeout
 {
     PrimaryTimeout = TimeSpan.FromMinutes(15),
@@ -312,20 +312,20 @@ var timeoutConfig = new HumanInteractionTimeout
     EscalationTimeout = TimeSpan.FromMinutes(30)
 };
 
-// 應用至批准節點
+// 套用到批准節點
 approvalNode.TimeoutConfiguration = timeoutConfig;
 
-// 配置逾時動作
+// 配置超時操作
 approvalNode.SetTimeoutAction(TimeoutAction.Escalate, escalationNode);
 approvalNode.SetTimeoutAction(TimeoutAction.UseDefault, defaultNode);
 ```
 
-### 基於 SLA 的逾時
+### 基於 SLA 的超時
 
-實作服務級別協議 (SLA) 合規性：
+實現服務級別協議（SLA）合規性：
 
 ```csharp
-// 配置基於 SLA 的逾時
+// 配置基於 SLA 的超時
 var slaTimeouts = new Dictionary<string, HumanInteractionTimeout>
 {
     ["critical"] = new HumanInteractionTimeout
@@ -350,11 +350,11 @@ var slaTimeouts = new Dictionary<string, HumanInteractionTimeout>
     }
 };
 
-// 根據優先級應用 SLA 逾時
+// 根據優先權套用 SLA 超時
 approvalNode.SetPriorityBasedTimeouts(slaTimeouts);
 ```
 
-### 升級和備用
+### 升級和回退
 
 配置當主要批准者未回應時的自動升級：
 
@@ -368,14 +368,14 @@ var escalationConfig = new EscalationConfiguration
         new EscalationLevel
         {
             Level = 1,
-            ApproverRole = "經理",
+            ApproverRole = "Manager",
             Timeout = TimeSpan.FromMinutes(10),
             NotificationChannel = "email"
         },
         new EscalationLevel
         {
             Level = 2,
-            ApproverRole = "主任",
+            ApproverRole = "Director",
             Timeout = TimeSpan.FromMinutes(20),
             NotificationChannel = "sms"
         }
@@ -385,16 +385,16 @@ var escalationConfig = new EscalationConfiguration
 approvalNode.EscalationConfiguration = escalationConfig;
 ```
 
-## 批次批准系統
+## 批量批准系統
 
 ### 基本批次配置
 
-將多個批准請求分組以實現高效處理：
+為高效處理分組多個批准請求：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 
-// 建立具有配置的批次管理員
+// 建立具有配置的批次管理器
 var batchOptions = new BatchApprovalOptions
 {
     MaxBatchSize = 10,
@@ -409,18 +409,18 @@ var batchManager = new HumanApprovalBatchManager(
     batchOptions,
     graphLogger);
 
-// 配置執行程式以使用批次系統
+// 配置執行器使用批次系統
 executor.WithBatchApproval(batchManager);
 
 // 訂閱批次事件
 batchManager.BatchFormed += (sender, batch) =>
 {
-    Console.WriteLine($"批次已建立: {batch.BatchId}，包含 {batch.Requests.Count} 個請求");
+    Console.WriteLine($"Batch formed: {batch.BatchId} with {batch.Requests.Count} requests");
 };
 
 batchManager.BatchCompleted += (sender, args) =>
 {
-    Console.WriteLine($"批次已完成: {args.BatchId}，耗時 {args.ProcessingTime}");
+    Console.WriteLine($"Batch completed: {args.BatchId} in {args.ProcessingTime}");
 };
 ```
 
@@ -441,12 +441,12 @@ var smartBatchOptions = new BatchApprovalOptions
     GroupByContext = true
 };
 
-// 自訂分組條件
+// 自訂分組標準
 batchManager.SetCustomGroupingCriteria(request =>
 {
     var criteria = new List<string>();
     
-    // 按業務部門分組
+    // 按業務單位分組
     if (request.Context.TryGetValue("business_unit", out var bu))
         criteria.Add($"bu_{bu}");
     
@@ -458,14 +458,14 @@ batchManager.SetCustomGroupingCriteria(request =>
 });
 ```
 
-## 稽核和追蹤
+## 審計和追蹤
 
-### 基本稽核軌跡
+### 基本審計線索
 
-追蹤所有人工交互以確保合規性：
+追蹤所有人類互動以確保合規性：
 
 ```csharp
-// 啟用全面稽核
+// 啟用全面的審計
 approvalNode.EnableAuditTrail = true;
 approvalNode.AuditConfiguration = new AuditConfiguration
 {
@@ -475,7 +475,7 @@ approvalNode.AuditConfiguration = new AuditConfiguration
     EnableAuditLogging = true
 };
 
-// 訂閱稽核事件
+// 訂閱審計事件
 approvalNode.AuditEventRaised += (sender, auditEvent) =>
 {
     var auditLog = new
@@ -487,17 +487,17 @@ approvalNode.AuditEventRaised += (sender, auditEvent) =>
         Duration = auditEvent.Duration
     };
     
-    // 記錄至稽核系統
+    // 記錄到審計系統
     auditLogger.LogAuditEvent(auditLog);
 };
 ```
 
-### 合規性報告
+### 合規報告
 
-為監管要求生成合規性報告：
+為法規要求生成合規報告：
 
 ```csharp
-// 配置合規性追蹤
+// 配置合規追蹤
 var complianceConfig = new ComplianceConfiguration
 {
     EnableComplianceTracking = true,
@@ -508,14 +508,14 @@ var complianceConfig = new ComplianceConfiguration
 
 approvalNode.ComplianceConfiguration = complianceConfig;
 
-// 生成合規性報告
+// 生成合規報告
 var complianceReport = await approvalNode.GenerateComplianceReportAsync(
     DateTimeOffset.UtcNow.AddDays(-30),
     DateTimeOffset.UtcNow);
 
-Console.WriteLine($"合規性報告：{complianceReport.TotalApprovals} 次批准");
-Console.WriteLine($"平均回應時間：{complianceReport.AverageResponseTime}");
-Console.WriteLine($"SLA 合規率：{complianceReport.SlaComplianceRate:P}");
+Console.WriteLine($"Compliance Report: {complianceReport.TotalApprovals} approvals");
+Console.WriteLine($"Average Response Time: {complianceReport.AverageResponseTime}");
+Console.WriteLine($"SLA Compliance: {complianceReport.SlaComplianceRate:P}");
 ```
 
 ### 績效指標
@@ -523,38 +523,38 @@ Console.WriteLine($"SLA 合規率：{complianceReport.SlaComplianceRate:P}");
 追蹤 HITL 績效和效率：
 
 ```csharp
-// 取得 HITL 績效指標
+// 獲得 HITL 績效指標
 var hitlMetrics = approvalNode.GetHITLMetrics();
 
-Console.WriteLine($"總批准數：{hitlMetrics.TotalApprovals}");
-Console.WriteLine($"平均回應時間：{hitlMetrics.AverageResponseTime}");
-Console.WriteLine($"逾時率：{hitlMetrics.TimeoutRate:P}");
-Console.WriteLine($"升級率：{hitlMetrics.EscalationRate:P}");
+Console.WriteLine($"Total Approvals: {hitlMetrics.TotalApprovals}");
+Console.WriteLine($"Average Response Time: {hitlMetrics.AverageResponseTime}");
+Console.WriteLine($"Timeout Rate: {hitlMetrics.TimeoutRate:P}");
+Console.WriteLine($"Escalation Rate: {hitlMetrics.EscalationRate:P}");
 
-// 取得信心度閘門指標
+// 獲得信心閘門指標
 var gateMetrics = confidenceGate.GetGateMetrics();
 
-Console.WriteLine($"閘門通過：{gateMetrics.GatePassed}");
-Console.WriteLine($"閘門阻擋：{gateMetrics.GateBlocked}");
-Console.WriteLine($"人工覆蓋：{gateMetrics.HumanOverrides}");
-Console.WriteLine($"平均信心度：{gateMetrics.AverageConfidence:F2}");
+Console.WriteLine($"Gate Passed: {gateMetrics.GatePassed}");
+Console.WriteLine($"Gate Blocked: {gateMetrics.GateBlocked}");
+Console.WriteLine($"Human Overrides: {gateMetrics.HumanOverrides}");
+Console.WriteLine($"Average Confidence: {gateMetrics.AverageConfidence:F2}");
 ```
 
-## 與圖執行的整合
+## 與 Graph 執行的整合
 
 ### 流暢配置
 
-使用擴充方法進行簡潔、易讀的配置：
+使用擴展方法進行清晰、可讀的配置：
 
 ```csharp
 using SemanticKernel.Graph.Extensions;
 
 // 使用流暢 API 配置 HITL
-var executor = new GraphExecutor("HITLGraph", "具有人工批准的圖")
+var executor = new GraphExecutor("HITLGraph", "Graph with human approval")
     .AddHumanApproval(
         "document-approval",
-        "需要文件審查",
-        "請審查生成的文件",
+        "Document Review Required",
+        "Please review the generated document",
         consoleChannel)
     .AddConfidenceGate(
         "quality-gate",
@@ -566,14 +566,14 @@ var executor = new GraphExecutor("HITLGraph", "具有人工批准的圖")
         TimeoutAction.Reject);
 ```
 
-### 核心建置工具整合
+### Kernel Builder 整合
 
-在核心層級整合 HITL 功能：
+在核心級別整合 HITL 功能：
 
 ```csharp
 using SemanticKernel.Graph.Extensions;
 
-// 將 HITL 支援新增至核心建置工具
+// 將 HITL 支援添加到 kernel builder
 var builder = Kernel.CreateBuilder()
     .AddConsoleHumanInteraction(new Dictionary<string, object>
     {
@@ -604,13 +604,13 @@ eventStream.SubscribeToEvents<GraphExecutionEvent>(event =>
     if (event.EventType == GraphExecutionEventType.HumanInteractionRequested)
     {
         var hitlEvent = event as HumanInteractionRequestedEvent;
-        Console.WriteLine($"HITL 請求: {hitlEvent.NodeId} - {hitlEvent.Title}");
+        Console.WriteLine($"HITL Request: {hitlEvent.NodeId} - {hitlEvent.Title}");
     }
     
     if (event.EventType == GraphExecutionEventType.HumanInteractionCompleted)
     {
         var hitlEvent = event as HumanInteractionCompletedEvent;
-        Console.WriteLine($"HITL 已完成: {hitlEvent.NodeId} - {hitlEvent.Result}");
+        Console.WriteLine($"HITL Completed: {hitlEvent.NodeId} - {hitlEvent.Result}");
     }
 });
 
@@ -620,66 +620,66 @@ await executor.ExecuteAsync(arguments, eventStream);
 
 ## 最佳實踐
 
-### 人工批准設計
+### 人類批准設計
 
-* **清晰的批准條件**：提供具體、可操作的批准請求
-* **內容豐富的資訊**：納入用於決策的相關資料和推理
-* **多個批准選項**：適當時提供批准/拒絕/修改選項
-* **條件激活**：只在必要時要求批准
-* **逾時處理**：始終為逾時配置備用動作
+* **清楚的批准標準**：提供具體、可行的批准請求
+* **上下文豐富的資訊**：包含決策的相關數據和推理
+* **多個批准選項**：在適當時提供批准/拒絕/修改選項
+* **條件啟用**：僅在必要時請求批准
+* **超時處理**：始終為超時配置回退操作
 
-### 信心度閘門配置
+### 信心閘門配置
 
-* **適當的閾值**：根據業務風險和品質需求設定閾值
-* **多個來源**：結合多個信心度指標進行穩健的評估
-* **學習模式**：使用學習閘門隨著時間推移改進閾值
-* **不確定性分析**：啟用詳細的不確定性追蹤以供除錯
-* **備用路徑**：為低信心度場景提供明確的路由
+* **適當的閾值**：根據業務風險和品質要求設置閾值
+* **多個來源**：結合多個信心指標進行穩健評估
+* **學習模式**：使用學習閘門隨時間改進閾值
+* **不確定性分析**：啟用詳細的不確定性追蹤以進行調試
+* **回退路徑**：為低信心場景提供清晰的路由
 
-### 通道選擇
+### 渠道選擇
 
-* **開發**：在測試和開發中使用主控台通道
-* **生產**：實作用於可擴充部署的 Web API 通道
-* **使用者體驗**：根據使用者偏好和工作流選擇通道
-* **整合**：確保通道與現有批准系統整合
-* **監視**：監視通道可用性和效能
+* **開發**：為測試和開發使用控制台渠道
+* **生產**：為可擴展的部署實現 Web API 渠道
+* **用戶體驗**：根據用戶偏好和工作流程選擇渠道
+* **整合**：確保渠道與現有批准系統集成
+* **監視**：監視渠道可用性和績效
 
-### 績效和可擴充性
+### 績效和可擴展性
 
-* **批次處理**：在大量場景中使用批次批准系統
-* **逾時最佳化**：平衡 SLA 需求與使用者體驗
-* **升級鏈**：實作高效升級以防止瓶頸
-* **稽核效率**：配置稽核記錄以最小化效能影響
-* **資源管理**：監視 HITL 資源使用情況並相應進行最佳化
+* **批次處理**：為高容量場景使用批量批准系統
+* **超時優化**：平衡 SLA 要求與用戶體驗
+* **升級鏈**：實現有效的升級以防止瓶頸
+* **審計效率**：配置審計日誌以最小化績效影響
+* **資源管理**：監視 HITL 資源使用情況並相應地優化
 
-### 合規性和安全性
+### 合規和安全
 
-* **稽核軌跡**：為所有人工交互保持全面的稽核日誌
-* **使用者身份驗證**：實作適當的使用者識別和授權
-* **資料清理**：清理批准請求中的敏感資料
-* **保留原則**：為合規性配置適當的資料保留
-* **存取控制**：根據使用者角色和權限限制 HITL 存取
+* **審計線索**：為所有人類互動維護全面的審計日誌
+* **用戶身份驗證**：實現適當的用戶識別和授權
+* **數據清理**：清理批准請求中的敏感數據
+* **保留政策**：為合規性配置適當的數據保留
+* **存取控制**：根據用戶角色和許可限制 HITL 存取
 
-## 疑難排解
+## 故障排除
 
 ### 常見問題
 
-**批准請求未顯示**：檢查交互通道是否已正確初始化並可用。
+**批准請求未出現**：檢查互動渠道是否正確初始化並可用。
 
-**逾時無法運作**：驗證逾時配置，並確保備用動作已正確配置。
+**超時不起作用**：驗證超時配置並確保回退操作已正確配置。
 
-**批次處理問題**：檢查批次管理員配置，並確保正確處理事件。
+**批次處理問題**：檢查批次管理器配置並確保正確的事件處理。
 
-**信心度閘門未觸發**：驗證信心度來源配置和閾值設定。
+**信心閘門未觸發**：驗證信心來源配置和閾值設定。
 
-**稽核日誌遺失**：確保已啟用稽核配置，並正確註冊稽核事件處理常式。
+**審計日誌遺失**：確保審計配置已啟用且審計事件處理器已正確註冊。
 
-### 除錯 HITL
+### 調試 HITL
 
-啟用詳細記錄以進行疑難排解：
+啟用詳細日誌以進行故障排除：
 
 ```csharp
-// 配置詳細 HITL 記錄
+// 配置詳細的 HITL 日誌
 var graphOptions = new GraphOptions
 {
     LogLevel = LogLevel.Debug,
@@ -689,7 +689,7 @@ var graphOptions = new GraphOptions
 
 var graphLogger = new SemanticKernelGraphLogger(logger, graphOptions);
 
-// 啟用通道特定除錯
+// 啟用渠道特定的調試
 consoleChannel.EnableDebugMode = true;
 webApiChannel.EnableDebugMode = true;
 ```
@@ -699,20 +699,20 @@ webApiChannel.EnableDebugMode = true;
 監視 HITL 績效指標：
 
 ```csharp
-// 取得全面的 HITL 指標
+// 獲得全面的 HITL 指標
 var overallMetrics = await executor.GetHITLMetricsAsync();
 
-Console.WriteLine($"HITL 績效摘要：");
-Console.WriteLine($"  總交互數：{overallMetrics.TotalInteractions}");
-Console.WriteLine($"  平均回應時間：{overallMetrics.AverageResponseTime}");
-Console.WriteLine($"  SLA 合規率：{overallMetrics.SlaComplianceRate:P}");
-Console.WriteLine($"  使用者滿意度：{overallMetrics.UserSatisfactionScore:F2}");
+Console.WriteLine($"HITL Performance Summary:");
+Console.WriteLine($"  Total Interactions: {overallMetrics.TotalInteractions}");
+Console.WriteLine($"  Average Response Time: {overallMetrics.AverageResponseTime}");
+Console.WriteLine($"  SLA Compliance: {overallMetrics.SlaComplianceRate:P}");
+Console.WriteLine($"  User Satisfaction: {overallMetrics.UserSatisfactionScore:F2}");
 ```
 
 ## 另請參閱
 
-* [條件節點](conditional-nodes-quickstart.md) - 了解條件執行和路由
-* [錯誤處理和復原力](error-handling-and-resilience.md) - 管理失敗和復原
-* [狀態管理](state-quickstart.md) - 持續 HITL 狀態和決策
-* [串流執行](streaming-quickstart.md) - 即時監視 HITL 事件
-* [圖執行](execution.md) - 了解執行生命週期
+* [條件 Node](conditional-nodes-quickstart.md) - 瞭解條件執行和路由
+* [錯誤處理和恢復力](error-handling-and-resilience.md) - 管理失敗和恢復
+* [狀態管理](state-quickstart.md) - 持久化 HITL 狀態和決策
+* [串流執行](streaming-quickstart.md) - HITL 事件的即時監視
+* [Graph 執行](execution.md) - 瞭解執行生命週期

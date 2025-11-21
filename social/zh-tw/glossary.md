@@ -1,179 +1,179 @@
-# 名詞解釋
+# 詞彙表
 
-本詞彙表定義了整個語義核心圖表文件中使用的核心術語和概念。每個術語都以簡單易懂的語言定義，同時保持技術準確性。
+本詞彙表定義了整個 Semantic Kernel Graph 文件中使用的核心術語和概念。每個術語都以簡單、易於理解的方式定義，同時保持技術準確性。
 
-## 核心圖表概念
+## 核心 Graph 概念
 
-**圖表 (Graph)**：由節點透過邊連接而成的計算結構，定義工作流程的執行流向。圖表協調資料如何在不同的處理步驟之間流動。
+**Graph**: 由邊連接的節點組成的計算結構，定義了工作流中的執行流程。Graph 協調數據如何在不同的處理步驟之間流動。
 
-**節點 (Node)**：圖表中的基本計算單位，代表單一處理步驟。每個節點可以執行函式、做出決策或執行特定操作。
+**Node**: Graph 中的基本計算單位，代表單個處理步驟。每個 Node 可以執行函數、做出決策或執行特定操作。
 
-**邊 (Edge)**：連接兩個節點的連線，定義執行流向的路徑。邊可以是條件性的（僅在滿足特定條件時遍歷）或無條件的（始終遍歷）。
+**Edge**: 兩個節點之間的連接，定義了執行流程的路徑。Edge 可以是條件性的（只在滿足特定條件時遍歷）或無條件的（始終遍歷）。
 
-**執行 (Execution)**：透過按照定義的流向遍歷節點和邊來運行圖表的過程，在每個步驟進行資料處理。
+**Execution**: 通過遍歷 Node 和 Edge 來運行 Graph 的過程，根據定義的流程在每一步處理數據。
 
-**狀態 (State)**：在圖表執行過程中維護的目前資料和上下文，包括輸入參數、中間結果和執行中繼資料。
+**State**: 在 Graph 執行期間維護的當前數據和上下文，包括輸入參數、中間結果和執行元數據。
 
-## 節點類型和行為
+## Node 類型和行為
 
-**函式圖表節點 (FunctionGraphNode)**：封裝和執行語義核心函式的節點，提供現有 ISKFunction 實例周圍的圖表感知行為。
+**FunctionGraphNode**: 一個封裝和執行 Semantic Kernel 函數的節點，圍繞現有的 ISKFunction 實例提供 Graph 感知行為。
 
-**動作圖表節點 (ActionGraphNode)**：一種特殊節點，可自動發現並根據目前上下文和可用函式執行適當的工具或動作。
+**ActionGraphNode**: 一個專門的節點，根據當前上下文和可用函數自動發現並執行適當的工具或動作。
 
-**條件圖表節點 (ConditionalGraphNode)**：基於條件做出路由決策的節點，啟用動態工作流程路徑和分支邏輯。
+**ConditionalGraphNode**: 一個根據條件做出路由決策的節點，支持動態工作流路徑和分支邏輯。
 
-**ReAct 迴圈圖表節點 (ReActLoopGraphNode)**：實現推理→執行→觀察模式的節點，用於迭代式問題解決和決策。
+**ReActLoopGraphNode**: 實現「推理 → 行動 → 觀察」模式的節點，用於迭代問題求解和決策制定。
 
-**觀察圖表節點 (ObservationGraphNode)**：監控和記錄執行結果的節點，提供工作流程效能和結果的可見性。
+**ObservationGraphNode**: 監視和記錄執行結果的節點，提供工作流性能和結果的可見性。
 
-## 邊和路由概念
+## Edge 和路由概念
 
-**條件邊 (ConditionalEdge)**：節點之間的方向性連線，包含謂詞函式以判斷執行期間是否應遍歷該邊。
+**ConditionalEdge**: 節點之間的定向連接，包含一個謂詞函數，用於確定在執行期間是否應遍歷該邊。
 
-**無條件邊 (Unconditional Edge)**：始終遍歷的邊，提供節點之間的直接路徑，不含條件邏輯。
+**Unconditional Edge**: 始終遍歷的邊，提供節點之間的直接路徑，無需條件邏輯。
 
-**路由 (Routing)**：根據目前狀態和邊條件決定下一個執行節點的過程。
+**Routing**: 根據當前狀態和邊條件確定下一個執行的節點的過程。
 
-**動態路由 (Dynamic Routing)**：在執行時根據內容分析、相似性匹配或其他上下文因素進行決策的進階路由。
+**Dynamic Routing**: 高級路由，在運行時根據內容分析、相似度匹配或其他上下文因素做出決策。
 
 ## 狀態管理
 
-**圖表狀態 (GraphState)**：KernelArguments 的型別包裝器，作為圖表執行的基礎，提供執行追蹤和狀態操作功能。
+**GraphState**: KernelArguments 的類型化包裝器，作為 Graph 執行的基礎，提供執行跟踪和狀態操作能力。
 
-**核心參數 (KernelArguments)**：底層資料容器，在整個工作流程中保存輸入參數、中間結果和執行上下文。
+**KernelArguments**: 底層數據容器，在整個工作流中保存輸入參數、中間結果和執行上下文。
 
-**狀態序列化 (State Serialization)**：將圖表狀態轉換為持久格式以進行存儲、傳輸或復原的過程。
+**State Serialization**: 將 Graph 狀態轉換為持久格式以供存儲、傳輸或恢復的過程。
 
-**狀態驗證 (State Validation)**：驗證狀態資料在處理前符合必要約束和格式要求。
+**State Validation**: 驗證狀態數據在處理前是否滿足必要的約束和格式要求。
 
-## 執行和控制流
+## 執行和控制流程
 
-**圖表執行器 (GraphExecutor)**：圖表執行的主要協調器，管理執行流、導航和圖表節點的協調。
+**GraphExecutor**: Graph 執行的主要協調器，管理執行流程、導航和 Graph 節點的協調。
 
-**執行上下文 (Execution Context)**：運行時環境，維護執行狀態、指標，並在圖表執行期間提供協調服務。
+**Execution Context**: 運行時環境，在 Graph 執行期間維護執行狀態、指標並提供協調服務。
 
-**執行路徑 (Execution Path)**：圖表執行期間訪問的節點序列，代表透過工作流程採取的實際流向。
+**Execution Path**: 在 Graph 運行期間訪問的節點序列，代表通過工作流的實際流程。
 
-**執行狀態 (Execution Status)**：圖表執行的目前狀態，例如未開始、執行中、暫停、已完成或失敗。
+**Execution Status**: Graph 執行的當前狀態，例如 NotStarted、Running、Paused、Completed 或 Failed。
 
-**取消 (Cancellation)**：在完成前優雅停止圖表執行的能力，尊重取消令牌和清理程序。
+**Cancellation**: 在完成前優雅停止 Graph 執行的能力，遵守取消令牌和清理程序。
 
-## 檢查點和復原
+## 檢查點和恢復
 
-**檢查點 (Checkpoint)**：在特定時間點保存的圖表執行狀態快照，啟用工作流程的復原和恢復。
+**Checkpoint**: Graph 執行狀態的保存快照，在特定時間點，支持工作流的恢復和恢復。
 
-**檢查點 (Checkpointing)**：為了復原性和復原目的，建立、存儲和管理執行檢查點的過程。
+**Checkpointing**: 創建、存儲和管理執行檢查點以實現彈性和恢復的過程。
 
-**復原 (Recovery)**：從先前檢查點恢復圖表執行的能力，從保存的狀態繼續工作流程處理。
+**Recovery**: 從先前的檢查點恢復 Graph 執行、從保存的狀態繼續工作流處理的能力。
 
-**狀態持久性 (State Persistence)**：圖表狀態和檢查點的長期儲存，通常使用記憶體服務或外部儲存系統。
+**State Persistence**: Graph 狀態和檢查點的長期存儲，通常使用記憶體服務或外部存儲系統。
 
-**檢查點驗證 (Checkpoint Validation)**：驗證保存的檢查點完整、一致，且可成功恢復。
+**Checkpoint Validation**: 驗證保存的檢查點是否完整、一致以及能否成功恢復。
 
-## 串流和即時執行
+## 流式處理和即時執行
 
-**串流執行 (Streaming Execution)**：即時圖表執行，提供即時回饋和事件串流，當節點完成處理時。
+**Streaming Execution**: 實時 Graph 執行，在節點完成處理時提供即時反饋和事件流。
 
-**事件串流 (Event Stream)**：即時執行事件序列，提供對圖表處理的可見性。
+**Event Stream**: 實時執行事件序列，在 Graph 處理發生時提供可見性。
 
-**圖表執行事件 (GraphExecutionEvent)**：有關圖表執行期間特定發生事件的結構化通知，例如節點開始、完成或錯誤。
+**GraphExecutionEvent**: 關於 Graph 執行期間特定事件的結構化通知，例如節點啟動、完成或錯誤。
 
-**背壓 (Backpressure)**：控制事件產生速率以匹配消費者處理能力的機制。
+**Backpressure**: 控制事件生成速率以匹配消費者處理能力的機制。
 
-**即時監控 (Real-time Monitoring)**：對圖表執行進度、效能指標和狀態更新的即時觀察。
+**Real-time Monitoring**: 對 Graph 執行進度、性能指標和狀態更新的實時觀察。
 
-## 效能和可觀測性
+## 性能和可觀測性
 
-**指標 (Metrics)**：圖表執行效能的量化測量，包括時序、輸送量和資源利用率。
+**Metrics**: Graph 執行性能的定量測量，包括計時、吞吐量和資源利用率。
 
-**效能監控 (Performance Monitoring)**：持續追蹤執行指標以識別瓶頸並最佳化工作流程效能。
+**Performance Monitoring**: 連續跟踪執行指標，以識別瓶頸並優化工作流性能。
 
-**遙測 (Telemetry)**：為監控、偵錯和分析目的收集和傳輸執行資料。
+**Telemetry**: 為了監視、調試和分析目的而收集和傳輸執行數據。
 
-**追蹤 (Tracing)**：詳細追蹤透過個別節點和邊的執行流向，用於偵錯和效能分析。
+**Tracing**: 通過各個 Node 和 Edge 進行詳細的執行流程跟踪，用於調試和性能分析。
 
-**記錄 (Logging)**：結構化記錄執行事件、錯誤和診斷資訊，以獲得操作可見性。
+**Logging**: 結構化記錄執行事件、錯誤和診斷信息以實現操作可見性。
 
-## 錯誤處理和復原力
+## 錯誤處理和彈性
 
-**錯誤復原 (Error Recovery)**：檢測、處理和從執行失敗復原的能力，同時維護工作流程完整性。
+**Error Recovery**: 檢測、處理和恢復執行失敗的能力，同時保持工作流完整性。
 
-**重試策略 (Retry Policies)**：可配置策略，用於自動重試失敗的操作，採用指數退避和斷路器模式。
+**Retry Policies**: 可配置的策略，用於使用指數退避和斷路器模式自動重試失敗的操作。
 
-**斷路器 (Circuit Breaker)**：防止重複呼叫故障服務的模式，給予它們復原時間，然後才繼續操作。
+**Circuit Breaker**: 防止對失敗服務的重複調用的模式，允許其有時間恢復然後恢復操作。
 
-**遞補策略 (Fallback Strategies)**：當主要操作失敗或無法使用時的替代執行路徑或預設行為。
+**Fallback Strategies**: 當主要操作失敗或不可用時的替代執行路徑或默認行為。
 
-**錯誤傳播 (Error Propagation)**：錯誤透過圖表執行鏈進行通訊以進行適當處理的機制。
+**Error Propagation**: 錯誤通過 Graph 執行鏈進行通信以進行適當處理的機制。
 
 ## 進階模式
 
-**多代理協調 (Multi-Agent Coordination)**：協調多個專門代理共同解決複雜問題的編排。
+**Multi-Agent Coordination**: 多個專業化代理協同工作以解決複雜問題的協調。
 
-**人在迴圈 (Human-in-the-Loop, HITL)**：在自動化工作流程中整合人類決策和批准步驟。
+**Human-in-the-Loop (HITL)**: 在自動化工作流中集成人類決策和批准步驟。
 
-**並行執行 (Parallel Execution)**：同時處理多個節點或工作流程分支，以改善效能和輸送量。
+**Parallel Execution**: 多個節點或工作流分支的同時處理以提高性能和吞吐量。
 
-**分叉-合併模式 (Fork-Join Patterns)**：將執行分割成並行路徑然後重新組合結果的工作流程結構。
+**Fork-Join Patterns**: 將執行分割為並行路徑然後重新組合結果的工作流結構。
 
-**範本引擎 (Template Engine)**：用於建立可重複使用工作流程模式和配置的系統，可為特定用例自訂。
+**Template Engine**: 用於創建可重用工作流模式和配置的系統，可針對特定用例進行自定義。
 
-## 整合和延伸
+## 集成和擴展
 
-**外掛系統 (Plugin System)**：動態載入並將外部功能整合到圖表工作流程的機制。
+**Plugin System**: 動態加載和集成外部功能到 Graph 工作流的機制。
 
-**REST 工具 (REST Tools)**：從圖表節點內呼叫外部 API 和服務的整合功能。
+**REST Tools**: 從 Graph 節點中調用外部 API 和服務的集成功能。
 
-**記憶體整合 (Memory Integration)**：連接到持久儲存系統，以在多個工作流程執行中維護上下文。
+**Memory Integration**: 與持久存儲系統的連接，用於在多個工作流執行之間維護上下文。
 
-**自訂延伸 (Custom Extensions)**：使用者定義的功能，使用網域特定邏輯擴展核心圖表功能。
+**Custom Extensions**: 用戶定義的功能，使用特定領域邏輯擴展核心 Graph 功能。
 
-**API 整合 (API Integration)**：將圖表工作流程公開為 REST 端點或其他外部介面的方法。
+**API Integration**: 將 Graph 工作流作為 REST 端點或其他外部接口公開的方法。
 
 ## 開發和測試
 
-**偵錯模式 (Debug Mode)**：增強執行模式，提供詳細記錄、中斷點和檢查功能，用於開發。
+**Debug Mode**: 增強的執行模式，提供詳細的日誌、斷點和開發檢查功能。
 
-**圖表檢查 (Graph Inspection)**：用於檢查圖表結構、狀態和執行歷史記錄的工具和 API，用於開發和偵錯。
+**Graph Inspection**: 用於在開發和調試期間檢查 Graph 結構、狀態和執行歷史的工具和 API。
 
-**單位測試 (Unit Testing)**：隔離測試個別節點和邊，驗證正確行為和邊界情況。
+**Unit Testing**: 隔離測試各個 Node 和 Edge，驗證正確行為和邊界情況。
 
-**整合測試 (Integration Testing)**：測試完整圖表工作流程，確保適當協調和端對端功能。
+**Integration Testing**: 測試完整的 Graph 工作流，確保適當的協調和端到端功能。
 
-**效能測試 (Performance Testing)**：在各種負載條件和資料量下評估圖表執行效能。
+**Performance Testing**: 評估在各種負載條件和數據卷下的 Graph 執行性能。
 
 ## 配置和選項
 
-**圖表選項 (Graph Options)**：控制圖表行為、效能和功能可用性的可配置參數。
+**Graph Options**: 可配置參數，控制 Graph 行為、性能和功能可用性。
 
-**執行選項 (Execution Options)**：控制圖表執行方式的設定，包括逾時、併發限制和資源約束。
+**Execution Options**: 控制 Graph 執行方式的設置，包括超時、並發限制和資源約束。
 
-**檢查點選項 (Checkpoint Options)**：檢查點建立、儲存、壓縮和保留策略的配置。
+**Checkpoint Options**: 檢查點創建、存儲、壓縮和保留策略的配置。
 
-**串流選項 (Streaming Options)**：控制即時執行行為、事件緩衝和背壓處理的設定。
+**Streaming Options**: 控制即時執行行為、事件緩衝和背壓處理的設置。
 
-**資源選項 (Resource Options)**：管理記憶體使用、併發限制和系統資源分配的配置。
+**Resource Options**: 管理記憶體使用、並發限制和系統資源分配的配置。
 
-## 安全性和資料處理
+## 安全和數據處理
 
-**資料清理 (Data Sanitization)**：從記錄、指標和外部通訊中移除或隱蔽敏感資訊的過程。
+**Data Sanitization**: 從日誌、指標和外部通信中移除或隱藏敏感信息的過程。
 
-**存取控制 (Access Control)**：控制誰可以執行、修改或檢查圖表工作流程及其資料的機制。
+**Access Control**: 控制誰可以執行、修改或檢查 Graph 工作流及其數據的機制。
 
-**稽核記錄 (Audit Logging)**：為了合規、安全和操作目的，全面記錄所有圖表操作。
+**Audit Logging**: 為符合性、安全和操作目的對所有 Graph 操作的全面記錄。
 
-**加密 (Encryption)**：使用密碼技術保護靜止和傳輸中的敏感資料。
+**Encryption**: 使用加密技術保護靜態和傳輸中的敏感數據。
 
-**隱私控制 (Privacy Controls)**：幫助維護資料隱私並遵守法規要求的功能。
+**Privacy Controls**: 幫助維護數據隱私並遵守法規要求的功能。
 
 ## 部署和操作
 
-**生產部署 (Production Deployment)**：在生產環境中使圖表工作流程可供實際使用的過程。
+**Production Deployment**: 在生產環境中使 Graph 工作流可供實時使用的過程。
 
-**監控和警示 (Monitoring and Alerting)**：用於觀察生產工作流程並在出現問題或效能下降時通知操作員的系統。
+**Monitoring and Alerting**: 用於觀察生產工作流並在出現問題或性能降低時通知操作人員的系統。
 
-**擴展 (Scaling)**：調整資源分配和併發以處理不同工作負載和效能要求的能力。
+**Scaling**: 調整資源分配和並發以處理不同工作負載和性能要求的能力。
 
-**高可用性 (High Availability)**：確保圖表工作流程即使在個別元件故障時仍保持運作的設計模式。
+**High Availability**: 設計模式，確保 Graph 工作流即使在各個組件發生故障時仍保持運營。
 
-**災害復原 (Disaster Recovery)**：在主要故障或資料遺失事件後復原圖表操作的程序和系統。
+**Disaster Recovery**: 在發生重大故障或數據丟失事件後恢復 Graph 操作的程序和系統。

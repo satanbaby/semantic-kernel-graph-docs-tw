@@ -1,46 +1,46 @@
-# 指標與可觀測性
+# 指標和可觀測性
 
-SemanticKernel.Graph 中的指標與可觀測性提供對圖形執行效能、資源使用情況和操作健康狀況的全面洞察。本指南涵蓋效能指標收集、匯出功能、執行追蹤和監控儀表板。
+SemanticKernel.Graph 中的指標和可觀測性提供了對圖表執行效能、資源使用情況和操作健康狀況的全面見解。本指南涵蓋效能指標收集、匯出功能、執行追蹤和監控儀表板。
 
-## 您將學到
+## 你將學到什麼
 
-* 如何設定和啟用全面的指標收集
-* 瞭解節點級別和路徑級別的效能指標
+* 如何配置和啟用全面的指標收集
+* 理解 Node 級別和路徑級別的效能指標
 * 將指標匯出到各種監控系統和儀表板
-* 設定執行追蹤和相關聯
+* 設置執行追蹤和關聯
 * 監控系統資源和效能指標
-* 生產環境可觀測性的最佳實踐
+* 生產可觀測性的最佳實踐
 
-## 概念與技術
+## 概念和技術
 
-**GraphPerformanceMetrics**：全面的指標收集器，追蹤節點執行時間、成功率、執行路徑和系統資源使用情況。
+**GraphPerformanceMetrics**：全面的指標收集器，追蹤 Node 執行時間、成功率、執行路徑和系統資源使用。
 
-**NodeExecutionMetrics**：個別節點效能追蹤，包括執行次數、計時百分位數（p50、p95、p99）和成功/失敗率。
+**NodeExecutionMetrics**：單個 Node 效能追蹤，包括執行次數、計時百分位數（p50、p95、p99）以及成功/失敗率。
 
-**ExecutionPathMetrics**：完整執行路由的分析，包括路徑頻率和效能特性。
+**ExecutionPathMetrics**：分析整個執行路由通過 Graph，包括路徑頻率和效能特徵。
 
-**指標匯出器**：為各種監控系統（包括 Prometheus、Grafana 和自訂儀表板）提供專門的匯出功能。
+**Metrics Exporters**：針對各種監控系統（包括 Prometheus、Grafana 和自訂儀表板）的特殊匯出功能。
 
-**執行追蹤**：基於 OpenTelemetry 的追蹤，執行跨度與串流事件之間具有相關聯。
+**Execution Tracing**：基於 OpenTelemetry 的追蹤，具有執行 span 和流式事件之間的關聯。
 
-**資源監控**：CPU 和記憶體使用情況追蹤，具有可配置的取樣間隔。
+**Resource Monitoring**：CPU 和記憶體使用情況追蹤，可設定採樣間隔。
 
-## 前提條件
+## 先決條件
 
-* [首個圖形教學課程](../first-graph-5-minutes.md) 已完成
-* 對圖形執行概念的基本理解
-* 對指標和監控概念的熟悉
-* 已配置 Microsoft.Extensions.Logging（可選但建議）
+* [First Graph Tutorial](../first-graph-5-minutes.md) 已完成
+* 對圖表執行概念的基本理解
+* 熟悉指標和監控概念
+* Microsoft.Extensions.Logging 已配置（可選但建議）
 
 ## 啟用指標收集
 
-### 基本指標設定
+### 基本指標配置
 
-在核心級別啟用指標收集：
+在 Kernel 級別啟用指標收集：
 
 ```csharp
-// 建立並設定具有圖形支援和啟用指標的 Kernel。
-// 注意：呼叫網路或長時間執行的作業時，使用核心上的非同步方法。
+// Create and configure a Kernel with graph support and metrics enabled.
+// Note: when calling network or long-running operations use async methods on the kernel.
 using SemanticKernel.Graph.Extensions;
 
 var kernel = Kernel.CreateBuilder()
@@ -53,25 +53,25 @@ var kernel = Kernel.CreateBuilder()
     .Build();
 ```
 
-### 圖形級指標設定
+### 圖表級別的指標配置
 
-為特定圖形設定詳細的指標收集：
+為特定圖表配置詳細的指標收集：
 
 ```csharp
-// 建立 GraphExecutor 並設定指標收集。使用開發指標
-// 以在偵錯期間進行詳細取樣；使用生產選項以降低額外費用。
+// Create a GraphExecutor and configure metrics collection. Use development metrics
+// for detailed sampling during debugging; use production options to reduce overhead.
 using SemanticKernel.Graph.Core;
 
-// 建立啟用指標的圖形
+// Create graph with metrics enabled
 var graph = new GraphExecutor("PerformanceGraph", "High-performance workflow");
 
-// 啟用開發指標（詳細追蹤，頻繁取樣）
+// Enable development metrics (detailed tracking, frequent sampling)
 graph.EnableDevelopmentMetrics();
 
-// 或使用生產指標（針對效能最佳化）
+// Or use production metrics (optimized for performance)
 // graph.EnableProductionMetrics();
 
-// 或自訂指標選項
+// Or customize metrics options
 var customMetricsOptions = new GraphMetricsOptions
 {
     EnableResourceMonitoring = true,
@@ -85,32 +85,32 @@ var customMetricsOptions = new GraphMetricsOptions
 graph.ConfigureMetrics(customMetricsOptions);
 ```
 
-### 預設設定
+### 預設配置
 
-使用預先定義的設定來因應常見情境：
+使用預定義的配置來實現常見場景：
 
 ```csharp
-// 開發環境（詳細追蹤）
+// Development environment (detailed tracking)
 var devOptions = GraphMetricsOptions.CreateDevelopmentOptions();
 graph.ConfigureMetrics(devOptions);
 
-// 生產環境（效能最佳化）
+// Production environment (performance optimized)
 var prodOptions = GraphMetricsOptions.CreateProductionOptions();
 graph.ConfigureMetrics(prodOptions);
 
-// 高效能情境（最少額外費用）
+// High-performance scenario (minimal overhead)
 var perfOptions = GraphMetricsOptions.CreatePerformanceOptions();
 graph.ConfigureMetrics(perfOptions);
 ```
 
 ## 效能指標收集
 
-### 節點級指標
+### Node 級別指標
 
-追蹤個別節點的效能特性：
+追蹤單個 Node 的效能特徵：
 
 ```csharp
-// 取得特定節點的指標
+// Get metrics for a specific node
 var nodeMetrics = graph.GetNodeMetrics("processing_node");
 if (nodeMetrics != null)
 {
@@ -119,7 +119,7 @@ if (nodeMetrics != null)
     Console.WriteLine($"Success Rate: {nodeMetrics.SuccessRate:F1}%");
     Console.WriteLine($"Average Time: {nodeMetrics.AverageExecutionTime.TotalMilliseconds:F2}ms");
     
-    // 取得百分位效能
+    // Get percentile performance
     var p50 = nodeMetrics.GetPercentile(50);
     var p95 = nodeMetrics.GetPercentile(95);
     var p99 = nodeMetrics.GetPercentile(99);
@@ -128,7 +128,7 @@ if (nodeMetrics != null)
     Console.WriteLine($"P95: {p95.TotalMilliseconds:F2}ms");
     Console.WriteLine($"P99: {p99.TotalMilliseconds:F2}ms");
     
-    // 效能分類
+    // Performance classification
     var rating = nodeMetrics.GetPerformanceClassification();
     Console.WriteLine($"Performance Rating: {rating}");
 }
@@ -136,10 +136,10 @@ if (nodeMetrics != null)
 
 ### 執行路徑指標
 
-分析透過圖形的完整執行路由：
+分析通過 Graph 的完整執行路由：
 
 ```csharp
-// 取得所有執行路徑指標
+// Get all execution path metrics
 var pathMetrics = graph.GetAllPathMetrics();
 foreach (var path in pathMetrics.OrderByDescending(p => p.Value.ExecutionCount))
 {
@@ -151,7 +151,7 @@ foreach (var path in pathMetrics.OrderByDescending(p => p.Value.ExecutionCount))
     Console.WriteLine($"  Path Length: {metrics.PathLength} nodes");
     Console.WriteLine($"  Frequency: {metrics.ExecutionsPerHour:F2}/hour");
     
-    // 取得路徑特定的百分位數
+    // Get path-specific percentiles
     var p95 = metrics.GetPercentile(95);
     Console.WriteLine($"  P95: {p95.TotalMilliseconds:F2}ms");
 }
@@ -162,10 +162,10 @@ foreach (var path in pathMetrics.OrderByDescending(p => p.Value.ExecutionCount))
 取得全面的效能概觀：
 
 ```csharp
-// 檢索效能摘要（同步存取器）。此呼叫通常
-// 速度快，因為它讀取記憶體中收集的指標；在啟動後
-// 指標尚未可用時（例如啟動後立即）防範 null。
-// 取得過去一小時的效能摘要
+// Retrieve a performance summary (synchronous accessor). This call is typically
+// fast because it reads in-memory collected metrics; guard against null when
+// metrics are not yet available (e.g., immediately after startup).
+// Get performance summary for the last hour
 var summary = graph.GetPerformanceSummary(TimeSpan.FromHours(1));
 if (summary != null)
 {
@@ -179,7 +179,7 @@ if (summary != null)
     Console.WriteLine($"Current CPU Usage: {summary.CurrentCpuUsage:F1}%");
     Console.WriteLine($"Available Memory: {summary.CurrentAvailableMemoryMB:F0} MB");
     
-    // 系統健康狀況評估
+    // System health assessment
     var isHealthy = summary.IsHealthy();
     Console.WriteLine($"System Health: {(isHealthy ? "🟢 HEALTHY" : "🔴 NEEDS ATTENTION")}");
     
@@ -199,10 +199,10 @@ if (summary != null)
 
 ### 系統資源追蹤
 
-在圖形執行期間監控 CPU 和記憶體使用情況：
+在圖表執行期間監控 CPU 和記憶體使用：
 
 ```csharp
-// 啟用資源監控
+// Enable resource monitoring
 var resourceOptions = new GraphMetricsOptions
 {
     EnableResourceMonitoring = true,
@@ -211,7 +211,7 @@ var resourceOptions = new GraphMetricsOptions
 
 graph.ConfigureMetrics(resourceOptions);
 
-// 存取目前的資源指標
+// Access current resource metrics
 var metrics = graph.GetPerformanceMetrics();
 if (metrics != null)
 {
@@ -222,23 +222,23 @@ if (metrics != null)
 }
 ```
 
-### 資源取樣設定
+### 資源採樣配置
 
-設定資源監控行為：
+配置資源監控行為：
 
 ```csharp
 var resourceOptions = new GraphMetricsOptions
 {
     EnableResourceMonitoring = true,
-    ResourceSamplingInterval = TimeSpan.FromSeconds(10), // 每 10 秒取樣一次
-    MaxSampleHistory = 10000,                           // 保留 10K 個樣本
-    MetricsRetentionPeriod = TimeSpan.FromDays(7)       // 保留 7 天
+    ResourceSamplingInterval = TimeSpan.FromSeconds(10), // Sample every 10 seconds
+    MaxSampleHistory = 10000,                           // Keep 10K samples
+    MetricsRetentionPeriod = TimeSpan.FromDays(7)       // Retain for 7 days
 };
 
 graph.ConfigureMetrics(resourceOptions);
 ```
 
-## 指標匯出與整合
+## 指標匯出和整合
 
 ### GraphMetricsExporter
 
@@ -258,48 +258,48 @@ var exporter = new GraphMetricsExporter(
     }
 );
 
-// 以不同格式匯出
+// Export in different formats
 var metrics = graph.GetPerformanceMetrics();
 if (metrics != null)
 {
-    // 用於網頁儀表板的 JSON 格式
+    // JSON format for web dashboards
     var jsonMetrics = exporter.ExportMetrics(metrics, MetricsExportFormat.Json);
     
-    // 用於監控系統的 Prometheus 格式
+    // Prometheus format for monitoring systems
     var prometheusMetrics = exporter.ExportMetrics(metrics, MetricsExportFormat.Prometheus);
     
-    // 用於試算表分析的 CSV 格式
+    // CSV format for spreadsheet analysis
     var csvMetrics = exporter.ExportMetrics(metrics, MetricsExportFormat.Csv);
     
-    // 用於舊版系統的 XML 格式
+    // XML format for legacy systems
     var xmlMetrics = exporter.ExportMetrics(metrics, MetricsExportFormat.Xml);
 }
 ```
 
 ### 儀表板整合
 
-匯出為熱門儀表板格式化的指標：
+匯出針對常見儀表板格式化的指標：
 
 ```csharp
-// 匯出至 Grafana
+// Export for Grafana
 var grafanaMetrics = exporter.ExportForDashboard(metrics, DashboardType.Grafana);
 
-// 匯出至 Chart.js
+// Export for Chart.js
 var chartJsMetrics = exporter.ExportForDashboard(metrics, DashboardType.ChartJs);
 
-// 匯出至自訂儀表板
+// Export for custom dashboards
 var customMetrics = exporter.ExportForDashboard(metrics, DashboardType.Custom);
 ```
 
 ### Prometheus 整合
 
-以 Prometheus 格式匯出指標以用於監控系統：
+以 Prometheus 格式匯出指標用於監控系統：
 
 ```csharp
-// 匯出 Prometheus 指標
+// Export Prometheus metrics
 var prometheusMetrics = exporter.ExportMetrics(metrics, MetricsExportFormat.Prometheus);
 
-// 範例輸出：
+// Example output:
 // # HELP graph_node_execution_total Total number of node executions
 // # TYPE graph_node_execution_total counter
 // graph_node_execution_total{node_id="processing_node",node_name="Processing"} 150
@@ -312,29 +312,29 @@ var prometheusMetrics = exporter.ExportMetrics(metrics, MetricsExportFormat.Prom
 // graph_node_execution_duration_seconds_bucket{node_id="processing_node",le="1.0"} 150
 ```
 
-## 執行追蹤與相關聯
+## 執行追蹤和關聯
 
 ### OpenTelemetry 整合
 
-使用相關聯啟用分散式追蹤：
+啟用具有關聯的分佈式追蹤：
 
 ```csharp
 using System.Diagnostics;
 
-// 設定 ActivitySource 進行追蹤
+// Configure ActivitySource for tracing
 var activitySource = new ActivitySource("SemanticKernel.Graph");
 
-// 在圖形選項中啟用追蹤
+// Enable tracing in graph options
 var graphOptions = new GraphOptions
 {
     EnableMetrics = true,
     EnableLogging = true
 };
 
-// GraphExecutor 自動建立追蹤跨度
+// GraphExecutor automatically creates tracing spans
 var graph = new GraphExecutor("TracedGraph", "Graph with tracing enabled");
 
-// 使用自動追蹤執行
+// Execute with automatic tracing
 using var activity = activitySource.StartActivity("Graph.Execute");
 if (activity != null)
 {
@@ -348,23 +348,23 @@ if (activity != null)
 }
 ```
 
-### 跨度相關聯
+### Span 關聯
 
-將執行跨度與串流事件相關聯：
+將執行 span 與流式事件相關聯：
 
 ```csharp
-// 使用串流和追蹤執行
+// Execute with streaming and tracing
 var stream = streamingExecutor.ExecuteStreamAsync(kernel, arguments);
 
 await foreach (var evt in stream)
 {
-    // 每個事件包含相關聯資訊
+    // Each event includes correlation information
     Console.WriteLine($"Event: {evt.EventType}");
     Console.WriteLine($"Execution ID: {evt.ExecutionId}");
     Console.WriteLine($"Node ID: {evt.NodeId}");
     Console.WriteLine($"Correlation ID: {evt.CorrelationId}");
     
-    // 使用相關聯 ID 與追蹤跨度連結
+    // Use correlation ID to link with tracing spans
     if (Activity.Current != null)
     {
         Activity.Current.SetTag("event.correlation_id", evt.CorrelationId);
@@ -375,7 +375,7 @@ await foreach (var evt in stream)
 
 ### 自訂追蹤
 
-將自訂追蹤新增到您的圖形節點：
+為你的圖表 Node 新增自訂追蹤：
 
 ```csharp
 public class CustomTracingNode : IGraphNode
@@ -391,7 +391,7 @@ public class CustomTracingNode : IGraphNode
         
         try
         {
-            // 節點執行邏輯
+            // Node execution logic
             var result = await ProcessDataAsync(arguments);
             
             activity?.SetTag("execution.success", true);
@@ -410,15 +410,15 @@ public class CustomTracingNode : IGraphNode
 
 ## 效能分析和最佳化
 
-### 辨識效能瓶頸
+### 識別效能瓶頸
 
-分析節點效能以找出瓶頸：
+分析 Node 效能以找到瓶頸：
 
 ```csharp
-// 取得所有節點指標並辨識緩慢的節點
+// Get all node metrics and identify slow nodes
 var allNodeMetrics = graph.GetAllNodeMetrics();
 var slowNodes = allNodeMetrics
-    .Where(n => n.Value.AverageExecutionTime.TotalMilliseconds > 1000) // > 1 秒
+    .Where(n => n.Value.AverageExecutionTime.TotalMilliseconds > 1000) // > 1 second
     .OrderByDescending(n => n.Value.AverageExecutionTime.TotalMilliseconds);
 
 Console.WriteLine("🐌 SLOW NODES (>1s average)");
@@ -438,7 +438,7 @@ foreach (var node in slowNodes)
 分析執行路徑效能：
 
 ```csharp
-// 尋找最常執行的路徑
+// Find the most frequently executed paths
 var frequentPaths = graph.GetAllPathMetrics()
     .OrderByDescending(p => p.Value.ExecutionCount)
     .Take(5);
@@ -452,7 +452,7 @@ foreach (var path in frequentPaths)
     Console.WriteLine($"  Success Rate: {metrics.SuccessRate:F1}%");
     Console.WriteLine($"  Average Time: {metrics.AverageExecutionTime.TotalMilliseconds:F2}ms");
     
-    // 檢查路徑是否存在效能問題
+    // Check if path has performance issues
     if (metrics.SuccessRate < 90 || metrics.AverageExecutionTime.TotalMilliseconds > 5000)
     {
         Console.WriteLine("  ⚠️  Performance issues detected!");
@@ -465,7 +465,7 @@ foreach (var path in frequentPaths)
 監控一段時間內的效能趨勢：
 
 ```csharp
-// 取得不同時間視窗的效能摘要
+// Get performance summary for different time windows
 var timeWindows = new[]
 {
     TimeSpan.FromMinutes(5),
@@ -493,7 +493,7 @@ foreach (var window in timeWindows)
 
 ### 健康檢查
 
-實施自動化的健康監控：
+實現自動化健康監控：
 
 ```csharp
 public class GraphHealthMonitor
@@ -508,25 +508,25 @@ public class GraphHealthMonitor
         
         var issues = new List<string>();
         
-        // 檢查成功率
+        // Check success rate
         if (summary.SuccessRate < 95)
         {
             issues.Add($"Low success rate: {summary.SuccessRate:F1}%");
         }
         
-        // 檢查回應時間
+        // Check response time
         if (summary.AverageExecutionTime.TotalMilliseconds > 5000)
         {
             issues.Add($"High response time: {summary.AverageExecutionTime.TotalMilliseconds:F0}ms");
         }
         
-        // 檢查輸送量
+        // Check throughput
         if (summary.Throughput < 1.0)
         {
             issues.Add($"Low throughput: {summary.Throughput:F2}/sec");
         }
         
-        // 檢查系統資源
+        // Check system resources
         if (summary.CurrentCpuUsage > 80)
         {
             issues.Add($"High CPU usage: {summary.CurrentCpuUsage:F1}%");
@@ -542,14 +542,14 @@ public class GraphHealthMonitor
     }
 }
 
-// 使用
+// Usage
 var healthMonitor = new GraphHealthMonitor();
 var health = await healthMonitor.CheckHealthAsync(graph);
 
 if (health.Status == HealthStatus.Unhealthy)
 {
     Console.WriteLine($"🔴 Health Check Failed: {health.Description}");
-    // 傳送警示、記錄錯誤等
+    // Send alert, log error, etc.
 }
 else
 {
@@ -559,7 +559,7 @@ else
 
 ### 效能警示
 
-設定自動化效能監控：
+設置自動化效能監控：
 
 ```csharp
 public class PerformanceAlerting
@@ -582,72 +582,72 @@ public class PerformanceAlerting
         foreach (var alert in alerts)
         {
             Console.WriteLine($"🚨 PERFORMANCE ALERT: {alert}");
-            // 傳送通知、記錄警示等
+            // Send notification, log alert, etc.
         }
     }
 }
 
-// 使用
+// Usage
 var alerting = new PerformanceAlerting(graph);
 ```
 
 ## 最佳實踐
 
-### 指標設定
+### 指標配置
 
-* **開發**：使用 `CreateDevelopmentOptions()` 以進行詳細偵錯
-* **生產**：使用 `CreateProductionOptions()` 以進行效能最佳化
-* **高輸送量**：使用 `CreatePerformanceOptions()` 以降低額外費用
-* **資源監控**：僅在需要時啟用，以避免效能影響
+* **Development**：使用 `CreateDevelopmentOptions()` 進行詳細的偵錯
+* **Production**：使用 `CreateProductionOptions()` 進行效能最佳化
+* **High-Throughput**：使用 `CreatePerformanceOptions()` 以最小化開銷
+* **Resource Monitoring**：僅在需要時啟用，以避免效能影響
 
 ### 效能監控
 
-* **取樣間隔**：平衡準確性與效能（資源 5-30 秒）
-* **保留期間**：保留指標足夠長的時間以進行趨勢分析（7-30 天）
-* **百分位追蹤**：專注於 p95 和 p99 進行延遲監控
-* **路徑分析**：監控執行路徑以尋求最佳化機會
+* **Sampling Intervals**：平衡準確性和效能（資源的 5-30 秒）
+* **Retention Periods**：保留指標足夠長以進行趨勢分析（7-30 天）
+* **Percentile Tracking**：專注於 p95 和 p99 以進行延遲監控
+* **Path Analysis**：監控執行路徑以尋找最佳化機會
 
 ### 匯出和整合
 
 * **Prometheus**：用於 Kubernetes 和雲原生監控
 * **Grafana**：匯出儀表板就緒的指標以進行視覺化
-* **自訂儀表板**：使用 JSON 匯出進行網頁式監控
-* **警示**：為關鍵效能問題設定自動化警示
+* **Custom Dashboards**：使用 JSON 匯出進行網頁型監控
+* **Alerting**：為關鍵效能問題設置自動化警示
 
-### 追蹤和相關聯
+### 追蹤和關聯
 
-* **相關聯 ID**：使用穩定的 ID 以連結跨度和事件
-* **跨度命名**：使用描述性名稱以改善可觀測性
-* **標籤策略**：將商務內容新增到追蹤跨度
-* **取樣**：為生產環境設定適當的取樣率
+* **Correlation IDs**：使用穩定的 ID 來連結 span 和事件
+* **Span Naming**：使用描述性名稱以提高可觀測性
+* **Tag Strategy**：為追蹤 span 新增業務情境
+* **Sampling**：為生產環境配置適當的採樣率
 
 ## 疑難排解
 
 ### 常見問題
 
-**指標未收集**：確保圖形選項中的 `EnableMetrics` 為 true，且指標已正確設定。
+**未收集指標**：確保圖表選項中的 `EnableMetrics` 為 true，且指標已正確配置。
 
-**高記憶體使用量**：減少指標選項中的 `MaxSampleHistory` 和 `MaxPathHistoryPerPath`。
+**高記憶體使用量**：在指標選項中減少 `MaxSampleHistory` 和 `MaxPathHistoryPerPath`。
 
-**效能影響**：使用生產最佳化的指標選項，若不需要請停用資源監控。
+**效能影響**：使用生產最佳化的指標選項，如果不需要，請停用資源監控。
 
 **匯出失敗**：檢查匯出格式相容性，並確保指標資料可用。
 
 ### 效能最佳化
 
 ```csharp
-// 針對高輸送量情境最佳化指標收集
+// Optimize metrics collection for high-throughput scenarios
 var optimizedOptions = new GraphMetricsOptions
 {
-    EnableResourceMonitoring = false,        // 不需要時停用
+    EnableResourceMonitoring = false,        // Disable if not needed
     ResourceSamplingInterval = TimeSpan.FromMinutes(5),
-    MaxSampleHistory = 1000,                // 減少樣本歷程
-    EnableDetailedPathTracking = false,     // 不需要時停用
-    MaxPathHistoryPerPath = 100,            // 減少路徑歷程
-    EnablePercentileCalculations = true,    // 保留百分位數
-    MetricsRetentionPeriod = TimeSpan.FromHours(2), // 較短的保留
-    EnableRealTimeMetrics = false,          // 為了效能停用
-    AggregationInterval = TimeSpan.FromMinutes(5)   // 較少頻繁的彙總
+    MaxSampleHistory = 1000,                // Reduce sample history
+    EnableDetailedPathTracking = false,     // Disable if not needed
+    MaxPathHistoryPerPath = 100,            // Reduce path history
+    EnablePercentileCalculations = true,    // Keep percentiles
+    MetricsRetentionPeriod = TimeSpan.FromHours(2), // Shorter retention
+    EnableRealTimeMetrics = false,          // Disable for performance
+    AggregationInterval = TimeSpan.FromMinutes(5)   // Less frequent aggregation
 };
 
 graph.ConfigureMetrics(optimizedOptions);
@@ -655,7 +655,7 @@ graph.ConfigureMetrics(optimizedOptions);
 
 ## 另請參閱
 
-* [偵錯和檢查](debug-and-inspection.md) - 使用指標進行偵錯和分析
-* [狀態管理](../concepts/state.md) - 瞭解執行狀態和內容
-* [圖形執行](../concepts/execution.md) - 執行生命週期和效能
-* [範例](../../examples/) - 指標和監控的實際範例
+* [Debug and Inspection](debug-and-inspection.md) - 使用指標進行偵錯和分析
+* [State Management](../concepts/state.md) - 理解執行狀態和情境
+* [Graph Execution](../concepts/execution.md) - 執行生命週期和效能
+* [Examples](../../examples/) - 指標和監控的實際範例

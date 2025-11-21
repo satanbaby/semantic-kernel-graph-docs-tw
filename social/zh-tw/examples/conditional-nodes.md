@@ -1,56 +1,56 @@
-# 條件節點範例
+# 條件 Node 範例
 
-本範例示範了如何使用 `ConditionalGraphNode` 和 `ConditionalEdge` 在基於圖形的工作流程中進行條件路由和決策。它展示如何根據狀態條件和使用者輸入實現動態執行路徑。
+此範例展示使用 `ConditionalGraphNode` 和 `ConditionalEdge` 在 Graph 工作流程中進行條件路由和決策。它展示了如何根據狀態條件和使用者輸入實現動態執行路徑。
 
 ## 目標
 
-學習如何在基於圖形的工作流程中實現條件邏輯以：
-* 根據動態條件路由執行
+了解如何在 Graph 工作流程中實現條件邏輯以：
+* 根據動態條件進行路由執行
 * 實現 if/else 分支邏輯
 * 使用條件表達式進行複雜路由
 * 有效處理多個執行路徑
-* 將條件節點與其他圖形模式整合
+* 將條件 Node 與其他 Graph 模式整合
 
-## 先決條件
+## 前置要求
 
 * **.NET 8.0** 或更新版本
-* **OpenAI API 金鑰**配置在 `appsettings.json`
-* **Semantic Kernel Graph 套件**已安裝
-* 對[圖形概念](../concepts/graph-concepts.md)和[節點類型](../concepts/node-types.md)的基本理解
+* 在 `appsettings.json` 中配置的 **OpenAI API Key**
+* 已安裝的 **Semantic Kernel Graph 套件**
+* 基本了解 [Graph 概念](../concepts/graph-concepts.md) 和 [Node 類型](../concepts/node-types.md)
 
 ## 關鍵元件
 
 ### 概念和技術
 
-* **條件路由**：根據狀態條件進行動態執行路徑選擇
-* **條件表達式**：決定執行流程的布林表達式
-* **分支邏輯**：具有不同結果的多個執行路徑
-* **狀態評估**：運行時評估圖形狀態以進行決策
+* **Conditional Routing**: 根據狀態條件動態選擇執行路徑
+* **Conditional Expressions**: 決定執行流程的布林表達式
+* **Branching Logic**: 具有不同結果的多個執行路徑
+* **State Evaluation**: Graph 狀態的執行時評估以進行決策
 
 ### 核心類別
 
-* `ConditionalGraphNode`：評估條件並路由執行的節點
-* `ConditionalEdge`：基於條件邏輯連接節點的邊
-* `ConditionalExpressionEvaluator`：評估用於路由的布林表達式
-* `GraphState`：攜帶條件評估中使用的狀態資訊
+* `ConditionalGraphNode`: 評估條件並路由執行的 Node
+* `ConditionalEdge`: 根據條件邏輯連接 Node 的 Edge
+* `ConditionalExpressionEvaluator`: 評估用於路由的布林表達式
+* `GraphState`: 攜帶在條件評估中使用的狀態資訊
 
 ## 執行範例
 
-### 開始使用
+### 入門指南
 
-本範例示範了使用 Semantic Kernel Graph 套件的條件路由和決策。下面的程式碼片段展示了如何在自己的應用程式中實現此模式。
+此範例展示了使用 Semantic Kernel Graph 套件進行條件路由和決策。下面的程式碼片段展示了如何在您自己的應用程式中實現此模式。
 
 ## 逐步實現
 
 ### 1. 基本條件路由
 
-此範例示範基於輸入值的簡單 if/else 分支。
+此範例展示了基於輸入值的簡單 if/else 分支。
 
 ```csharp
-// 使用模擬配置建立核心
+// Create kernel with mock configuration
 var kernel = CreateKernel();
 
-// 建立基本路由的條件節點
+// Create conditional node for basic routing
 var conditionalNode = new ConditionalGraphNode(
     "BasicConditional",
     "Basic conditional routing example",
@@ -61,7 +61,7 @@ var conditionalNode = new ConditionalGraphNode(
     FalseNodeId = "low-value-processor"
 };
 
-// 建立處理節點
+// Create processing nodes
 var highValueProcessor = new FunctionGraphNode(
     "high-value-processor",
     "Process high value inputs",
@@ -86,16 +86,16 @@ var lowValueProcessor = new FunctionGraphNode(
         return result;
     });
 
-// 建立執行器並新增節點
+// Create executor and add nodes
 var executor = new GraphExecutor("ConditionalExample", "Basic conditional routing", logger);
 executor.AddNode(conditionalNode);
 executor.AddNode(highValueProcessor);
 executor.AddNode(lowValueProcessor);
 
-// 設定起始節點
+// Set start node
 executor.SetStartNode(conditionalNode.NodeId);
 
-// 使用不同的輸入值測試
+// Test with different input values
 var testValues = new[] { 5, 15, 8, 20 };
 
 foreach (var testValue in testValues)
@@ -117,10 +117,10 @@ foreach (var testValue in testValues)
 
 ### 2. 複雜條件邏輯
 
-示範具有多個條件的進階條件表達式。
+展示具有多個條件的進階條件表達式。
 
 ```csharp
-// 建立複雜條件節點
+// Create complex conditional node
 var complexConditional = new ConditionalGraphNode(
     "ComplexConditional",
     "Complex conditional logic example",
@@ -131,7 +131,7 @@ var complexConditional = new ConditionalGraphNode(
     FalseNodeId = "review-application"
 };
 
-// 建立貸款核准節點
+// Create loan approval nodes
 var approveLoan = new FunctionGraphNode(
     "approve-loan",
     "Approve loan application",
@@ -169,12 +169,12 @@ var reviewApplication = new FunctionGraphNode(
         return $"Application under review for {userName}. Reasons: {string.Join(", ", reasons)}";
     });
 
-// 將節點新增到執行器
+// Add nodes to executor
 executor.AddNode(complexConditional);
 executor.AddNode(approveLoan);
 executor.AddNode(reviewApplication);
 
-// 測試複雜條件
+// Test complex conditions
 var testApplications = new[]
 {
     new { Name = "Alice", Age = 25, Income = 75000m, CreditScore = 750, LoanAmount = 50000m },
@@ -219,10 +219,10 @@ foreach (var app in testApplications)
 
 ### 3. 動態條件路由
 
-展示如何根據運行時狀態變化實現動態路由。
+展示如何根據執行時狀態變化實現動態路由。
 
 ```csharp
-// 建立動態條件節點
+// Create dynamic conditional node
 var dynamicConditional = new ConditionalGraphNode(
     "DynamicConditional",
     "Dynamic conditional routing example",
@@ -233,7 +233,7 @@ var dynamicConditional = new ConditionalGraphNode(
     FalseNodeId = "finalize-workflow"
 };
 
-// 建立處理節點
+// Create processing nodes
 var continueProcessing = new FunctionGraphNode(
     "continue-processing",
     "Continue workflow processing",
@@ -242,14 +242,14 @@ var continueProcessing = new FunctionGraphNode(
         var currentStep = context.GetValue<int>("current_step");
         var maxSteps = context.GetValue<int>("max_steps");
         
-        // 模擬處理
+        // Simulate processing
         await Task.Delay(100);
         
-        // 更新狀態
+        // Update state
         context.SetValue("current_step", currentStep + 1);
         context.SetValue("last_processed_step", currentStep);
         
-        // 檢查是否應該繼續
+        // Check if we should continue
         if (currentStep + 1 >= maxSteps)
         {
             context.SetValue("is_complete", true);
@@ -272,12 +272,12 @@ var finalizeWorkflow = new FunctionGraphNode(
         return $"Workflow completed after {totalSteps} steps. Final result: {finalResult}";
     });
 
-// 將節點新增到執行器
+// Add nodes to executor
 executor.AddNode(dynamicConditional);
 executor.AddNode(continueProcessing);
 executor.AddNode(finalizeWorkflow);
 
-// 測試動態路由
+// Test dynamic routing
 var workflowArgs = new KernelArguments
 {
     ["current_step"] = 0,
@@ -297,10 +297,10 @@ Console.WriteLine($"✅ Workflow {workflowStatus} at step {finalStep}");
 
 ### 4. 多條件工作流程
 
-示範具有多個條件分支和複雜路由的工作流程。
+展示具有多個條件分支和複雜路由的工作流程。
 
 ```csharp
-// 建立多條件工作流程
+// Create multi-conditional workflow
 var multiConditional = new ConditionalGraphNode(
     "MultiConditional",
     "Multi-conditional workflow example",
@@ -331,7 +331,7 @@ var standardProcessor = new ConditionalGraphNode(
     FalseNodeId = "delayed-processing"
 });
 
-// 建立處理節點
+// Create processing nodes
 var immediateProcessing = new FunctionGraphNode(
     "immediate-processing",
     "Process urgent request immediately",
@@ -376,7 +376,7 @@ var delayedProcessing = new FunctionGraphNode(
         return $"Standard request {requestId} delayed due to queue capacity";
     });
 
-// 將所有節點新增到執行器
+// Add all nodes to executor
 executor.AddNode(multiConditional);
 executor.AddNode(urgentProcessor);
 executor.AddNode(standardProcessor);
@@ -385,7 +385,7 @@ executor.AddNode(resourceWait);
 executor.AddNode(queueProcessing);
 executor.AddNode(delayedProcessing);
 
-// 測試多條件工作流程
+// Test multi-conditional workflow
 var testRequests = new[]
 {
     new { Id = "REQ-001", Type = "urgent", Priority = 9, Resources = 3, QueueLength = 5 },
@@ -492,22 +492,22 @@ foreach (var req in testRequests)
 
 ## 配置選項
 
-### 條件節點配置
+### 條件 Node 配置
 
 ```csharp
 var conditionalOptions = new ConditionalNodeOptions
 {
-    ConditionExpression = "input_value > threshold",  // 布林表達式
-    TrueNodeId = "success-path",                     // 真條件的節點 ID
-    FalseNodeId = "failure-path",                    // 假條件的節點 ID
-    EnableExpressionCaching = true,                  // 快取表達式評估
-    ExpressionTimeout = TimeSpan.FromSeconds(5),     // 表達式評估超時
-    EnableDetailedLogging = true,                    // 記錄條件評估詳細資訊
-    FallbackNodeId = "default-path"                  // 評估失敗時的備用節點
+    ConditionExpression = "input_value > threshold",  // Boolean expression
+    TrueNodeId = "success-path",                     // Node ID for true condition
+    FalseNodeId = "failure-path",                    // Node ID for false condition
+    EnableExpressionCaching = true,                  // Cache expression evaluation
+    ExpressionTimeout = TimeSpan.FromSeconds(5),     // Expression evaluation timeout
+    EnableDetailedLogging = true,                    // Log condition evaluation details
+    FallbackNodeId = "default-path"                  // Fallback node if evaluation fails
 };
 ```
 
-### 條件邊配置
+### 條件 Edge 配置
 
 ```csharp
 var conditionalEdge = new ConditionalEdge
@@ -515,8 +515,8 @@ var conditionalEdge = new ConditionalEdge
     SourceNodeId = "source-node",
     TargetNodeId = "target-node",
     Condition = "state_value == 'expected'",
-    Priority = 1,                                    // 路由的邊優先順序
-    Metadata = new Dictionary<string, object>        // 其他中繼資料
+    Priority = 1,                                    // Edge priority for routing
+    Metadata = new Dictionary<string, object>        // Additional metadata
     {
         ["edge_type"] = "conditional",
         ["description"] = "Route based on state value"
@@ -530,41 +530,41 @@ var conditionalEdge = new ConditionalEdge
 
 #### 條件評估失敗
 ```bash
-# 問題：條件表達式評估失敗
-# 解決方案：檢查表達式語法和變數名稱
+# Problem: Conditional expression fails to evaluate
+# Solution: Check expression syntax and variable names
 ConditionExpression = "simple_condition == true";
 EnableDetailedLogging = true;
 ```
 
-#### 路由不工作
+#### 路由不運作
 ```bash
-# 問題：執行不按照預期路徑進行
-# 解決方案：驗證節點 ID 和邊連線
+# Problem: Execution doesn't follow expected path
+# Solution: Verify node IDs and edge connections
 TrueNodeId = "correct-node-id";
 FalseNodeId = "correct-node-id";
 ```
 
 #### 效能問題
 ```bash
-# 問題：條件評估較慢
-# 解決方案：啟用表達式快取並最佳化表達式
+# Problem: Conditional evaluation is slow
+# Solution: Enable expression caching and optimize expressions
 EnableExpressionCaching = true;
 ExpressionTimeout = TimeSpan.FromSeconds(1);
 ```
 
 ### 偵錯模式
 
-為疑難排解啟用詳細記錄：
+啟用詳細的日誌記錄以進行疑難排解：
 
 ```csharp
-// 啟用偵錯記錄
+// Enable debug logging
 var logger = LoggerFactory.Create(builder =>
 {
     builder.AddConsole();
     builder.SetMinimumLevel(LogLevel.Debug);
 }).CreateLogger<ConditionalNodesExample>();
 
-// 配置條件節點啟用偵錯記錄
+// Configure conditional node with debug logging
 var debugConditional = new ConditionalGraphNode(
     "DebugConditional",
     "Debug conditional example",
@@ -581,7 +581,7 @@ var debugConditional = new ConditionalGraphNode(
 ### 動態條件生成
 
 ```csharp
-// 根據內容動態生成條件
+// Generate conditions dynamically based on context
 var dynamicCondition = new DynamicConditionGenerator
 {
     ConditionTemplate = "{field_name} {operator} {threshold_value}",
@@ -604,13 +604,13 @@ var generatedCondition = dynamicCondition.GenerateCondition(
     operator: "greater_than",
     threshold: "18"
 );
-// 結果: "user_age > 18"
+// Result: "user_age > 18"
 ```
 
-### 條件表達式建構器
+### 條件表達式產生器
 
 ```csharp
-// 以程式設計方式建構複雜的條件表達式
+// Build complex conditional expressions programmatically
 var expressionBuilder = new ConditionalExpressionBuilder();
 
 var complexExpression = expressionBuilder
@@ -627,13 +627,13 @@ var complexExpression = expressionBuilder
     .EndGroup()
     .Build();
 
-// 結果: "(user_age >= 18) && (user_income > 50000) && ((credit_score >= 700) || (co_signer_available == true))"
+// Result: "(user_age >= 18) && (user_income > 50000) && ((credit_score >= 700) || (co_signer_available == true))"
 ```
 
-### 條件工作流程協調
+### 條件工作流程編排
 
 ```csharp
-// 協調多個條件工作流程
+// Orchestrate multiple conditional workflows
 var orchestrator = new ConditionalWorkflowOrchestrator
 {
     WorkflowDefinitions = new Dictionary<string, ConditionalWorkflowDefinition>
@@ -659,14 +659,14 @@ var selectedWorkflow = orchestrator.SelectWorkflow(workflowContext);
 
 ## 相關範例
 
-* [思維鏈](./chain-of-thought.md)：推理和決策
-* [動態路由](./dynamic-routing.md)：進階路由模式
-* [多代理](./multi-agent.md)：協調決策
-* [狀態管理](./state-management.md)：圖形狀態和引數處理
+* [Chain of Thought](./chain-of-thought.md): 推理和決策
+* [Dynamic Routing](./dynamic-routing.md): 進階路由模式
+* [Multi-Agent](./multi-agent.md): 協調決策
+* [State Management](./state-management.md): Graph 狀態和引數處理
 
-## 參見
+## 另請參閱
 
-* [條件節點概念](../concepts/conditional-nodes.md)：了解條件路由
-* [圖形概念](../concepts/graph-concepts.md)：基於圖形的工作流程基礎
-* [節點類型](../concepts/node-types.md)：圖形節點基礎
-* [API 參考](../api/)：完整 API 文件
+* [Conditional Nodes 概念](../concepts/conditional-nodes.md): 了解條件路由
+* [Graph 概念](../concepts/graph-concepts.md): Graph 工作流程基礎
+* [Node 類型](../concepts/node-types.md): Graph Node 基礎
+* [API 參考](../api/): 完整的 API 文件

@@ -1,28 +1,28 @@
-# 條件節點
+# 條件式 Node
 
-本指南說明如何在 SemanticKernel.Graph 中使用條件節點和邊，以建立動態、分支化的工作流程。你將學習如何實現決策邏輯、路由執行流程，以及建立複雜的工作流程模式。
+本指南說明如何在 SemanticKernel.Graph 中使用條件式 Node 和 Edge，建立動態、分支式的工作流程。您將學習如何實現決策邏輯、路由執行流程，以及建立複雜的工作流程模式。
 
 ## 概述
 
-條件節點使你能夠建立動態工作流程，可以：
-* **根據狀態值或條件進行分支執行**
+條件式 Node 使您能夠建立動態工作流程，可以：
+* **根據狀態值或條件分支執行**
 * **將資料路由到不同的處理路徑**
-* **為複雜的商業邏輯實現決策樹**
-* **在單一圖形中處理多個場景**
+* **實現決策樹以處理複雜的商業邏輯**
+* **在單一 Graph 中處理多個場景**
 
 ## 基本條件邏輯
 
-### 簡單的述語型分支
+### 簡單的謂詞型分支
 
-使用述語來評估條件並路由執行：
+使用謂詞評估條件並路由執行：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 using SemanticKernel.Graph.Nodes;
 
-// 建立一個具有述語的條件節點。
-// 述語安全地檢查 "ok" 鍵的存在，
-// 並在返回值前驗證它是否為布林值。
+// 建立具有謂詞的條件式 Node。
+// 謂詞安全地檢查 "ok" 鍵的存在性，
+// 並在傳回值之前驗證它是布林值。
 var conditionalNode = new ConditionalGraphNode(
     predicate: state =>
     {
@@ -36,7 +36,7 @@ var conditionalNode = new ConditionalGraphNode(
     nodeId: "decision_point"
 );
 
-// 使用安全檢查根據結果新增條件邊。
+// 使用安全檢查，根據結果新增條件式 Edge。
 graph.AddConditionalEdge(
     "decision_point",
     "success_path",
@@ -49,11 +49,11 @@ graph.AddConditionalEdge(
 
 ### 基於範本的條件
 
-使用範本表達式進行更複雜的條件邏輯：
+使用範本運算式進行更複雜的條件邏輯：
 
 ```csharp
 // 基於範本的條件範例。
-// 使用型別的存取器和本地變數來提高清晰度和更簡單的除錯。
+// 使用型別化存取器和本機變數以提高清晰度和更易於除錯。
 var templateCondition = new ConditionalGraphNode(
     predicate: state =>
     {
@@ -64,7 +64,7 @@ var templateCondition = new ConditionalGraphNode(
     nodeId: "confidence_check"
 );
 
-// 根據信心水準以清晰的閾值進行路由。
+// 根據信心等級，使用明確的閾值進行路由。
 graph.AddConditionalEdge(
         "confidence_check",
         "high_confidence",
@@ -85,12 +85,12 @@ graph.AddConditionalEdge(
 
 ## 進階條件模式
 
-### 多路分支
+### 多向分支
 
-使用多個路徑建立複雜的決策樹：
+建立具有多條路徑的複雜決策樹：
 
 ```csharp
-// 多路分支：確保述語返回布林值並檢查空值/空字串。
+// 多向分支：確保謂詞傳回布林值並檢查空值/空字串。
 var priorityNode = new ConditionalGraphNode(
     predicate: state => !string.IsNullOrEmpty(state.GetString("priority")),
     nodeId: "priority_router"
@@ -119,18 +119,18 @@ graph.AddConditionalEdge(
         });
 ```
 
-### 狀態相依路由
+### 狀態相依的路由
 
 根據多個狀態條件路由執行：
 
 ```csharp
-// 狀態相依路由：保持檢查明確且易於閱讀。
+// 狀態相依的路由：保持檢查明確且可讀。
 var analysisNode = new ConditionalGraphNode(
     predicate: state =>
     {
         var hasData = state.ContainsKey("input_data");
         var dataSize = state.GetInt("data_size", 0);
-        // 複雜性在遺失時預設為 "simple"
+        // 當遺失時，複雜度預設為 "simple"
         var complexity = state.GetString("complexity", "simple");
 
         return hasData && dataSize > 0;
@@ -138,7 +138,7 @@ var analysisNode = new ConditionalGraphNode(
     nodeId: "analysis_decision"
 );
 
-// 具有清晰閾值和明確比較的複雜路由邏輯。
+// 具有明確閾值和顯式比較的複雜路由邏輯。
 graph.AddConditionalEdge(
         "analysis_decision",
         "deep_analysis",
@@ -165,7 +165,7 @@ graph.AddConditionalEdge(
 
 ### 動態閾值
 
-使用狀態值來決定動態閾值：
+使用狀態值決定動態閾值：
 
 ```csharp
 // 動態閾值：計算並使用從狀態衍生的閾值。
@@ -177,21 +177,21 @@ var adaptiveNode = new ConditionalGraphNode(
         var dynamicThreshold = (int)Math.Round(baseThreshold * multiplier);
 
         var currentValue = state.GetInt("current_value", 0);
-        // 當目前值達到或超過動態閾值時返回 true
+        // 當目前值滿足或超過動態閾值時傳回 true
         return currentValue >= dynamicThreshold;
     },
     nodeId: "adaptive_threshold"
 );
 
-// 在圖形狀態中儲存計算的閾值以供稍後使用。
+// 將計算的閾值儲存以供稍後在 Graph 狀態中使用。
 graph.AddEdge("adaptive_threshold", "store_threshold");
 ```
 
-## 條件邊類型
+## 條件式 Edge 類型
 
 ### 布林條件
 
-簡單的是/否路由：
+簡單的真/假路由：
 
 ```csharp
 // 布林條件路由：偏好明確的預設值和安全存取。
@@ -207,10 +207,10 @@ graph.AddConditionalEdge(
 
 ### 數值比較
 
-基於數值路由：
+根據數值進行路由：
 
 ```csharp
-// 使用清晰閾值定義的數值比較。
+// 具有明確閾值定義的數值比較。
 graph.AddConditionalEdge(
     "start",
     "high_priority",
@@ -231,10 +231,10 @@ graph.AddConditionalEdge(
 
 ### 字串匹配
 
-根據字串值和模式路由：
+根據字串值和模式進行路由：
 
 ```csharp
-// 字串匹配：使用 StringComparison 並防範空值。
+// 字串匹配：使用 StringComparison 並防範 null。
 graph.AddConditionalEdge(
     "start",
     "email_processing",
@@ -249,7 +249,7 @@ graph.AddConditionalEdge(
     condition: state => state.GetString("input_type", string.Empty).IndexOf("image", StringComparison.OrdinalIgnoreCase) >= 0);
 ```
 
-### 複雜的邏輯表達式
+### 複雜邏輯運算式
 
 使用邏輯運算子組合多個條件：
 
@@ -271,11 +271,11 @@ graph.AddConditionalEdge("start", "premium_processing",
     });
 ```
 
-## 性能最佳化
+## 效能最佳化
 
 ### 快取評估
 
-快取條件評估以獲得更好的性能：
+快取條件評估以提高效能：
 
 ```csharp
 // 快取評估：在狀態中儲存昂貴計算的結果。
@@ -298,14 +298,14 @@ var cachedCondition = new ConditionalGraphNode(
 
 ### 延遲評估
 
-對昂貴的條件使用延遲評估：
+使用延遲評估進行昂貴的條件：
 
 ```csharp
 // 延遲評估：僅在必要時執行昂貴的檢查並快取結果。
 var lazyCondition = new ConditionalGraphNode(
     predicate: state =>
     {
-        // 只有在我們尚未決定時才評估
+        // 僅在尚未決定時評估
         if (state.ContainsKey("route_decided") && state.GetBool("route_decided", false))
         {
             return state.GetBool("route_decided", false);
@@ -322,12 +322,12 @@ var lazyCondition = new ConditionalGraphNode(
 
 ## 除錯和檢查
 
-### 條件除錯
+### 條件式除錯
 
-將除錯資訊新增到條件節點：
+將除錯資訊新增至條件式 Node：
 
 ```csharp
-// 條件除錯：在圖形狀態中儲存結構化的除錯資訊以供檢查。
+// 條件式除錯：在 Graph 狀態中儲存結構化除錯資訊以供檢查。
 var debugCondition = new ConditionalGraphNode(
     predicate: state =>
     {
@@ -358,13 +358,13 @@ var debugCondition = new ConditionalGraphNode(
 追蹤工作流程中的決策路徑：
 
 ```csharp
-// 決策追蹤：將決策項目附加到儲存在狀態中的歷史記錄清單。
+// 決策追蹤：將決策項目附加到儲存在狀態中的歷史清單。
 var traceCondition = new ConditionalGraphNode(
     predicate: state =>
     {
         var decision = EvaluateCondition(state);
 
-        // 新增到決策歷史記錄（如果遺失則初始化清單）
+        // 新增至決策歷史（如果遺失則初始化清單）
         var history = state.GetValue<List<string>>("decision_history") ?? new List<string>();
         history.Add($"Node: trace_condition, Decision: {decision}, Timestamp: {DateTimeOffset.UtcNow}");
         state["decision_history"] = history;
@@ -375,38 +375,38 @@ var traceCondition = new ConditionalGraphNode(
 );
 ```
 
-## 最佳實踐
+## 最佳實務
 
 ### 條件設計
 
-1. **保持條件簡單** - 複雜邏輯應在單獨的函數中
+1. **保持條件簡單** - 複雜邏輯應在個別函式中處理
 2. **使用有意義的名稱** - 命名條件以反映其目的
-3. **處理邊界情況** - 始終提供後備路徑
-4. **驗證輸入** - 在評估前檢查必要的狀態值
+3. **處理邊緣情況** - 始終提供後備路徑
+4. **驗證輸入** - 在評估前檢查必需的狀態值
 
-### 性能考量
+### 效能考量
 
 1. **快取昂貴的評估** - 儲存結果以避免重新計算
 2. **使用延遲評估** - 僅在必要時評估
-3. **最佳化狀態存取** - 最小化條件中的狀態查詢
-4. **批次決策** - 在可能的情況下分組相關條件
+3. **最佳化狀態存取** - 最小化條件中的狀態查閱
+4. **批次決策** - 盡可能分組相關條件
 
 ### 錯誤處理
 
 1. **提供後備** - 始終有預設路徑
-2. **驗證狀態** - 在評估前檢查必要的值
-3. **記錄決策** - 追蹤決策路徑以進行除錯
+2. **驗證狀態** - 在評估前檢查必需值
+3. **記錄決策** - 追蹤決策路徑以便除錯
 4. **處理例外** - 在 try-catch 區塊中包裝條件
 
-## 故障排除
+## 疑難排解
 
 ### 常見問題
 
-**條件未評估**：檢查狀態是否包含必要的值，且型別相符
+**條件未評估**：檢查狀態是否包含必需值且型別相符
 
-**意外的路由**：驗證條件邏輯並新增除錯記錄
+**非預期的路由**：驗證條件邏輯並新增除錯記錄
 
-**性能問題**：快取昂貴的評估並最佳化狀態存取
+**效能問題**：快取昂貴的評估並最佳化狀態存取
 
 **無限迴圈**：確保條件最終解析為終端狀態
 
@@ -415,25 +415,25 @@ var traceCondition = new ConditionalGraphNode(
 1. **啟用除錯記錄**以追蹤條件評估
 2. **新增決策追蹤**以追蹤執行路徑
 3. **在條件邏輯中使用中斷點**
-4. **檢查決策點處的狀態值**
+4. **檢查決策點的狀態值**
 
 ## 概念和技術
 
-**ConditionalGraphNode**：一個專門的圖形節點，評估述語以決定執行流程。它根據圖形的目前狀態啟用動態路由。
+**ConditionalGraphNode**：一種特殊化的 Graph Node，評估謂詞以決定執行流程。它可根據 Graph 的目前狀態啟用動態路由。
 
-**ConditionalEdge**：節點之間的連接，包含執行條件。它允許複雜的分支邏輯和基於狀態評估的動態工作流程路徑。
+**ConditionalEdge**：Node 之間的連線，包括執行條件。它允許複雜的分支邏輯和基於狀態評估的動態工作流程路徑。
 
-**述語**：評估目前圖形狀態並返回布林值的函數。述語決定在條件路由中採用哪個執行路徑。
+**Predicate**：評估目前 Graph 狀態並傳回布林值的函式。謂詞決定在條件式路由中採取哪條執行路徑。
 
-**範本表達式**：一個更複雜的條件表達式，可以評估多個狀態值並執行計算來決定路由決策。
+**Template Expression**：更複雜的條件運算式，可評估多個狀態值並執行計算以決定路由決策。
 
-**狀態相依路由**：一個模式，其中執行路徑根據圖形狀態中的目前值動態決定，啟用自適應工作流程。
+**State-Dependent Routing**：一種模式，其中執行路徑根據 Graph 狀態中的目前值動態決定，啟用自適應工作流程。
 
 ## 另請參閱
 
-* [建立圖形](build-a-graph.md) - 學習圖形建構的基礎
-* [迴圈](loops.md) - 使用迴圈節點實現迭代工作流程
-* [進階路由](advanced-routing.md) - 探索複雜的路由模式和策略
-* [狀態管理](../state-quickstart.md) - 了解如何管理節點之間的資料流
-* [除錯和檢查](debug-and-inspection.md) - 學習如何除錯條件邏輯
-* [範例：條件工作流程](../examples/conditional-nodes-example.md) - 條件路由的完整工作範例
+* [Build a Graph](build-a-graph.md) - 了解 Graph 構造的基礎
+* [Loops](loops.md) - 使用迴圈 Node 實現反覆式工作流程
+* [Advanced Routing](advanced-routing.md) - 探索複雜的路由模式和策略
+* [State Management](../state-quickstart.md) - 了解如何管理 Node 之間的資料流
+* [Debug and Inspection](debug-and-inspection.md) - 了解如何除錯條件邏輯
+* [Examples: Conditional Workflows](../examples/conditional-nodes-example.md) - 條件式路由的完整工作範例

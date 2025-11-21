@@ -1,38 +1,38 @@
 # 狀態管理
 
-狀態管理是 SemanticKernel.Graph 中資料流的基礎。本指南說明如何使用 `GraphState`、`KernelArguments`、執行歷史、中繼資料、驗證和序列化來建置強大且易維護的工作流程。
+狀態管理是 SemanticKernel.Graph 中資料流的基礎。本指南說明如何使用 `GraphState`、`KernelArguments`、執行歷史、中繼資料、驗證和序列化來構建健全且可維護的工作流程。
 
-## 您將學到什麼
+## 您將學到
 
-* `GraphState` 如何封裝 `KernelArguments` 以提供增強功能
+* 如何 `GraphState` 包裝 `KernelArguments` 以提供增強功能
 * 管理執行歷史和中繼資料
 * 狀態驗證和版本控制
 * 序列化和反序列化功能
-* 狀態設計和管理的最佳實踐
+* 狀態設計和管理的最佳做法
 
 ## 概念和技術
 
-**GraphState**：圍繞 `KernelArguments` 的增強封裝，提供執行追蹤、中繼資料管理、驗證和序列化功能。
+**GraphState**：`KernelArguments` 的增強包裝器，提供執行追蹤、中繼資料管理、驗證和序列化功能。
 
-**KernelArguments**：Semantic Kernel 的核心容器，用於鍵值對，代表執行狀態和上下文。
+**KernelArguments**：Semantic Kernel 的核心容器，用於存儲鍵值對，代表執行狀態和上下文。
 
-**執行歷史**：所有執行步驟的時間順序記錄，包括每個節點執行的時序、結果和中繼資料。
+**Execution History**：執行步驟的時間順序記錄，包括每個 Node 執行的時序、結果和中繼資料。
 
-**狀態驗證**：內建的完整性檢查，確保狀態一致性、可序列化性和版本相容性。
+**State Validation**：內建的完整性檢查，確保狀態一致性、可序列化性和版本相容性。
 
-**序列化**：能夠使用壓縮、版本遷移和完整性驗證來保存和還原圖形狀態。
+**Serialization**：保存和恢復 Graph 狀態的能力，包括壓縮、版本遷移和完整性驗證。
 
-## 前置條件
+## 先決條件
 
-* 已完成[第一個圖表教程](../first-graph-5-minutes.md)
-* 對 SemanticKernel.Graph 概念有基本理解
-* 熟悉 Semantic Kernel 的 `KernelArguments`
+* 已完成 [第一個 Graph 教程](../first-graph-5-minutes.md)
+* 對 SemanticKernel.Graph 概念有基本瞭解
+* 熟悉來自 Semantic Kernel 的 `KernelArguments`
 
-## 核心狀態組件
+## 核心狀態元件
 
-### GraphState：增強狀態封裝
+### GraphState：增強的狀態包裝器
 
-`GraphState` 是主要狀態容器，使用額外的圖形特定功能封裝 `KernelArguments`：
+`GraphState` 是主要的狀態容器，使用額外的 Graph 特定功能包裝 `KernelArguments`：
 
 ```csharp
 using SemanticKernel.Graph.State;
@@ -49,7 +49,7 @@ var graphState = new GraphState(arguments);
 
 // 範例：序列化、保存、反序列化和驗證
 var serialized = graphState.Serialize(SerializationOptions.Verbose);
-// 保存至檔案（範例路徑）
+// 保存到檔案（範例路徑）
 var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "graphstate-example.json");
 File.WriteAllText(path, serialized);
 
@@ -78,14 +78,14 @@ var lastModified = graphState.LastModified;
 
 ### 狀態屬性和中繼資料
 
-每個 `GraphState` 實例都包含內建的中繼資料：
+每個 `GraphState` 執行個體都包含內建中繼資料：
 
 ```csharp
 // 狀態識別
-var stateId = graphState.StateId;           // 唯一識別符
-var version = graphState.Version;           // 狀態版本（例如："1.1.0"）
-var createdAt = graphState.CreatedAt;       // 建立時間戳記
-var lastModified = graphState.LastModified; // 最後修改時間戳記
+var stateId = graphState.StateId;           // 唯一識別碼
+var version = graphState.Version;           // 狀態版本（例如 "1.1.0"）
+var createdAt = graphState.CreatedAt;       // 建立時間戳
+var lastModified = graphState.LastModified; // 上次修改時間戳
 var isModified = graphState.IsModified;     // 狀態是否已修改
 
 // 執行追蹤
@@ -97,19 +97,19 @@ var executionHistory = graphState.ExecutionHistory;
 
 ### 讀取狀態值
 
-使用型別安全的方法讀取狀態中的值：
+使用類型安全的方法從狀態讀取值：
 
 ```csharp
-// 帶有預設值的型別安全讀取
+// 帶預設值的類型安全讀取
 var name = graphState.GetValue<string>("userName");
 var age = graphState.GetValue<int>("userAge");
 var isActive = graphState.GetValue<bool>("isActive");
 
-// 安全讀取並提供備用值
+// 帶後備值的安全讀取
 var department = graphState.GetValueOrDefault("department", "Unknown");
 var score = graphState.GetValueOrDefault("score", 0.0);
 
-// Try 模式用於條件讀取
+// 嘗試模式以進行條件讀取
 if (graphState.TryGetValue<string>("email", out var email))
 {
     // 處理電子郵件
@@ -138,7 +138,7 @@ if (graphState.IsModified)
 
 ### 複雜物件管理
 
-在狀態中儲存和擷取複雜物件：
+在狀態中儲存和檢索複雜物件：
 
 ```csharp
 // 儲存複雜物件
@@ -152,7 +152,7 @@ var userProfile = new
 
 graphState.SetValue("userProfile", userProfile);
 
-// 擷取並使用複雜物件
+// 檢索並使用複雜物件
 var profile = graphState.GetValue<object>("userProfile");
 var metadata = graphState.GetValue<Dictionary<string, object>>("metadata");
 
@@ -181,26 +181,26 @@ foreach (var step in steps)
 }
 ```
 
-### 執行狀態型別
+### 執行狀態類型
 
 執行步驟可以有不同的狀態：
 
 ```csharp
 public enum ExecutionStatus
 {
-    Running,      // 正在執行
+    Running,      // 目前正在執行
     Completed,    // 成功完成
     Failed,       // 執行失敗
     Cancelled     // 執行已取消
 }
 ```
 
-### 新增執行中繼資料
+### 添加執行中繼資料
 
-節點可以將自訂中繼資料新增至執行步驟：
+Node 可以將自訂中繼資料新增至執行步驟：
 
 ```csharp
-// 在節點執行中
+// 在您的 Node 執行中
 var step = new ExecutionStep("nodeId", "functionName", DateTimeOffset.UtcNow);
 
 // 新增自訂中繼資料
@@ -216,7 +216,7 @@ step.MarkCompleted(result);
 
 ### 內建驗證
 
-`GraphState` 透過 `ISerializableState` 實現全面的驗證：
+`GraphState` 使用全面的驗證實現 `ISerializableState`：
 
 ```csharp
 // 驗證狀態完整性
@@ -236,7 +236,7 @@ else
 }
 ```
 
-### 驗證結果詳細資訊
+### 驗證結果詳情
 
 驗證結果提供詳細資訊：
 
@@ -268,7 +268,7 @@ public static ValidationResult ValidateCustomRules(GraphState state)
         result.AddError("Required field 'userId' is missing");
     }
     
-    // 驗證資料型別
+    // 驗證資料類型
     if (state.TryGetValue<int>("age", out var age) && age < 0)
     {
         result.AddWarning("Age should be non-negative", "data_validation");
@@ -288,7 +288,7 @@ public static ValidationResult ValidateCustomRules(GraphState state)
 
 ### 版本管理
 
-`GraphState` 包含用於相容性控制的語意版本控制：
+`GraphState` 包含用於相容性控制的語義版本控制：
 
 ```csharp
 // 目前版本資訊
@@ -318,10 +318,10 @@ Console.WriteLine($"Major: {version.Major}");    // 1
 Console.WriteLine($"Minor: {version.Minor}");    // 2
 Console.WriteLine($"Patch: {version.Patch}");    // 3
 
-// Try-parse 用於安全的版本處理
+// 嘗試解析以安全地處理版本
 if (StateVersion.TryParse("invalid", out var parsedVersion))
 {
-    // 使用解析的版本
+    // 使用已解析的版本
 }
 else
 {
@@ -329,11 +329,11 @@ else
 }
 ```
 
-## 序列化和持久化
+## 序列化和保存
 
 ### 基本序列化
 
-將狀態序列化為字串表現形式：
+將狀態序列化為字串表示：
 
 ```csharp
 // 使用預設選項進行序列化
@@ -368,12 +368,12 @@ var options = new SerializationOptions
 
 ### 反序列化
 
-從序列化資料還原狀態：
+從序列化資料恢復狀態：
 
 ```csharp
 using SemanticKernel.Graph.State;
 
-// 使用工廠方法反序列化
+// 使用工廠方法進行反序列化
 var deserializedResult = SerializableStateFactory.Deserialize<GraphState>(
     serializedData,
     json => JsonSerializer.Deserialize<GraphState>(json)
@@ -384,7 +384,7 @@ if (deserializedResult.IsSuccessful)
     var restoredState = deserializedResult.State;
     Console.WriteLine("State restored successfully");
     
-    // 檢查是否已套用遷移
+    // 檢查是否應用了遷移
     if (deserializedResult.WasMigrated)
     {
         Console.WriteLine($"Migrated from version {deserializedResult.OriginalVersion}");
@@ -400,10 +400,10 @@ else
 
 ### 完整性檢查
 
-驗證序列化資料完整性：
+驗證序列化資料的完整性：
 
 ```csharp
-// 建立總和檢查碼以驗證完整性
+// 建立校驗和以驗證完整性
 var checksum = graphState.CreateChecksum();
 
 // 驗證完整性
@@ -414,11 +414,11 @@ if (!validationResult.IsValid)
 }
 ```
 
-## 狀態延伸和公用程式
+## 狀態擴展和公用程式
 
-### KernelArguments 延伸
+### KernelArguments 擴展
 
-使用延伸方法與狀態搭配：
+使用擴展方法使用狀態：
 
 ```csharp
 using SemanticKernel.Graph.Extensions;
@@ -431,7 +431,7 @@ var arguments = new KernelArguments
 // 轉換為 GraphState
 var graphState = arguments.ToGraphState();
 
-// 檢查是否已有 GraphState
+// 檢查是否已經有 GraphState
 if (arguments.HasGraphState())
 {
     var existingState = arguments.GetOrCreateGraphState();
@@ -458,7 +458,7 @@ var mergedState = graphState.MergeFrom(otherState);
 var areEqual = graphState.Equals(otherState);
 ```
 
-### 狀態幫助程式
+### 狀態協助程式
 
 使用公用程式方法進行常見操作：
 
@@ -477,9 +477,9 @@ var parameterNames = graphState.GetParameterNames();
 
 ## 進階狀態模式
 
-### 狀態組合
+### 狀態組成
 
-建置複雜的狀態結構：
+建立複雜的狀態結構：
 
 ```csharp
 // 建立階層式狀態
@@ -552,7 +552,7 @@ public static class StateValidationRules
             }
         }
         
-        // 資料型別驗證
+        // 資料類型驗證
         if (state.TryGetValue<int>("age", out var age))
         {
             if (age < 0 || age > 150)
@@ -575,39 +575,39 @@ public static class StateValidationRules
 }
 ```
 
-## 最佳實踐
+## 最佳做法
 
 ### 狀態設計原則
 
 1. **保持狀態簡單**：使用清晰、描述性的鍵名稱
-2. **型別安全**：使用 `GetValue<T>()` 進行型別安全的存取
+2. **類型安全**：使用 `GetValue<T>()` 進行類型安全的存取
 3. **驗證**：在工作流程的關鍵點驗證狀態
-4. **中繼資料**：添加有意義的中繼資料用於偵錯和監控
-5. **序列化**：考慮哪些需要持久化，哪些是暫時性的
+4. **中繼資料**：新增有意義的中繼資料以進行偵錯和監控
+5. **序列化**：考慮哪些需要保存，哪些是暫時的
 
 ### 效能考量
 
 1. **大型物件**：注意大型物件的序列化成本
-2. **執行歷史**：限制長時間執行工作流程的歷史記錄大小
+2. **執行歷史**：限制長時間執行的工作流程的歷史記錄大小
 3. **壓縮**：為大型狀態啟用壓縮
 4. **驗證**：選擇性地使用驗證以避免效能影響
 
 ### 錯誤處理
 
-1. **優雅降級**：正常處理遺漏的狀態
-2. **驗證**：在執行關鍵操作前驗證狀態
-3. **記錄**：記錄狀態變更用於偵錯
+1. **優雅降級**：優雅地處理遺失的狀態
+2. **驗證**：在關鍵操作前驗證狀態
+3. **日誌**：記錄狀態變更以進行偵錯
 4. **復原**：實現狀態復原機制
 
-## 疑難排解
+## 故障排除
 
 ### 常見問題
 
-**狀態鍵未找到**
+**找不到狀態鍵**
 ```
 System.Collections.Generic.KeyNotFoundException: The given key 'missingKey' was not present
 ```
-**解決方案**：使用 `GetValueOrDefault()` 或在讀取前使用 `ContainsKey()` 檢查。
+**解決方案**：使用 `GetValueOrDefault()` 或在讀取前使用 `ContainsKey()` 進行檢查。
 
 **序列化錯誤**
 ```
@@ -619,18 +619,18 @@ System.Text.Json.JsonException: The JSON value could not be converted to type
 ```
 State version 1.0.0 is not compatible with current version 1.1.0
 ```
-**解決方案**：使用狀態遷移或更新工作流程以處理版本差異。
+**解決方案**：使用狀態遷移或更新您的工作流程以處理版本差異。
 
 **大型狀態效能問題**
 ```
 Serialized state too large: 50,000,000 bytes
 ```
-**解決方案**：啟用壓縮、排除不必要的資料或分割大型狀態。
+**解決方案**：啟用壓縮、排除不必要的資料或拆分大型狀態。
 
 ## 另請參閱
 
 * [狀態快速入門](../state-quickstart.md) - 狀態管理的快速介紹
 * [狀態教程](../state-tutorial.md) - 全面的狀態管理教程
-* [執行模型](execution-model.md) - 狀態如何流過執行
-* [檢查點](../checkpointing-quickstart.md) - 保存和還原狀態
-* [圖形概念](graph-concepts.md) - 核心圖形概念和模式
+* [執行模型](execution-model.md) - 狀態如何通過執行流動
+* [檢查點](../checkpointing-quickstart.md) - 儲存和恢復狀態
+* [Graph 概念](graph-concepts.md) - 核心 Graph 概念和模式

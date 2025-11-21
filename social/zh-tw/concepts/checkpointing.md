@@ -1,69 +1,69 @@
-# 檢查點與恢復
+# Checkpointing 和恢復
 
-檢查點和恢復是 SemanticKernel.Graph 中的必要功能，可以實現容錯、執行恢復和狀態持久化。本指南解釋如何使用 `StateHelpers`、管理狀態版本、實現壓縮、確保完整性以及配置恢復策略。
+Checkpointing 和恢復是 SemanticKernel.Graph 的必要功能，可以實現容錯、執行恢復和狀態持久化。本指南說明如何使用 `StateHelpers`、管理狀態版本、實現壓縮、確保完整性並設定恢復策略。
 
 ## 您將學到
 
-* 如何使用 `StateHelpers` 保存和恢復圖表執行狀態
-* 管理狀態版本和跨不同版本的兼容性
-* 實現壓縮以進行有效的存儲和傳輸
-* 在檢查點操作期間確保數據完整性和驗證
-* 配置恢復策略和自動清理
-* 使用自動恢復構建容錯工作流
+* 如何使用 `StateHelpers` 保存和還原 Graph 執行狀態
+* 跨不同版本管理狀態版本和相容性
+* 實現壓縮以實現高效的儲存和傳輸
+* 在 checkpoint 操作期間確保資料完整性和驗證
+* 設定恢復策略和自動清理
+* 使用自動恢復構建容錯工作流程
 
 ## 概念和技術
 
-**檢查點**：在特定點保存圖表執行當前狀態的過程，使能夠從任何保存的狀態恢復和繼續執行。
+**Checkpointing**: 在特定時間點保存 Graph 執行的目前狀態的過程，可以從任何已保存的狀態恢復和繼續執行。
 
-**狀態持久化**：`StateHelpers` 提供使用壓縮和完整性驗證序列化和反序列化 `GraphState` 對象的實用程序。
+**狀態持久化**: `StateHelpers` 提供用於序列化和反序列化 `GraphState` 物件的實用程式，並支持壓縮和完整性驗證。
 
-**恢復機制**：從檢查點進行自動和手動恢復，具有一致性驗證和風險評估。
+**恢復機制**: 從 checkpoints 自動和手動恢復，並具有一致性驗證和風險評估。
 
-**狀態版本控制**：語義版本控制系統，確保兼容性並支持不同狀態格式之間的遷移。
+**狀態版本控制**: 語意版本系統，確保相容性並實現不同狀態格式之間的遷移。
 
-**壓縮和完整性**：內置壓縮以實現存儲效率，以及校驗和驗證以確保數據完整性。
+**壓縮和完整性**: 用於儲存效率的內建壓縮以及用於資料完整性的校驗和驗證。
 
-## 先決條件
+## 前置條件
 
-* 已完成 [狀態管理](state.md) 指南
-* 對 `GraphState` 和 `KernelArguments` 有基本了解
-* 配置了圖表內存服務（檢查點所需）
-* 在您的內核中啟用了檢查點支持
+* 已完成[狀態管理](state.md)指南
+* 對 `GraphState` 和 `KernelArguments` 的基本理解
+* 已設定 Graph 記憶體服務（checkpointing 需要）
+* 在您的核心中啟用 Checkpoint 支援
 
-## 核心檢查點組件
+## 核心 Checkpointing 元件
 
-### StateHelpers：核心檢查點實用程序
+### StateHelpers: 核心 Checkpoint 工具
 
-`StateHelpers` 為所有檢查點操作提供基礎：
+`StateHelpers` 為所有 checkpointing 操作提供基礎：
 
 ```csharp
 using SemanticKernel.Graph.State;
 
-// 保存狀態到檢查點
+// 將狀態保存到 checkpoint
 var checkpointId = StateHelpers.CreateCheckpoint(graphState, "my-checkpoint");
 
-// 從檢查點恢復狀態
-// 注意：RestoreCheckpoint 期望檢查點存儲在相同的
-// 狀態的元數據中（CreateCheckpoint 在提供的狀態上存儲檢查點條目）。
+// 從 checkpoint 還原狀態
+// 注意: RestoreCheckpoint 期望 checkpoint 被儲存在相同的
+// 狀態的中繼資料中（CreateCheckpoint 在提供的狀態上儲存一個 checkpoint 條目）。
 var restoredState = StateHelpers.RestoreCheckpoint(graphState, checkpointId);
 
-// 序列化狀態以進行存儲
+// 序列化狀態以供儲存
 var serializedState = StateHelpers.SerializeState(graphState);
 
-// 從存儲反序列化狀態
+// 從儲存區反序列化狀態
 var deserializedState = StateHelpers.DeserializeState(serializedState);
 ```
 
-### CheckpointManager：集中式檢查點管理
+### CheckpointManager: 集中式 Checkpoint 管理
 
-`CheckpointManager` 處理存儲、檢索和生命週期管理：
+`CheckpointManager` 處理儲存、檢索和生命週期管理：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 
 var checkpointManager = kernel.Services.GetRequiredService<ICheckpointManager>();
 
-// 創建新檢查點
+// 建立新的 checkpoint
 var checkpoint = await checkpointManager.CreateCheckpointAsync(
     executionId: "exec-123",
     nodeId: "process-node",
@@ -75,157 +75,157 @@ var checkpoint = await checkpointManager.CreateCheckpointAsync(
     }
 );
 
-// 檢索檢查點
+// 檢索 checkpoint
 var retrievedCheckpoint = await checkpointManager.GetCheckpointAsync(checkpointId);
 
-// 列出執行的檢查點
+// 列出執行的 checkpoints
 var checkpoints = await checkpointManager.ListCheckpointsAsync("exec-123", limit: 10);
 ```
 
-## 狀態版本控制和兼容性
+## 狀態版本控制和相容性
 
-### StateVersion：語義版本控制
+### StateVersion: 語意版本控制
 
-`StateVersion` 確保跨不同版本的兼容性：
+`StateVersion` 確保跨不同版本的相容性：
 
 ```csharp
 using SemanticKernel.Graph.State;
 
-// 當前版本信息
+// 目前版本資訊
 var currentVersion = StateVersion.Current;           // 例如 1.1.0
 var minSupported = StateVersion.MinimumSupported;    // 例如 1.0.0
 
-// 檢查版本兼容性
+// 檢查版本相容性
 var stateVersion = graphState.Version;
 var isCompatible = stateVersion.IsCompatibleWith(StateVersion.Current);
-var requiresMigration = stateVersion.RequiresMigration; // 當舊於當前版本時需要遷移
+var requiresMigration = stateVersion.RequiresMigration; // 當比目前版本舊時需要遷移
 
 // 版本比較和解析
 if (StateVersion.TryParse("1.2.3", out var version))
 {
     if (version < StateVersion.Current)
     {
-        Console.WriteLine("狀態版本舊於當前版本");
+        Console.WriteLine("狀態版本比目前版本舊");
     }
 }
 else
 {
-    Console.WriteLine("無效的版本字符串");
+    Console.WriteLine("無效的版本字串");
 }
 ```
 
 ### 版本遷移
 
-自動遷移處理狀態格式更改：
+自動遷移處理狀態格式變更：
 
 ```csharp
-// 在反序列化期間，可能需要進行遷移。使用 StateMigrationManager
-// 在反序列化之前將序列化狀態遷移到當前版本。
+// 在反序列化期間，可能需要遷移。使用 StateMigrationManager
+// 在反序列化前將序列化狀態遷移到目前版本。
 if (StateMigrationManager.IsMigrationNeeded(StateVersion.Parse("1.0.0")))
 {
     var migratedJson = StateMigrationManager.MigrateToCurrentVersion(serializedData, StateVersion.Parse("1.0.0"));
     var state = JsonSerializer.Deserialize<GraphState>(migratedJson);
     if (state != null)
     {
-        Console.WriteLine($"反序列化的遷移狀態版本：{state.Version}");
+        Console.WriteLine($"反序列化已遷移狀態版本: {state.Version}");
     }
 }
 ```
 
-## 狀態壓縮和存儲
+## 狀態壓縮和儲存
 
 ### 壓縮選項
 
-配置壓縮以提高存儲效率：
+設定壓縮以提高儲存效率：
 
 ```csharp
-// 帶壓縮的序列化選項。使用 GraphState.Serialize 方法
-// 它接受 SerializationOptions 實例。
+// 具有壓縮的序列化選項。使用 GraphState.Serialize 方法
+// 該方法接受 SerializationOptions 執行個體。
 var options = new SerializationOptions
 {
     EnableCompression = true,           // 啟用壓縮
     CompressionThreshold = 1024,        // 如果 > 1KB 則壓縮
-    IncludeMetadata = true,             // 包含狀態元數據
-    IncludeExecutionHistory = false,    // 排除執行歷史以進行存儲
+    IncludeMetadata = true,             // 包含狀態中繼資料
+    IncludeExecutionHistory = false,    // 排除儲存的執行記錄
     ValidateIntegrity = true            // 序列化前驗證
 };
 
 var compressedState = graphState.Serialize(options);
 ```
 
-### 存儲優化
+### 儲存最佳化
 
-通過選擇性序列化優化存儲：
+使用選擇性序列化最佳化儲存：
 
 ```csharp
-// 最小存儲選項
+// 最小儲存選項
 var storageOptions = new SerializationOptions
 {
     EnableCompression = true,
-    IncludeMetadata = false,            // 排除存儲的元數據
-    IncludeExecutionHistory = false,    // 排除執行歷史
+    IncludeMetadata = false,            // 排除儲存的中繼資料
+    IncludeExecutionHistory = false,    // 排除執行記錄
     ValidateIntegrity = true
 };
 
-// 用於調試的完整狀態選項
+// 用於偵錯的完整狀態選項
 var debugOptions = new SerializationOptions
 {
-    EnableCompression = false,          // 不壓縮以便調試
-    IncludeMetadata = true,             // 包含所有元數據
-    IncludeExecutionHistory = true,     // 包含執行歷史
+    EnableCompression = false,          // 不壓縮用於偵錯
+    IncludeMetadata = true,             // 包含所有中繼資料
+    IncludeExecutionHistory = true,     // 包含執行記錄
     Indented = true                     // 人類可讀格式
 };
 ```
 
-## 數據完整性和驗證
+## 資料完整性和驗證
 
 ### 完整性驗證
 
-確保檢查點數據完整性：
+確保 checkpoint 資料完整性：
 
 ```csharp
-// 檢查點前驗證狀態
+// checkpointing 前驗證狀態
 var validationResult = graphState.ValidateIntegrity();
 if (!validationResult.IsValid)
 {
-    Console.WriteLine($"狀態驗證失敗：{validationResult.ErrorCount} 個錯誤");
+    Console.WriteLine($"狀態驗證失敗: {validationResult.ErrorCount} 個錯誤");
     foreach (var error in validationResult.Errors)
     {
-        Console.WriteLine($"錯誤：{error.Message}");
+        Console.WriteLine($"錯誤: {error.Message}");
     }
     return;
 }
 
-// 為完整性驗證創建校驗和
+// 建立用於完整性驗證的校驗和
 var checksum = graphState.CreateChecksum();
-Console.WriteLine($"狀態校驗和：{checksum}");
+Console.WriteLine($"狀態校驗和: {checksum}");
 ```
 
-### 檢查點驗證
+### Checkpoint 驗證
 
-在恢復期間驗證檢查點：
+在還原期間驗證 checkpoints：
 
 ```csharp
-// 驗證檢查點完整性
+// 驗證 checkpoint 完整性
 var checkpointValidation = await checkpointManager.ValidateCheckpointAsync(checkpointId);
 if (!checkpointValidation.IsValid)
 {
-    Console.WriteLine($"檢查點驗證失敗：{checkpointValidation.ErrorMessage}");
+    Console.WriteLine($"Checkpoint 驗證失敗: {checkpointValidation.ErrorMessage}");
     return;
 }
 
-// 檢查檢查點元數據
-Console.WriteLine($"檢查點大小：{checkpointValidation.SizeInBytes:N0} 字節");
-Console.WriteLine($"已壓縮：{checkpointValidation.IsCompressed}");
-Console.WriteLine($"校驗和：{checkpointValidation.Checksum}");
+// 檢查 checkpoint 中繼資料
+Console.WriteLine($"Checkpoint 大小: {checkpointValidation.SizeInBytes:N0} 位元組");
+Console.WriteLine($"已壓縮: {checkpointValidation.IsCompressed}");
+Console.WriteLine($"校驗和: {checkpointValidation.Checksum}");
 ```
 
 ### 一致性驗證
 
-確保恢復狀態的一致性：
+確保還原狀態的一致性：
 
 ```csharp
-// 驗證恢復狀態的一致性
+// 驗證還原狀態的一致性
 var consistencyResult = await checkpointManager.ValidateRestoredStateConsistencyAsync(
     restoredState,
     recoveryContext,
@@ -234,28 +234,28 @@ var consistencyResult = await checkpointManager.ValidateRestoredStateConsistency
 
 if (!consistencyResult.IsConsistent)
 {
-    Console.WriteLine($"一致性驗證失敗：分數 {consistencyResult.ConsistencyScore:P1}");
+    Console.WriteLine($"一致性驗證失敗: 得分 {consistencyResult.ConsistencyScore:P1}");
     foreach (var issue in consistencyResult.Issues)
     {
-        Console.WriteLine($"問題：{issue.Description}（嚴重程度：{issue.Severity}）");
+        Console.WriteLine($"問題: {issue.Description} (嚴重性: {issue.Severity})");
     }
 }
 ```
 
-## 檢查點圖表執行器
+## Checkpointing Graph Executor
 
-### 基本配置
+### 基本設定
 
-配置檢查點行為：
+設定 checkpointing 行為：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 using SemanticKernel.Graph.Extensions;
 
-// 在內核中啟用檢查點支持
+// 在核心中啟用 checkpoint 支援
 var kernel = Kernel.CreateBuilder()
     .AddOpenAIChatCompletion("gpt-3.5-turbo", apiKey)
-    .AddGraphMemory()  // 檢查點所需
+    .AddGraphMemory()  // checkpointing 需要
     .AddCheckpointSupport(options =>
     {
         options.EnableCompression = true;
@@ -263,39 +263,39 @@ var kernel = Kernel.CreateBuilder()
     })
     .Build();
 
-// 創建檢查點執行器
+// 建立 checkpointing executor
 var executorFactory = kernel.Services.GetRequiredService<ICheckpointingGraphExecutorFactory>();
 var executor = executorFactory.CreateExecutor("my-graph", new CheckpointingOptions
 {
-    CheckpointInterval = 3,  // 每 3 個節點創建一個檢查點
+    CheckpointInterval = 3,  // 每 3 個 Node 建立 checkpoint
     CreateInitialCheckpoint = true,
     CreateFinalCheckpoint = true,
     CreateErrorCheckpoints = true
 });
 ```
 
-### 高級檢查點選項
+### 進階 Checkpointing 選項
 
-微調檢查點行為：
+微調 checkpointing 行為：
 
 ```csharp
 var checkpointingOptions = new CheckpointingOptions
 {
-    // 基於間隔的檢查點
-    CheckpointInterval = 5,  // 每 5 個節點
+    // 基於間隔的 checkpointing
+    CheckpointInterval = 5,  // 每 5 個 Node
     CheckpointTimeInterval = TimeSpan.FromMinutes(10),  // 或每 10 分鐘
     
-    // 關鍵檢查點
+    // 關鍵 checkpointing
     CreateInitialCheckpoint = true,
     CreateFinalCheckpoint = true,
     CreateErrorCheckpoints = true,
     
-    // 始終觸發檢查點的關鍵節點
+    // 總是觸發 checkpoints 的關鍵 Node
     CriticalNodes = new HashSet<string> { "process", "validate", "output" },
     
     // 自動清理
     EnableAutoCleanup = true,
-    FailOnCheckpointError = false,  // 即使檢查點失敗也繼續執行
+    FailOnCheckpointError = false,  // 即使 checkpointing 失敗也繼續執行
     
     // 保留策略
     RetentionPolicy = new CheckpointRetentionPolicy
@@ -312,7 +312,7 @@ var checkpointingOptions = new CheckpointingOptions
 
 ### 手動恢復
 
-實現從檢查點的手動恢復：
+從 checkpoints 實現手動恢復：
 
 ```csharp
 try
@@ -322,24 +322,24 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"執行失敗：{ex.Message}");
+    Console.WriteLine($"執行失敗: {ex.Message}");
     
-    // 查找可用的檢查點
+    // 尋找可用的 checkpoints
     var executionId = executor.LastExecutionId ?? arguments.GetOrCreateGraphState().StateId;
     var checkpoints = await executor.GetExecutionCheckpointsAsync(executionId);
     
     if (checkpoints.Count > 0)
     {
         var latestCheckpoint = checkpoints.First();
-        Console.WriteLine($"最新檢查點：{latestCheckpoint.CheckpointId}");
+        Console.WriteLine($"最新 checkpoint: {latestCheckpoint.CheckpointId}");
         
-        // 從檢查點恢復
+        // 從 checkpoint 繼續
         var recoveredResult = await executor.ResumeFromCheckpointAsync(
             latestCheckpoint.CheckpointId, 
             kernel
         );
         
-        Console.WriteLine($"恢復成功：{recoveredResult.GetValue<object>()}");
+        Console.WriteLine($"恢復成功: {recoveredResult.GetValue<object>()}");
     }
 }
 ```
@@ -353,7 +353,7 @@ using SemanticKernel.Graph.Core;
 
 var recoveryService = kernel.Services.GetRequiredService<IGraphRecoveryService>();
 
-// 配置恢復選項
+// 設定恢復選項
 var recoveryOptions = new RecoveryOptions
 {
     MaxRecoveryAttempts = 3,
@@ -373,48 +373,48 @@ var recoveryResult = await recoveryService.AttemptRecoveryAsync(
 if (recoveryResult.IsSuccessful)
 {
     Console.WriteLine($"使用 {recoveryResult.RecoveryStrategy} 恢復成功");
-    Console.WriteLine($"恢復時間：{recoveryResult.RecoveryDuration}");
+    Console.WriteLine($"恢復時間: {recoveryResult.RecoveryDuration}");
 }
 else
 {
-    Console.WriteLine($"恢復失敗：{recoveryResult.Reason}");
+    Console.WriteLine($"恢復失敗: {recoveryResult.Reason}");
 }
 ```
 
 ## 保留和清理策略
 
-### 保留策略配置
+### 保留策略設定
 
-配置自動清理行為：
+設定自動清理行為：
 
 ```csharp
 var retentionPolicy = new CheckpointRetentionPolicy
 {
     MaxAge = TimeSpan.FromDays(7),           // 保留 7 天
     MaxCheckpointsPerExecution = 100,        // 每次執行最多 100 個
-    MaxTotalStorageBytes = 1024 * 1024 * 1024,  // 1GB 總存儲
-    KeepCriticalCheckpoints = true,          // 始終保留關鍵檢查點
-    CriticalCheckpointInterval = 10          // 每 10 個常規檢查點中有一個關鍵檢查點
+    MaxTotalStorageBytes = 1024 * 1024 * 1024,  // 總共 1GB 儲存空間
+    KeepCriticalCheckpoints = true,          // 始終保留關鍵 checkpoints
+    CriticalCheckpointInterval = 10          // 每 10 個常規的關鍵 checkpoint
 };
 ```
 
-### 清理服務配置
+### 清理服務設定
 
-配置自動清理服務：
+設定自動清理服務：
 
 ```csharp
 using SemanticKernel.Graph.Core;
 
 var cleanupOptions = new CheckpointCleanupOptions
 {
-    CleanupInterval = TimeSpan.FromHours(1),  // 每小時運行清理
+    CleanupInterval = TimeSpan.FromHours(1),  // 每小時執行一次清理
     EnableAdvancedCleanup = true,
     MaxTotalStorageBytes = 1024 * 1024 * 1024,  // 1GB 限制
-    AuditRetentionPeriod = TimeSpan.FromDays(30),  // 保留 30 天的審計日誌
+    AuditRetentionPeriod = TimeSpan.FromDays(30),  // 保留 30 天的審核日誌
     EnableDetailedLogging = true
 };
 
-// 使用保留策略配置清理
+// 使用保留策略設定清理
 cleanupOptions.WithRetentionPolicy(
     maxAge: TimeSpan.FromDays(7),
     maxCheckpointsPerExecution: 100,
@@ -422,11 +422,11 @@ cleanupOptions.WithRetentionPolicy(
 );
 ```
 
-## 分佈式備份和存儲
+## 分散式備份和儲存
 
-### 備份配置
+### 備份設定
 
-為關鍵檢查點啟用分佈式備份：
+為關鍵 checkpoints 啟用分散式備份：
 
 ```csharp
 var backupOptions = new CheckpointBackupOptions
@@ -440,10 +440,10 @@ var backupOptions = new CheckpointBackupOptions
     BackupInterval = TimeSpan.FromMinutes(30),
     BackupRetentionPeriod = TimeSpan.FromDays(90),
     EnableCompression = true,
-    EnableEncryption = false  // 對敏感數據啟用加密
+    EnableEncryption = false  // 對敏感資料啟用
 };
 
-// 使用備份配置檢查點
+// 使用備份設定 checkpointing
 var checkpointingOptions = new CheckpointingOptions
 {
     EnableDistributedBackup = true,
@@ -458,64 +458,64 @@ var checkpointingOptions = new CheckpointingOptions
 ```csharp
 var checkpointManager = kernel.Services.GetRequiredService<ICheckpointManager>();
 
-// 創建關鍵檢查點的備份
+// 建立關鍵 checkpoint 的備份
 await checkpointManager.CreateBackupAsync(checkpointId, backupOptions);
 
 // 列出備份位置
 var backupLocations = await checkpointManager.GetBackupLocationsAsync(checkpointId);
 
-// 如果主備份損壞，從備份恢復
+// 如果主要位置已損毀，從備份還原
 var backupCheckpoint = await checkpointManager.RestoreFromBackupAsync(checkpointId, backupLocation);
 ```
 
 ## 監視和可觀測性
 
-### 檢查點統計
+### Checkpoint 統計資訊
 
-監視檢查點性能和使用情況：
+監視 checkpoint 效能和使用情況：
 
 ```csharp
-// 獲取檢查點統計
+// 取得 checkpoint 統計資訊
 var stats = await checkpointManager.GetStatisticsAsync();
 
-Console.WriteLine($"總檢查點數：{stats.TotalCheckpoints}");
-Console.WriteLine($"使用的總存儲：{stats.TotalStorageBytes / 1024 / 1024:F1} MB");
-Console.WriteLine($"平均檢查點大小：{stats.AverageCheckpointSizeBytes / 1024:F1} KB");
-Console.WriteLine($"壓縮比：{stats.AverageCompressionRatio:P1}");
-Console.WriteLine($"緩存命中率：{stats.CacheHitRate:P1}");
+Console.WriteLine($"Checkpoints 總數: {stats.TotalCheckpoints}");
+Console.WriteLine($"使用的總儲存空間: {stats.TotalStorageBytes / 1024 / 1024:F1} MB");
+Console.WriteLine($"平均 checkpoint 大小: {stats.AverageCheckpointSizeBytes / 1024:F1} KB");
+Console.WriteLine($"壓縮比: {stats.AverageCompressionRatio:P1}");
+Console.WriteLine($"快取命中率: {stats.CacheHitRate:P1}");
 ```
 
-### 性能監視
+### 效能監視
 
-監視檢查點性能：
+監視 checkpointing 效能：
 
 ```csharp
-// 獲取具有性能數據的執行檢查點
+// 取得具有效能資料的執行 checkpoints
 var checkpoints = await executor.GetExecutionCheckpointsAsync(executionId);
 
 foreach (var checkpoint in checkpoints)
 {
-    Console.WriteLine($"檢查點：{checkpoint.CheckpointId}");
-    Console.WriteLine($"  節點：{checkpoint.NodeId}");
-    Console.WriteLine($"  大小：{checkpoint.SizeInBytes / 1024:F1} KB");
-    Console.WriteLine($"  已壓縮：{checkpoint.IsCompressed}");
-    Console.WriteLine($"  建立時間：{checkpoint.CreatedAt:HH:mm:ss}");
-    Console.WriteLine($"  序列號：{checkpoint.SequenceNumber}");
+    Console.WriteLine($"Checkpoint: {checkpoint.CheckpointId}");
+    Console.WriteLine($"  Node: {checkpoint.NodeId}");
+    Console.WriteLine($"  大小: {checkpoint.SizeInBytes / 1024:F1} KB");
+    Console.WriteLine($"  已壓縮: {checkpoint.IsCompressed}");
+    Console.WriteLine($"  建立於: {checkpoint.CreatedAt:HH:mm:ss}");
+    Console.WriteLine($"  序列號: {checkpoint.SequenceNumber}");
 }
 ```
 
-## 高級模式
+## 進階模式
 
-### 條件檢查點
+### 條件式 Checkpointing
 
-基於業務邏輯創建檢查點：
+根據商業邏輯建立 checkpoints：
 
 ```csharp
 public class ConditionalCheckpointNode : IGraphNode
 {
     public async Task<FunctionResult> ExecuteAsync(GraphState state)
     {
-        // 檢查是否需要檢查點
+        // 檢查是否需要 checkpoint
         if (ShouldCreateCheckpoint(state))
         {
             var checkpointId = StateHelpers.SaveCheckpoint(state, "conditional-checkpoint");
@@ -533,15 +533,15 @@ public class ConditionalCheckpointNode : IGraphNode
         var processingTime = state.GetValue<TimeSpan>("processingTime", TimeSpan.Zero);
         var errorCount = state.GetValue<int>("errorCount", 0);
         
-        // 如果數據很大、處理很慢或發生錯誤，則創建檢查點
+        // 如果資料量大、處理速度慢或發生錯誤，建立 checkpoint
         return dataSize > 1000 || processingTime > TimeSpan.FromMinutes(5) || errorCount > 0;
     }
 }
 ```
 
-### 檢查點鏈接
+### Checkpoint 鏈結
 
-為複雜工作流創建鏈接的檢查點：
+為複雜工作流程建立連結 checkpoints：
 
 ```csharp
 public class CheckpointChainingExample
@@ -557,21 +557,21 @@ public class CheckpointChainingExample
             ["stage"] = "initialization"
         };
         
-        // 階段 1：初始化
+        // 階段 1: 初始化
         state.SetValue("stage", "initialization");
         var stage1Checkpoint = StateHelpers.SaveCheckpoint(state.ToGraphState(), "stage1-init");
         
-        // 階段 2：數據處理
+        // 階段 2: 資料處理
         state.SetValue("stage", "processing");
         state.SetValue("previousCheckpoint", stage1Checkpoint);
         var stage2Checkpoint = StateHelpers.SaveCheckpoint(state.ToGraphState(), "stage2-processing");
         
-        // 階段 3：驗證
+        // 階段 3: 驗證
         state.SetValue("stage", "validation");
         state.SetValue("previousCheckpoint", stage2Checkpoint);
         var stage3Checkpoint = StateHelpers.SaveCheckpoint(state.ToGraphState(), "stage3-validation");
         
-        // 鏈接檢查點以實現回滾功能
+        // 鏈結 checkpoints 以提供回復功能
         state.SetValue("checkpointChain", new[]
         {
             stage1Checkpoint,
@@ -579,75 +579,75 @@ public class CheckpointChainingExample
             stage3Checkpoint
         });
         
-        Console.WriteLine("檢查點鏈創建成功");
+        Console.WriteLine("Checkpoint 鏈建立成功");
     }
 }
 ```
 
 ## 最佳實踐
 
-### 檢查點設計原則
+### Checkpoint 設計原則
 
-1. **戰略位置**：在邏輯邊界和昂貴操作後放置檢查點
-2. **大小管理**：監視檢查點大小並對大型狀態使用壓縮
-3. **保留計劃**：根據業務需求配置保留策略
-4. **錯誤處理**：始終優雅地處理檢查點失敗
-5. **驗證**：在檢查點操作前後驗證狀態完整性
+1. **策略配置**: 在邏輯邊界和昂貴操作後配置 checkpoints
+2. **大小管理**: 監視 checkpoint 大小並對大型狀態使用壓縮
+3. **保留計畫**: 根據商業需求設定保留策略
+4. **錯誤處理**: 始終優雅地處理 checkpoint 失敗
+5. **驗證**: 在 checkpoint 操作前後驗證狀態完整性
 
-### 性能考慮
+### 效能考量
 
-1. **壓縮**：啟用壓縮以提高存儲效率
-2. **選擇性序列化**：從檢查點排除不必要的數據
-3. **清理**：配置自動清理以防止存儲膨脹
-4. **緩存**：使用內存中緩存來處理頻繁訪問的檢查點
-5. **後台操作**：盡可能異步執行檢查點操作
+1. **壓縮**: 啟用壓縮以提高儲存效率
+2. **選擇性序列化**: 從 checkpoints 排除不必要的資料
+3. **清理**: 設定自動清理以防止儲存空間過量
+4. **快取**: 對經常訪問的 checkpoints 使用記憶體中快取
+5. **背景操作**: 盡可能非同步執行 checkpoint 操作
 
 ### 恢復策略
 
-1. **多個恢復點**：為不同的恢復場景維護多個檢查點
-2. **一致性驗證**：始終驗證恢復狀態的一致性
-3. **回滾功能**：如果恢復失敗，實現回滾到先前的檢查點
-4. **監視**：監視恢復成功率和性能
-5. **文檔**：記錄恢復程序和預期結果
+1. **多個恢復點**: 為不同的恢復場景維護多個 checkpoints
+2. **一致性驗證**: 始終驗證還原狀態的一致性
+3. **回復功能**: 如果恢復失敗，實現回復到先前的 checkpoints
+4. **監視**: 監視恢復成功率和效能
+5. **文件**: 記錄恢復程序和預期結果
 
 ## 故障排除
 
 ### 常見問題
 
-**檢查點創建失敗**
+**Checkpoint 建立失敗**
 ```
-Failed to create checkpoint: State validation failed
+無法建立 checkpoint: 狀態驗證失敗
 ```
-**解決方案**：在檢查點前驗證狀態完整性，並檢查不可序列化的對象。
+**解決方案**: checkpointing 前驗證狀態完整性，並檢查非序列化物件。
 
-**恢復失敗**
+**還原失敗**
 ```
-Failed to restore checkpoint: Checksum mismatch
+無法還原 checkpoint: 校驗和不符
 ```
-**解決方案**：檢查數據損壞並驗證檢查點完整性。
+**解決方案**: 檢查資料損毀並驗證 checkpoint 完整性。
 
-**存儲配額超出**
+**儲存配額已超出**
 ```
-Checkpoint storage quota exceeded: 1GB limit reached
+Checkpoint 儲存配額已超出: 已達 1GB 限制
 ```
-**解決方案**：配置保留策略並啟用自動清理。
+**解決方案**: 設定保留策略並啟用自動清理。
 
-**版本兼容性問題**
+**版本相容性問題**
 ```
-State version 1.0.0 is not compatible with current version 1.1.0
+狀態版本 1.0.0 與目前版本 1.1.0 不相容
 ```
-**解決方案**：使用狀態遷移或更新工作流以處理版本差異。
+**解決方案**: 使用狀態遷移或更新工作流程以處理版本差異。
 
-**恢復性能問題**
+**恢復效能問題**
 ```
-Recovery taking too long: 5 minutes elapsed
+恢復耗時過長: 已耗時 5 分鐘
 ```
-**解決方案**：優化檢查點大小、使用壓縮並配置適當的保留策略。
+**解決方案**: 最佳化 checkpoint 大小、使用壓縮並設定適當的保留策略。
 
-## 參見
+## 另請參閱
 
 * [狀態管理](state.md) - 核心狀態管理概念
-* [檢查點快速入門](../checkpointing-quickstart.md) - 檢查點的快速介紹
-* [執行模型](execution-model.md) - 執行如何流過圖表
-* [圖表恢復服務](../api/graph-recovery-service.md) - 恢復操作的 API 參考
-* [檢查點示例](../examples/checkpointing-examples.md) - 實用的檢查點示例
+* [Checkpointing 快速入門](../checkpointing-quickstart.md) - checkpointing 簡介
+* [執行模型](execution-model.md) - 執行如何流經 Graphs
+* [Graph 恢復服務](../api/graph-recovery-service.md) - 恢復操作的 API 參考
+* [Checkpointing 範例](../examples/checkpointing-examples.md) - 實用 checkpointing 範例

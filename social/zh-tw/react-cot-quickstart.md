@@ -1,29 +1,29 @@
-# ReAct 和思維鏈快速入門
+# ReAct 與思維鏈快速入門
 
-學習如何在 SemanticKernel.Graph 中實現推理和行動模式，使用 ReAct（推理 + 行動）迴圈和思維鏈推理。本指南向您展示如何構建能夠思考、行動和從行動中學習的智能代理。
+了解如何在 SemanticKernel.Graph 中實現推理和行動模式，使用 ReAct (推理 + 行動) 迴圈和思維鏈推理。本指南向您展示如何建立智能代理，這些代理能夠思考、採取行動並從其行動中學習。
 
-## 概念和技術
+## 概念與技術
 
-**ReAct 模式**：一個推理迴圈，其中代理分析當前情況（推理）、執行動作（行動）和觀察結果（觀察）在反覆迴圈中，直到達成目標。
+**ReAct 模式**：一個推理迴圈，其中代理分析當前情況 (推理)、執行操作 (行動) 並觀察結果 (觀察)，通過反覆迴圈直到達到目標。
 
-**思維鏈**：一種結構化推理方法，將複雜問題分解為順序驗證的步驟，具有回溯功能以進行強大的問題解決。
+**思維鏈**：一種結構化推理方法，將複雜問題分解為順序、驗證的步驟，具有回溯功能，用於穩健的問題解決。
 
-**推理節點**：專門的節點，如 `FunctionGraphNode`（用於自訂推理邏輯）、`ReActLoopGraphNode`（用於內建 ReAct 迴圈）和 `ChainOfThoughtGraphNode`，它們實現不同的推理策略，並可組成複雜的推理工作流程。
+**推理節點**：專門節點，如 `FunctionGraphNode` (用於自訂推理邏輯)、`ReActLoopGraphNode` (用於內置 ReAct 迴圈) 和 `ChainOfThoughtGraphNode`，實現不同的推理策略，可以組合成複雜的推理工作流。
 
-## 先決條件和最小配置
+## 前置條件和最低配置
 
-* .NET 8.0 或更新版本
+* .NET 8.0 或更高版本
 * 已安裝 SemanticKernel.Graph 套件
 * 具有聊天完成功能的 Semantic Kernel
-* 對圖形執行和節點組合的基本理解
+* 對 Graph 執行和 Node 組合的基本理解
 
-## 快速設置
+## 快速設定
 
-**重要**：在建立任何 ReAct 迴圈之前，請確保模擬動作已向核心註冊。這對於 `ActionGraphNode` 發現和執行函式是必需的。
+**重要**：在建立任何 ReAct 迴圈之前，請確保 mock 操作已向 kernel 註冊。這是 `ActionGraphNode` 發現和執行函式所必需的。
 
 ### 1. 建立簡單的 ReAct 迴圈
 
-使用三個核心元件構建基本推理迴圈：
+建立一個具有三個核心元件的基本推理迴圈：
 
 ```csharp
 using SemanticKernel.Graph.Core;
@@ -35,7 +35,7 @@ var reasoningNode = new FunctionGraphNode(
     "reasoning",
     "Problem Analysis");
 
-// 使用 CreateWithActions 建立行動執行節點以自動發現核心函式
+// 使用 CreateWithActions 建立行動執行節點以自動發現 kernel 函式
 var actionNode = ActionGraphNode.CreateWithActions(
     kernel,
     new ActionSelectionCriteria
@@ -52,12 +52,12 @@ var observationNode = new FunctionGraphNode(
     "observation",
     "Result Analysis");
 
-// 配置節點以儲存結果供下遊使用
+// 配置節點以儲存結果供下游使用
 reasoningNode.StoreResultAs("reasoning_result");
 // ActionGraphNode 自動將結果儲存為 "action_result"
 observationNode.StoreResultAs("final_answer");
 
-// 構建 ReAct 迴圈
+// 建立 ReAct 迴圈
 var executor = new GraphExecutor("SimpleReAct", "Basic ReAct reasoning loop");
 executor.AddNode(reasoningNode)
         .AddNode(actionNode)
@@ -69,21 +69,21 @@ executor.AddNode(reasoningNode)
 
 ### 2. 實現核心函式
 
-建立推理、行動和觀察函式。首先，確保模擬動作已向核心註冊：
+建立推理、行動和觀察函式。首先，確保 mock 操作已向 kernel 註冊：
 
 ```csharp
 private void AddMockActionsToKernel()
 {
-    // 檢查外掛程式是否已存在以避免重複
+    // 檢查外掛是否已存在以避免重複
     if (kernel.Plugins.Any(p => p.Name == "react_actions"))
     {
         return;
     }
 
-    // 將所有函式作為外掛程式匯入，以便 ActionGraphNode 可以發現它們
+    // 將所有函式匯入為外掛，以便 ActionGraphNode 可以發現它們
     kernel.ImportPluginFromFunctions("react_actions", "Mock actions for ReAct examples", new[]
     {
-        // 天氣動作
+        // 天氣操作
         kernel.CreateFunctionFromMethod(
             (KernelArguments args) =>
             {
@@ -93,7 +93,7 @@ private void AddMockActionsToKernel()
             functionName: "get_weather",
             description: "Gets weather information for a specified location"
         ),
-        // 計算器動作
+        // 計算機操作
         kernel.CreateFunctionFromMethod(
             (KernelArguments args) =>
             {
@@ -103,7 +103,7 @@ private void AddMockActionsToKernel()
             functionName: "calculate",
             description: "Performs mathematical calculations"
         ),
-        // 搜尋動作
+        // 搜尋操作
         kernel.CreateFunctionFromMethod(
             (KernelArguments args) =>
             {
@@ -113,7 +113,7 @@ private void AddMockActionsToKernel()
             functionName: "search",
             description: "Searches for information on the internet"
         ),
-        // 用於業務問題的通用動作
+        // 商業問題的通用操作
         kernel.CreateFunctionFromMethod(
             (KernelArguments args) =>
             {
@@ -123,7 +123,7 @@ private void AddMockActionsToKernel()
             functionName: "analyze_problem",
             description: "Analyzes business problems and provides insights"
         ),
-        // 解決方案評估動作
+        // 解決方案評估操作
         kernel.CreateFunctionFromMethod(
             (KernelArguments args) =>
             {
@@ -203,13 +203,13 @@ var answer = result.GetValue<string>() ?? "No answer produced";
 Console.WriteLine($"🤖 Agent: {answer}");
 ```
 
-## 具有自訂函式的進階 ReAct
+## 進階 ReAct 與自訂函式
 
 ### 使用 FunctionGraphNode 進行進階推理
 
-對於不需要外部 LLM 呼叫的獨立範例，您可以使用自訂函式實現進階推理：
+針對不需要外部 LLM 呼叫的獨立示例，您可以使用自訂函式實現進階推理：
 
-以下是進階推理和觀察函式的實作：
+以下是進階推理和觀察函式的實現：
 
 ```csharp
 using SemanticKernel.Graph.Nodes;
@@ -236,11 +236,11 @@ var observationNode = new FunctionGraphNode(
     "advanced_observation",
     "Advanced Result Analysis");
 
-// 配置節點以儲存結果供下遊使用
+// 配置節點以儲存結果供下游使用
 reasoningNode.StoreResultAs("advanced_reasoning_result");
 observationNode.StoreResultAs("advanced_final_answer");
 
-// 通過按順序連接節點來構建進階 ReAct 迴圈
+// 通過依序連接節點來建立進階 ReAct 迴圈
 var executor = new GraphExecutor("AdvancedReAct", "Advanced ReAct reasoning agent");
 executor.AddNode(reasoningNode)
         .AddNode(actionNode)
@@ -250,9 +250,9 @@ executor.AddNode(reasoningNode)
         .SetStartNode("advanced_reasoning");
 ```
 
-### 進階函式實作
+### 進階函式實現
 
-以下是進階推理和觀察函式的實作：
+以下是進階推理和觀察函式的實現：
 
 ```csharp
 private static KernelFunction CreateAdvancedReasoningFunction(Kernel kernel)
@@ -263,7 +263,7 @@ private static KernelFunction CreateAdvancedReasoningFunction(Kernel kernel)
             var problemTitle = args.GetValueOrDefault("problem_title", "Unknown Problem")?.ToString() ?? "Unknown Problem";
             var taskDescription = args.GetValueOrDefault("task_description", "No description provided")?.ToString() ?? "No description provided";
             
-            // 業務問題的進階推理邏輯
+            // 商業問題的進階推理邏輯
             var suggestedAction = taskDescription.ToLowerInvariant() switch
             {
                 var desc when desc.Contains("cost") && desc.Contains("reduce") => "analyze_problem",
@@ -273,14 +273,14 @@ private static KernelFunction CreateAdvancedReasoningFunction(Kernel kernel)
                 _ => "analyze_problem"
             };
 
-            // 生成綜合推理結果
+            // 產生全面的推理結果
             var reasoning = $"Advanced Analysis of '{problemTitle}':\n" +
                           $"1. Problem Context: {taskDescription}\n" +
                           $"2. Strategic Assessment: This appears to be a {(taskDescription.Contains("cost") ? "cost optimization" : "operational improvement")} challenge.\n" +
                           $"3. Recommended Approach: Systematic analysis with stakeholder consideration.\n" +
                           $"4. Next Action: {suggestedAction} - Deep dive into root causes and impact analysis.";
 
-            // 將推理結果儲存在參數中供稍後使用
+            // 將推理結果儲存在引數中供稍後使用
             args["suggested_action"] = suggestedAction;
             args["reasoning_result"] = reasoning;
             args["problem_title"] = problemTitle;
@@ -320,11 +320,11 @@ private static KernelFunction CreateAdvancedObservationFunction(Kernel kernel)
 
 ### 配置 ReAct 迴圈行為
 
-針對使用 `ReActLoopGraphNode` 的進階 ReAct 迴圈，您可以自訂推理迴圈參數：
+針對使用 `ReActLoopGraphNode` 的進階 ReAct 迴圈，您可以自訂推理迴圈引數：
 
 ```csharp
-// 注意：此範例顯示 ReActLoopGraphNode API 結構
-// 對於獨立範例，請考慮使用上面所示的順序方法
+// 注意：此示例展示 ReActLoopGraphNode API 結構
+// 針對獨立示例，請考慮使用上面所示的順序方法
 var reactLoopNode = ReActLoopGraphNode.CreateWithNodes(
     reasoningNode,
     actionNode,
@@ -347,7 +347,7 @@ var reactLoopNode = ReActLoopGraphNode.CreateWithNodes(
 ```csharp
 using SemanticKernel.Graph.Nodes;
 
-// 建立執行逐步推理的思維鏈函式
+// 建立進行逐步推理的思維鏈函式
 var cotNode = new FunctionGraphNode(
     CreateChainOfThoughtFunction(kernel),
     "chain_of_thought",
@@ -356,15 +356,15 @@ var cotNode = new FunctionGraphNode(
 // 配置以儲存結果
 cotNode.StoreResultAs("chain_of_thought_result");
 
-// 構建執行器
+// 建立執行器
 var executor = new GraphExecutor("ChainOfThought", "Chain-of-Thought reasoning example");
 executor.AddNode(cotNode);
 executor.SetStartNode(cotNode.NodeId);
 ```
 
-### 思維鏈函式實作
+### 思維鏈函式實現
 
-以下是思維鏈函式的實作：
+以下是思維鏈函式的實現：
 
 ```csharp
 private static KernelFunction CreateChainOfThoughtFunction(Kernel kernel)
@@ -378,7 +378,7 @@ private static KernelFunction CreateChainOfThoughtFunction(Kernel kernel)
             var expectedOutcome = args.GetValueOrDefault("expected_outcome", "No expected outcome")?.ToString() ?? "No expected outcome";
             var reasoningDepth = args.GetValueOrDefault("reasoning_depth", 3);
 
-            // 模擬逐步推理過程
+            // 模擬逐步推理流程
             var reasoningSteps = new List<string>
             {
                 $"Step 1: Problem Analysis\nAnalyzing the problem: {problemStatement}\nContext: {context}",
@@ -388,10 +388,10 @@ private static KernelFunction CreateChainOfThoughtFunction(Kernel kernel)
                 $"Step 5: Final Recommendation\nProviding comprehensive solution with implementation steps."
             };
 
-            // 只取得所請求的步驟數
+            // 僅採用請求的步驟數
             var stepsToUse = reasoningSteps.Take(Math.Min((int)reasoningDepth, reasoningSteps.Count)).ToList();
             
-            // 生成最終答案
+            // 產生最終答案
             var finalAnswer = $"Chain of Thought Analysis Complete:\n\n" +
                              $"Problem: {problemStatement}\n" +
                              $"Context: {context}\n" +
@@ -402,7 +402,7 @@ private static KernelFunction CreateChainOfThoughtFunction(Kernel kernel)
                              $"\n\nFinal Recommendation: Implement a systematic approach focusing on stakeholder engagement, " +
                              $"data-driven analysis, and phased implementation to achieve the desired {expectedOutcome}.";
 
-            // 將推理結果儲存在參數中
+            // 將推理結果儲存在引數中
             args["reasoning_steps"] = stepsToUse;
             args["final_answer"] = finalAnswer;
             args["problem_statement"] = problemStatement;
@@ -418,7 +418,7 @@ private static KernelFunction CreateChainOfThoughtFunction(Kernel kernel)
     );
 }
 
-// 準備推理的參數
+// 為推理準備引數
 var arguments = new KernelArguments
 {
     ["problem_statement"] = "A company needs to reduce operational costs by 20% while maintaining employee satisfaction.",
@@ -438,7 +438,7 @@ Console.WriteLine($"🧠 Final Answer: {finalAnswer}");
 為不同領域建立專門的推理範本：
 
 ```csharp
-// 建立分析的自訂範本
+// 為分析建立自訂範本
 var customTemplates = new Dictionary<string, string>
 {
     ["step_1"] = @"You are analyzing a complex situation. This is step {{step_number}}.
@@ -461,7 +461,7 @@ Your analysis:"
 };
 
 // 使用自訂範本建立思維鏈節點
-// 注意：此範例顯示 API 結構，但對於獨立範例，
+// 注意：此示例展示 API 結構，但對於獨立示例，
 // 請考慮使用 FunctionGraphNode 搭配自訂推理邏輯
 var cotNode = ChainOfThoughtGraphNode.CreateWithCustomization(
     ChainOfThoughtType.Analysis,
@@ -470,11 +470,11 @@ var cotNode = ChainOfThoughtGraphNode.CreateWithCustomization(
     maxSteps: 4);
 ```
 
-## 問題解決範例
+## 問題解決示例
 
-### 業務問題分析
+### 商業問題分析
 
-使用 ReAct 解決複雜的業務問題：
+使用 ReAct 解決複雜的商業問題：
 
 ```csharp
 var arguments = new KernelArguments
@@ -510,16 +510,16 @@ var solution = result.GetValue<string>() ?? "No solution generated";
 Console.WriteLine($"💻 Technical Solution: {solution}");
 ```
 
-## 監控和除錯
+## 監控與偵錯
 
 ### 追蹤推理效能
 
 監控您的推理代理：
 
 ```csharp
-// 獲得執行統計資料
-// 注意：對於基於 FunctionGraphNode 的實作，您可以追蹤執行
-// 通過自訂中繼資料或實施您自己的統計資料追蹤
+// 取得執行統計
+// 注意：針對基於 FunctionGraphNode 的實現，您可以通過自訂中繼資料追蹤執行
+// 或通過實現您自己的統計追蹤
 var executionCount = 1; // 範例值
 var successRate = 1.0; // 範例值
 var averageIterations = 1.0; // 範例值
@@ -529,9 +529,9 @@ Console.WriteLine($"  Executions: {executionCount}");
 Console.WriteLine($"  Success Rate: {successRate:P1}");
 Console.WriteLine($"  Avg Iterations: {averageIterations:F1}");
 
-// 思維鏈統計資料
-// 注意：對於基於 FunctionGraphNode 的實作，您可以追蹤執行
-// 通過自訂中繼資料或實施您自己的統計資料追蹤
+// 思維鏈統計
+// 注意：針對基於 FunctionGraphNode 的實現，您可以通過自訂中繼資料追蹤執行
+// 或通過實現您自己的統計追蹤
 var cotStats = new { ExecutionCount = 1, AverageQualityScore = 0.85, AverageStepsUsed = 3.0 }; // 範例值
 Console.WriteLine($"Chain of Thought Statistics:");
 Console.WriteLine($"  Executions: {cotStats.ExecutionCount}");
@@ -539,12 +539,12 @@ Console.WriteLine($"  Quality Score: {cotStats.AverageQualityScore:P1}");
 Console.WriteLine($"  Steps Used: {cotStats.AverageStepsUsed:F1}");
 ```
 
-### 除錯推理步驟
+### 偵錯推理步驟
 
-檢查推理過程：
+檢視推理流程：
 
 ```csharp
-// 獲得詳細的執行中繼資料
+// 取得詳細的執行中繼資料
 var metadata = result.Metadata;
 if (metadata.ContainsKey("reasoning_steps"))
 {
@@ -563,17 +563,17 @@ if (metadata.ContainsKey("iterations"))
 }
 ```
 
-## 故障排除
+## 疑難排解
 
 ### 常見問題
 
-**ReAct 迴圈卡住**：檢查您的目標評估函式並確保它能夠正確偵測目標何時達成。
+**ReAct 迴圈卡住**：檢查您的目標評估函式，並確保它能夠正確偵測何時達到目標。
 
 **思維鏈驗證失敗**：調整 `MinimumStepConfidence` 閾值或改進您的驗證規則。
 
-**推理品質很差**：檢查您的推理範本並確保它們為每個步驟提供清晰的指導。
+**推理品質不佳**：檢查您的推理範本，並確保它們為每個步驟提供清晰指導。
 
-**動作未執行**：驗證您的動作節點是否可以存取所需的核心函式和參數。
+**操作未執行**：驗證您的操作節點是否可以存取所需的 kernel 函式和引數。
 
 ### 效能建議
 
@@ -581,17 +581,17 @@ if (metadata.ContainsKey("iterations"))
 * 為思維鏈啟用快取以避免冗餘推理
 * 設定合理的逾時以防止無限迴圈
 * 監控推理品質分數並調整信心閾值
-* 盡可能使用提前終止以提高效率
+* 盡可能使用早期終止以提高效率
 
 ## 另請參閱
 
 * **參考**：[FunctionGraphNode](../api/FunctionGraphNode.md)、[ActionGraphNode](../api/ActionGraphNode.md)、[ReActLoopGraphNode](../api/ReActLoopGraphNode.md)、[ChainOfThoughtGraphNode](../api/ChainOfThoughtGraphNode.md)
 * **指南**：[進階推理模式](../guides/advanced-reasoning.md)、[代理架構](../guides/agent-architecture.md)
-* **範例**：[ReActAgentExample](../examples/react-agent.md)、[ChainOfThoughtExample](../examples/chain-of-thought.md)、[ReActProblemSolvingExample](../examples/react-problem-solving.md)
+* **示例**：[ReActAgentExample](../examples/react-agent.md)、[ChainOfThoughtExample](../examples/chain-of-thought.md)、[ReActProblemSolvingExample](../examples/react-problem-solving.md)
 
 ## 參考 API
 
 * **[FunctionGraphNode](../api/nodes.md#function-graph-node)**：用於自訂邏輯的函式執行節點
-* **[ActionGraphNode](../api/nodes.md#action-graph-node)**：具有函式發現的動作執行節點
-* **[ReActLoopGraphNode](../api/nodes.md#react-loop-graph-node)**：ReAct 推理迴圈實作
+* **[ActionGraphNode](../api/nodes.md#action-graph-node)**：具有函式發現的操作執行節點
+* **[ReActLoopGraphNode](../api/nodes.md#react-loop-graph-node)**：ReAct 推理迴圈實現
 * **[ChainOfThoughtGraphNode](../api/nodes.md#chain-of-thought-graph-node)**：思維鏈推理節點

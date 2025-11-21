@@ -1,86 +1,86 @@
-# ReAct 代理程式範例
+# ReAct Agent 範例
 
-此範例示範了一個簡單、可擴展的 ReAct（推理→執行→觀察）代理程式，可以靈活地擴展許多工具。
+此範例演示一個簡單且可擴展的 ReAct（推理 → 行動 → 觀察）Agent，可靈活擴展以支援多種工具。
 
 ## 目標
 
-了解如何在基於圖形的工作流程中實作 ReAct 代理程式模式，以便：
-* 建立最小的推理→執行→觀察迴圈
-* 實作可擴展的工具註冊和發現
-* 展示智慧型動作選擇和執行
-* 說明如何在不修改代理程式結構的情況下添加新工具
-* 實作參數驗證和智慧型工具匹配
+學習如何在基於圖形的工作流程中實現 ReAct Agent 模式，以：
+* 建立一個最小的推理 → 行動 → 觀察迴圈
+* 實現可擴展的工具註冊和發現
+* 展示智能的行動選擇和執行
+* 演示如何在不修改 Agent 結構的情況下新增工具
+* 實現參數驗證和智能工具匹配
 
-## 先決條件
+## 前置需求
 
 * **.NET 8.0** 或更新版本
-* **OpenAI API 金鑰**已在 `appsettings.json` 中配置
+* **OpenAI API Key** 在 `appsettings.json` 中配置
 * **Semantic Kernel Graph 套件**已安裝
-* 基本了解[圖形概念](../concepts/graph-concepts.md)和 [ReAct 模式](../patterns/react.md)
-* 熟悉[動作節點](../concepts/node-types.md)
+* 基本了解 [Graph Concepts](../concepts/graph-concepts.md) 和 [ReAct Patterns](../patterns/react.md)
+* 熟悉 [Action Nodes](../concepts/node-types.md)
 
-## 主要元件
+## 主要組件
 
 ### 概念和技術
 
-* **ReAct 模式**：用於智慧型問題解決的推理→執行→觀察迴圈
-* **工具發現**：自動發現和註冊可用工具
-* **動作選擇**：根據內容智慧型選擇適當的工具
-* **參數驗證**：執行前驗證工具參數
-* **可擴展性**：在不修改代理程式結構的情況下添加新工具
+* **ReAct Pattern**：推理 → 行動 → 觀察迴圈，用於智能問題解決
+* **Tool Discovery**：自動發現和註冊可用工具
+* **Action Selection**：根據上下文智能選擇適當的工具
+* **Parameter Validation**：在執行前驗證工具參數
+* **Extensibility**：在不修改 Agent 結構的情況下新增工具
 
 ### 核心類別
 
-* `GraphExecutor`：ReAct 代理程式工作流程的執行器
-* `FunctionGraphNode`：用於推理和觀察的節點
-* `ActionGraphNode`：用於具有自動發現功能的工具執行的節點
-* `ActionSelectionCriteria`：用於工具選擇和篩選的條件
-* `ConditionalEdge`：用於工作流程控制的圖形邊
+* `GraphExecutor`：ReAct Agent 工作流程的執行器
+* `FunctionGraphNode`：用於推理和觀察的 Node
+* `ActionGraphNode`：具有自動發現功能的工具執行 Node
+* `ActionSelectionCriteria`：用於工具選擇和篩選的準則
+* `ConditionalEdge`：用於工作流程控制的 Graph Edge
 
 ## 執行範例
 
-### 開始入門
+### 開始使用
 
-此範例示範了 Semantic Kernel Graph 套件的 ReAct（推理+執行）模式。下面的程式碼片段顯示了如何在您自己的應用程式中實作此模式。
+此範例使用 Semantic Kernel Graph 套件演示 ReAct（推理 + 行動）模式。下面的程式碼片段展示如何在自己的應用程式中實現此模式。
 
-## 分步實作
+## 逐步實現
 
 ### 1. 工具註冊
 
-此範例首先註冊代理程式可以使用的基本工具。
+此範例首先註冊 Agent 可以使用的基本工具。
 
 ```csharp
-// 註冊一小組模擬工具（可自由取代/擴展）
+// Register a small set of mock tools (can be replaced/extended freely)
 RegisterBasicTools(kernel);
 
 private static void RegisterBasicTools(Kernel kernel)
 {
-    // 天氣工具
+    // Weather tool
     kernel.ImportPluginFromObject(new WeatherTool());
     
-    // 計算機工具
+    // Calculator tool
     kernel.ImportPluginFromObject(new CalculatorTool());
     
-    // 搜尋工具
+    // Search tool
     kernel.ImportPluginFromObject(new SearchTool());
 }
 
-// 範例工具實作
+// Example tool implementations
 public class WeatherTool
 {
     [KernelFunction, Description("Get current weather for a location")]
     public string GetWeather([Description("City name")] string city)
     {
-        // 模擬天氣資料
+        // Simulate weather data
         var weather = city.ToLowerInvariant() switch
         {
-            "lisbon" => "晴朗，22°C，微風",
-            "london" => "多雲，15°C，小雨",
-            "paris" => "部分多雲，18°C，平靜",
-            _ => $"無法取得 {city} 的天氣資料"
+            "lisbon" => "Sunny, 22°C, light breeze",
+            "london" => "Cloudy, 15°C, light rain",
+            "paris" => "Partly cloudy, 18°C, calm",
+            _ => $"Weather data unavailable for {city}"
         };
         
-        return $"{city} 目前天氣：{weather}";
+        return $"Current weather in {city}: {weather}";
     }
 }
 
@@ -91,26 +91,26 @@ public class CalculatorTool
     {
         try
         {
-            // 簡單的計算評估（在生產環境中，使用適當的表達式解析器）
+            // Simple calculation evaluation (in production, use proper expression parser)
             var result = EvaluateExpression(expression);
-            return $"{expression} 的結果 = {result}";
+            return $"Result of {expression} = {result}";
         }
         catch (Exception ex)
         {
-            return $"計算 {expression} 時出錯：{ex.Message}";
+            return $"Error calculating {expression}: {ex.Message}";
         }
     }
     
     private static double EvaluateExpression(string expression)
     {
-        // 簡化的表達式評估
+        // Simplified expression evaluation
         if (expression.Contains("*"))
         {
             var parts = expression.Split('*');
             if (parts.Length == 2 && double.TryParse(parts[0], out var a) && double.TryParse(parts[1], out var b))
                 return a * b;
         }
-        throw new ArgumentException("不支援的表達式格式");
+        throw new ArgumentException("Unsupported expression format");
     }
 }
 
@@ -119,14 +119,14 @@ public class SearchTool
     [KernelFunction, Description("Search for information on a topic")]
     public string Search([Description("Search query")] string query)
     {
-        // 模擬搜尋結果
+        // Simulate search results
         var results = query.ToLowerInvariant() switch
         {
             var q when q.Contains("c#") && q.Contains("logging") => 
-                "C# 日誌最佳實務：使用 ILogger<T>、結構化日誌、日誌等級和集中式配置。",
+                "C# logging best practices: Use ILogger<T>, structured logging, log levels, and centralized configuration.",
             var q when q.Contains("best practices") => 
-                "一般最佳實務：遵循既定模式、記錄程式碼、徹底測試並保持一致性。",
-            _ => $"搜尋 '{query}' 的結果：找到多個具有綜合資訊的相關來源。"
+                "General best practices: Follow established patterns, document code, test thoroughly, and maintain consistency.",
+            _ => $"Search results for '{query}': Multiple relevant sources found with comprehensive information."
         };
         
         return results;
@@ -134,9 +134,9 @@ public class SearchTool
 }
 ```
 
-### 2. 建立 ReAct 代理程式
+### 2. 建立 ReAct Agent
 
-代理程式使用最小的三節點結構構建：推理、執行和觀察。
+此 Agent 使用最小的三個 Node 結構建立：推理、行動和觀察。
 
 ```csharp
 private static GraphExecutor CreateSimpleReActAgent(Kernel kernel)
@@ -146,15 +146,15 @@ private static GraphExecutor CreateSimpleReActAgent(Kernel kernel)
     var reasoning = new FunctionGraphNode(
         CreateReasoningFunction(kernel),
         "react_reason",
-        "分析使用者查詢並建議動作"
+        "Analyze the user query and suggest an action"
     );
 
-    // 自動發現所有外掛程式中的動作；保持簡單並讓節點選擇最匹配的
+    // Auto-discover actions from all plugins; keep it simple and let the node pick best matching
     var actions = ActionGraphNode.CreateWithActions(
         kernel,
         new ActionSelectionCriteria
         {
-            // 預設保持開放；可透過 IncludedPlugins/FunctionNamePattern 進行限制
+            // Keep open by default; can be restricted via IncludedPlugins/FunctionNamePattern
         },
         "react_act");
     actions.ConfigureExecution(ActionSelectionStrategy.Intelligent, enableParameterValidation: true);
@@ -162,7 +162,7 @@ private static GraphExecutor CreateSimpleReActAgent(Kernel kernel)
     var observe = new FunctionGraphNode(
         CreateObservationFunction(kernel),
         "react_observe",
-        "將動作結果摘要為最終答案"
+        "Summarize action result as a final answer"
     ).StoreResultAs("final_answer");
 
     executor.AddNode(reasoning);
@@ -179,18 +179,18 @@ private static GraphExecutor CreateSimpleReActAgent(Kernel kernel)
 
 ### 3. 推理函數
 
-推理函數分析使用者查詢並建議適當的動作。
+推理函數分析使用者查詢並建議適當的行動。
 
 ```csharp
 private static KernelFunction CreateReasoningFunction(Kernel kernel)
 {
-    // 建立決定性的方法型函數，以避免在範例中進行外部 LLM 呼叫
+    // Create a deterministic, method-based function to avoid external LLM calls in examples
     return kernel.CreateFunctionFromMethod(
         (KernelArguments args) =>
         {
             var query = args.TryGetValue("user_query", out var q) ? q?.ToString() ?? string.Empty : string.Empty;
 
-            // 簡單的啟發式方法來選擇適當的工具/動作
+            // Simple heuristics to choose the appropriate tool/action
             var action = query.ToLowerInvariant() switch
             {
                 var s when s.Contains("weather") => "GetWeather",
@@ -202,7 +202,7 @@ private static KernelFunction CreateReasoningFunction(Kernel kernel)
 
             var parameters = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
-            // 為選定的動作萃取最小參數（僅供展示）
+            // Extract minimal parameters for the selected action (demonstration only)
             if (action == "GetWeather")
             {
                 var cityMatch = System.Text.RegularExpressions.Regex.Match(query, @"in ([A-Za-z]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
@@ -220,30 +220,30 @@ private static KernelFunction CreateReasoningFunction(Kernel kernel)
                 parameters["query"] = query.Replace("Search:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
             }
 
-            // 為下游節點儲存建議的動作和參數
+            // Store suggested action and parameters for downstream nodes
             args["suggested_action"] = action;
             args["action_parameters"] = parameters;
 
-            return $"推理：建議動作='{action}' 參數=[{string.Join(',', parameters.Select(kv => kv.Key + "=" + kv.Value))}]";
+            return $"Reasoning: suggested action='{action}' parameters=[{string.Join(',', parameters.Select(kv => kv.Key + "=" + kv.Value))}]";
         },
         functionName: "react_reasoning",
-        description: "分析使用者查詢並建議適當的動作"
+        description: "Analyzes user queries and suggests appropriate actions"
     );
 }
 ```
 
-### 4. 動作執行
+### 4. 行動執行
 
-動作節點自動發現並執行適當的工具。
+行動 Node 自動發現和執行適當的工具。
 
 ```csharp
-// ActionGraphNode 自動處理：
-// - 從註冊外掛程式發現工具
-// - 參數映射和驗證
-// - 具有適當錯誤處理的工具執行
-// - 觀察步驟的結果格式化
+// The ActionGraphNode automatically handles:
+// - Tool discovery from registered plugins
+// - Parameter mapping and validation
+// - Tool execution with proper error handling
+// - Result formatting for the observation step
 
-// 智慧型動作選擇的配置
+// Configuration for intelligent action selection
 actions.ConfigureExecution(
     ActionSelectionStrategy.Intelligent, 
     enableParameterValidation: true
@@ -252,12 +252,12 @@ actions.ConfigureExecution(
 
 ### 5. 觀察函數
 
-觀察函數將動作結果摘要為最終答案。
+觀察函數將行動結果總結為最終答案。
 
 ```csharp
 private static KernelFunction CreateObservationFunction(Kernel kernel)
 {
-    // 決定性的觀察函數，可格式化動作結果
+    // Deterministic observation function that formats action results
     return kernel.CreateFunctionFromMethod(
         (KernelArguments args) =>
         {
@@ -266,38 +266,38 @@ private static KernelFunction CreateObservationFunction(Kernel kernel)
 
             var answer = action switch
             {
-                "GetWeather" => $"根據您的天氣查詢，我發現：{result}",
-                "Calculate" => $"我為您計算了結果：{result}",
-                "Search" => $"以下是我搜尋時發現的內容：{result}",
-                "ConvertCurrency" => $"我為您轉換了貨幣：{result}",
-                _ => $"我處理了您的請求，以下是我發現的內容：{result}"
+                "GetWeather" => $"Based on your query about weather, I found: {result}",
+                "Calculate" => $"I calculated the result for you: {result}",
+                "Search" => $"Here's what I found when searching: {result}",
+                "ConvertCurrency" => $"I converted the currency for you: {result}",
+                _ => $"I processed your request and here's what I found: {result}"
             };
 
             args["final_answer"] = answer;
             return answer;
         },
         functionName: "react_observation",
-        description: "將動作結果摘要為最終答案"
+        description: "Summarizes action results into final answers"
     );
 }
 ```
 
 ### 6. 範例查詢處理
 
-此範例處理多個範例查詢以展示代理程式的功能。
+此範例處理多個範例查詢以展示 Agent 的功能。
 
 ```csharp
-// 執行幾個範例查詢，並展示如何添加工具仍然透明地工作
+// Run a few sample queries and show how adding a tool still works transparently
 var sampleQueries = new[]
 {
-    "今天里斯本的天氣如何？",
-    "計算：42 * 7",
-    "搜尋：C# 日誌的最佳實務"
+    "What's the weather in Lisbon today?",
+    "Calculate: 42 * 7",
+    "Search: best practices for C# logging"
 };
 
 foreach (var query in sampleQueries)
 {
-    Console.WriteLine($"🧑‍💻 使用者：{query}");
+    Console.WriteLine($"🧑‍💻 User: {query}");
     var args = new KernelArguments
     {
         ["user_query"] = query,
@@ -305,26 +305,26 @@ foreach (var query in sampleQueries)
     };
 
     var result = await executor.ExecuteAsync(kernel, args);
-    var answer = result.GetValue<string>() ?? "沒有產生答案";
-    Console.WriteLine($"🤖 代理程式：{answer}\n");
+    var answer = result.GetValue<string>() ?? "No answer produced";
+    Console.WriteLine($"🤖 Agent: {answer}\n");
     await Task.Delay(250);
 }
 ```
 
-### 7. 工具擴展性
+### 7. 工具可擴展性
 
-此範例展示了如何在不修改代理程式結構的情況下添加新工具。
+此範例演示如何在不修改 Agent 結構的情況下新增工具。
 
 ```csharp
-// 展示擴展性：添加新工具並重複使用相同的代理程式
+// Demonstrate extensibility: add a new tool and reuse the same agent
 AddCurrencyConversionTool(kernel);
-Console.WriteLine("➕ 已添加新工具：currency_convert(amount, from, to)\n");
+Console.WriteLine("➕ Added new tool: currency_convert(amount, from, to)\n");
 
-var extendedQuery = "將 100 美元轉換為歐元";
-Console.WriteLine($"🧑‍💻 使用者：{extendedQuery}");
+var extendedQuery = "Convert 100 USD to EUR";
+Console.WriteLine($"🧑‍💻 User: {extendedQuery}");
 var extendedArgs = new KernelArguments { ["user_query"] = extendedQuery };
 var extendedResult = await executor.ExecuteAsync(kernel, extendedArgs);
-Console.WriteLine($"🤖 代理程式：{extendedResult.GetValue<string>() ?? "沒有產生答案"}\n");
+Console.WriteLine($"🤖 Agent: {extendedResult.GetValue<string>() ?? "No answer produced"}\n");
 
 private static void AddCurrencyConversionTool(Kernel kernel)
 {
@@ -336,7 +336,7 @@ public class CurrencyConversionTool
     [KernelFunction]
     public string ConvertCurrency(double amount, string from, string to)
     {
-        // 模擬匯率轉換
+        // Simulate currency conversion rates
         var rates = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
         {
             ["USD"] = 1.0,
@@ -351,7 +351,7 @@ public class CurrencyConversionTool
             return $"{amount} {from.ToUpper()} = {convertedAmount:F2} {to.ToUpper()}";
         }
 
-        return $"無法轉換 {amount} {from} 至 {to} - 不支援的貨幣對";
+        return $"Unable to convert {amount} {from} to {to} - unsupported currency pair";
     }
 }
 ```
@@ -361,7 +361,7 @@ public class CurrencyConversionTool
 ### 多工具協調
 
 ```csharp
-// 為複雜任務實作協調的工具使用
+// Implement coordinated tool usage for complex tasks
 var coordinatedAgent = new CoordinatedReActAgent
 {
     ToolCoordinationStrategy = new SequentialCoordinationStrategy
@@ -381,14 +381,14 @@ var coordinatedAgent = new CoordinatedReActAgent
     }
 };
 
-// 執行協調的工具使用
+// Execute coordinated tool usage
 var coordinatedResult = await coordinatedAgent.ExecuteAsync(kernel, coordinatedArgs);
 ```
 
 ### 自適應推理
 
 ```csharp
-// 根據任務複雜性實作自適應推理
+// Implement adaptive reasoning based on task complexity
 var adaptiveAgent = new AdaptiveReActAgent
 {
     ReasoningStrategies = new Dictionary<string, IReasoningStrategy>
@@ -409,7 +409,7 @@ var adaptiveAgent = new AdaptiveReActAgent
     }
 };
 
-// 自動選擇推理策略
+// Automatically select reasoning strategy
 var strategy = adaptiveAgent.SelectReasoningStrategy(userQuery);
 var adaptiveResult = await adaptiveAgent.ExecuteAsync(kernel, args, strategy);
 ```
@@ -417,7 +417,7 @@ var adaptiveResult = await adaptiveAgent.ExecuteAsync(kernel, args, strategy);
 ### 工具效能最佳化
 
 ```csharp
-// 實作工具效能最佳化
+// Implement tool performance optimization
 var optimizedAgent = new OptimizedReActAgent
 {
     ToolPerformanceTracker = new ToolPerformanceTracker
@@ -433,42 +433,42 @@ var optimizedAgent = new OptimizedReActAgent
     }
 };
 
-// 追蹤並最佳化工具效能
+// Track and optimize tool performance
 await optimizedAgent.TrackToolPerformanceAsync("currency_convert", executionTime);
 var optimizedTools = await optimizedAgent.GetOptimizedToolSetAsync();
 ```
 
 ## 預期輸出
 
-此範例生成詳細的輸出，顯示：
+此範例產生全面的輸出，顯示：
 
-* 🧑‍💻 使用者查詢和代理程式推理
-* 🤖 智慧型動作選擇和工具執行
-* 📊 工具參數萃取和驗證
-* 🔄 ReAct 迴圈執行（推理→執行→觀察）
-* ➕ 工具擴展性展示
-* ✅ 完整 ReAct 代理程式工作流程執行
+* 🧑‍💻 使用者查詢和 Agent 推理
+* 🤖 智能的行動選擇和工具執行
+* 📊 工具參數提取和驗證
+* 🔄 ReAct 迴圈執行（推理 → 行動 → 觀察）
+* ➕ 工具可擴展性演示
+* ✅ 完整的 ReAct Agent 工作流程執行
 
-## 疑難排解
+## 故障排除
 
 ### 常見問題
 
 1. **工具發現失敗**：確保工具已正確向 Semantic Kernel 註冊
-2. **參數驗證錯誤**：檢查工具參數類型和驗證規則
-3. **動作選擇問題**：驗證工具描述和函數屬性
-4. **執行失敗**：監視工具執行和錯誤處理
+2. **參數驗證錯誤**：檢查工具參數型別和驗證規則
+3. **行動選擇問題**：驗證工具描述和函數屬性
+4. **執行失敗**：監控工具執行和錯誤處理
 
 ### 除錯提示
 
-* 啟用詳細日誌以追蹤 ReAct 迴圈執行
-* 驗證核心中的工具註冊和發現
-* 檢查推理和動作節點之間的參數映射
-* 監視動作選擇條件和工具匹配
+* 啟用詳細日誌記錄以追蹤 ReAct 迴圈執行
+* 在 Kernel 中驗證工具註冊和發現
+* 檢查推理和行動 Node 之間的參數對應
+* 監控行動選擇準則和工具匹配
 
 ## 另請參閱
 
-* [ReAct 模式](../patterns/react.md)
-* [動作節點](../concepts/node-types.md)
-* [工具整合](../how-to/tools.md)
-* [代理程式模式](../patterns/agent-patterns.md)
-* [函數節點](../concepts/node-types.md)
+* [ReAct Patterns](../patterns/react.md)
+* [Action Nodes](../concepts/node-types.md)
+* [Tool Integration](../how-to/tools.md)
+* [Agent Patterns](../patterns/agent-patterns.md)
+* [Function Nodes](../concepts/node-types.md)

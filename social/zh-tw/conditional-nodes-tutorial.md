@@ -1,42 +1,42 @@
-# 條件節點教學
+# 條件 Node 教學
 
-本教學將教導你如何在 SemanticKernel.Graph 中使用條件節點和邊緣，以建立動態且智慧化的工作流，可以根據狀態和 AI 回應進行決策和路由執行。
+本教學將教您如何在 SemanticKernel.Graph 中使用條件 Node 和 Edge，以建立動態、智能的工作流程，可以根據狀態和 AI 回應做出決策並路由執行。
 
-## 你將學到什麼
+## 您將學習什麼
 
-* 如何建立進行路由決策的條件節點
-* 使用條件邊緣實現動態工作流路徑
-* 建立可適應不同場景的智慧化工作流
-* 圖形中條件邏輯的最佳實踐
+* 如何建立做出路由決策的條件 Node
+* 使用條件 Edge 進行動態工作流程路徑
+* 建立適應不同場景的智能工作流程
+* Graph 中條件邏輯的最佳實踐
 
-## 前置需求
+## 先決條件
 
-在開始之前，請確保你已經：
-* 完成 [第一個圖形教學](first-graph.md)
-* 了解 [狀態管理](state-tutorial.md)
-* 掌握 SemanticKernel.Graph 基本概念
+開始前，請確保您已：
+* 完成 [First Graph 教學](first-graph.md)
+* 了解 [State Management](state-tutorial.md)
+* 具有 SemanticKernel.Graph 概念的基礎知識
 
-## 理解條件節點
+## 了解條件 Node
 
-### 什麼是條件節點？
+### 什麼是條件 Node？
 
-條件節點是特殊節點，用於評估條件並決定工作流應該採取的下一條路徑。它們就像交通指揮官一樣，根據當前狀態指導執行流程。
+條件 Node 是特殊的 Node，用於評估條件並決定工作流程應該採取的下一個路徑。它們就像交通管制員，根據目前的狀態指引執行流程。
 
-### 條件類型
+### 條件的類型
 
-* **簡單布林條件**：基本的是/否決策
-* **基於狀態的條件**：根據狀態中的資料進行決策
-* **AI 生成的條件**：由 AI 分析做出的複雜決策
-* **基於樣板的條件**：以自然語言表示的條件
+* **Simple Boolean Conditions（簡單布林條件）**：基本的真/假決策
+* **State-Based Conditions（基於狀態的條件）**：根據狀態中的資料做決策
+* **AI-Generated Conditions（AI 生成的條件）**：由 AI 分析做出的複雜決策
+* **Template-Based Conditions（基於範本的條件）**：以自然語言表達的條件
 
-## 基本條件節點
+## 基本條件 Node
 
-### 建立簡單條件節點
+### 建立簡單的條件 Node
 
 ```csharp
 using SemanticKernel.Graph.Nodes;
 
-// 帶有簡單布林函數的基本條件節點
+// Basic conditional node with a simple boolean function
 var isPositiveNode = new ConditionalGraphNode("IsPositive",
     state => 
     {
@@ -46,18 +46,18 @@ var isPositiveNode = new ConditionalGraphNode("IsPositive",
 );
 ```
 
-### 使用條件節點
+### 使用條件 Node
 
 ```csharp
 var graph = new GraphExecutor("ConditionalExample");
 
-// 新增節點
+// Add nodes
 graph.AddNode(inputNode);
 graph.AddNode(isPositiveNode);
 graph.AddNode(positiveResponseNode);
 graph.AddNode(negativeResponseNode);
 
-// 使用條件路由進行連接
+// Connect with conditional routing
 graph.Connect(inputNode, isPositiveNode);
 graph.Connect(isPositiveNode, positiveResponseNode, 
     edge => edge.When(state => state.GetValueOrDefault("sentiment", "").ToString().Contains("positive")));
@@ -74,15 +74,15 @@ graph.SetStartNode(inputNode);
 ```csharp
 var analysisNode = new FunctionGraphNode(
     kernel.CreateFunctionFromPrompt(@"
-        分析此文本：{{$input}}
-        以 JSON 格式返回：
+        Analyze this text: {{$input}}
+        Return JSON with:
         {
             "sentiment": "positive|negative|neutral",
             "urgency": "high|medium|low",
             "category": "technical|personal|business"
         }
     ")
-).StoreResultAs("analysis");
+.).StoreResultAs("analysis");
 
 var routingNode = new ConditionalGraphNode("RouteByAnalysis",
     state => 
@@ -96,7 +96,7 @@ var routingNode = new ConditionalGraphNode("RouteByAnalysis",
     }
 );
 
-// 連接到不同的處理程序
+// Connect to different handlers
 graph.Connect(routingNode, highPriorityNode, 
     edge => edge.When(state => routingNode.EvaluateCondition(state) == "high"));
 graph.Connect(routingNode, negativeHandlerNode, 
@@ -110,18 +110,18 @@ graph.Connect(routingNode, normalHandlerNode,
 ```csharp
 var decisionNode = new FunctionGraphNode(
     kernel.CreateFunctionFromPrompt(@"
-        根據此情況：{{$context}}
-        和當前狀態：{{$currentState}}
+        Based on this situation: {{$context}}
+        And the current state: {{$currentState}}
         
-        決定下一步應採取的行動。只傳回以下其中一個選項：
-        - "continue" - 如果我們應該正常進行
-        - "escalate" - 如果這需要人工干預
-        - "retry" - 如果我們應該使用不同的參數重試
-        - "abort" - 如果我們應該停止工作流
+        Decide what action to take next. Return only one of these options:
+        - "continue" - if we should proceed normally
+        - "escalate" - if this needs human intervention
+        - "retry" - if we should try again with different parameters
+        - "abort" - if we should stop the workflow
         
-        簡要說明你的理由。
+        Explain your reasoning briefly.
     ")
-).StoreResultAs("decision");
+.).StoreResultAs("decision");
 
 var actionRouter = new ConditionalGraphNode("RouteByDecision",
     state => 
@@ -136,9 +136,9 @@ var actionRouter = new ConditionalGraphNode("RouteByDecision",
 );
 ```
 
-## 完整條件工作流範例
+## 完整條件工作流程範例
 
-讓我們建立一個完整的範例來展示條件路由：
+讓我們建立一個完整的範例來演示條件路由：
 
 ```csharp
 using Microsoft.SemanticKernel;
@@ -155,12 +155,12 @@ class Program
         builder.AddGraphSupport();
         var kernel = builder.Build();
 
-        // 1. 輸入分析節點
+        // 1. Input analysis node
         var inputNode = new FunctionGraphNode(
             kernel.CreateFunctionFromPrompt(@"
-                分析此客戶請求：{{$customerRequest}}
+                Analyze this customer request: {{$customerRequest}}
                 
-                以 JSON 格式提供分析：
+                Provide analysis in JSON format:
                 {
                     "complexity": "simple|moderate|complex",
                     "urgency": "low|medium|high",
@@ -170,7 +170,7 @@ class Program
             ")
         ).StoreResultAs("analysis");
 
-        // 2. 基於複雜性的路由
+        // 2. Complexity-based routing
         var complexityRouter = new ConditionalGraphNode("RouteByComplexity",
             state => 
             {
@@ -183,42 +183,42 @@ class Program
             }
         );
 
-        // 3. 簡單請求處理程序
+        // 3. Simple request handler
         var simpleHandler = new FunctionGraphNode(
             kernel.CreateFunctionFromPrompt(@"
-                處理此簡單請求：{{$customerRequest}}
-                分析：{{$analysis}}
+                Handle this simple request: {{$customerRequest}}
+                Analysis: {{$analysis}}
                 
-                提供直接有幫助的回應以解決問題。
+                Provide a direct, helpful response that resolves the issue.
             ")
         ).StoreResultAs("response");
 
-        // 4. 中等複雜性請求處理程序
+        // 4. Moderate request handler
         var moderateHandler = new FunctionGraphNode(
             kernel.CreateFunctionFromPrompt(@"
-                處理此中等複雜性請求：{{$customerRequest}}
-                分析：{{$analysis}}
+                Handle this moderate complexity request: {{$customerRequest}}
+                Analysis: {{$analysis}}
                 
-                提供包含步驟和資源的詳細回應。
-                包含任何必要的後續行動。
+                Provide a detailed response with steps and resources.
+                Include any necessary follow-up actions.
             ")
         ).StoreResultAs("response");
 
-        // 5. 複雜請求處理程序
+        // 5. Complex request handler
         var complexHandler = new FunctionGraphNode(
             kernel.CreateFunctionFromPrompt(@"
-                這是一個複雜的請求：{{$customerRequest}}
-                分析：{{$analysis}}
+                This is a complex request: {{$customerRequest}}
+                Analysis: {{$analysis}}
                 
-                提供全面的回應，應該：
-                1. 承認複雜性
-                2. 概述逐步方法
-                3. 如果需要建議升級
-                4. 設定清晰的期望
+                Provide a comprehensive response that:
+                1. Acknowledges the complexity
+                2. Outlines a step-by-step approach
+                3. Suggests escalation if needed
+                4. Sets clear expectations
             ")
         ).StoreResultAs("response");
 
-        // 6. 緊急性檢查
+        // 6. Urgency check
         var urgencyCheck = new ConditionalGraphNode("CheckUrgency",
             state => 
             {
@@ -227,33 +227,33 @@ class Program
             }
         );
 
-        // 7. 高緊急性處理程序
+        // 7. High urgency handler
         var highUrgencyHandler = new FunctionGraphNode(
             kernel.CreateFunctionFromPrompt(@"
-                這是一個高緊急性請求：{{$customerRequest}}
-                目前回應：{{$response}}
+                This is a HIGH URGENCY request: {{$customerRequest}}
+                Current response: {{$response}}
                 
-                增強回應以強調緊急性並提供立即行動項目。
-                包含升級聯絡資訊。
+                Enhance the response to emphasize urgency and provide immediate action items.
+                Include escalation contact information.
             ")
         ).StoreResultAs("finalResponse");
 
-        // 8. 最終回應格式化器
+        // 8. Final response formatter
         var responseFormatter = new FunctionGraphNode(
             kernel.CreateFunctionFromPrompt(@"
-                為客戶格式化最終回應：
-                請求：{{$customerRequest}}
-                回應：{{$finalResponse}}
-                分析：{{$analysis}}
+                Format the final response for the customer:
+                Request: {{$customerRequest}}
+                Response: {{$finalResponse}}
+                Analysis: {{$analysis}}
                 
-                建立一個專業且結構良好的回應，解決所有方面。
+                Create a professional, well-structured response that addresses all aspects.
             ")
         ).StoreResultAs("formattedResponse");
 
-        // 建立圖形
+        // Build the graph
         var graph = new GraphExecutor("ConditionalWorkflowExample");
 
-        // 新增所有節點
+        // Add all nodes
         graph.AddNode(inputNode);
         graph.AddNode(complexityRouter);
         graph.AddNode(simpleHandler);
@@ -263,10 +263,10 @@ class Program
         graph.AddNode(highUrgencyHandler);
         graph.AddNode(responseFormatter);
 
-        // 連接工作流
+        // Connect the workflow
         graph.Connect(inputNode, complexityRouter);
         
-        // 複雜性路由
+        // Complexity routing
         graph.Connect(complexityRouter, simpleHandler, 
             edge => edge.When(state => complexityRouter.EvaluateCondition(state) == "simple"));
         graph.Connect(complexityRouter, moderateHandler, 
@@ -274,58 +274,58 @@ class Program
         graph.Connect(complexityRouter, complexHandler, 
             edge => edge.When(state => complexityRouter.EvaluateCondition(state) == "complex"));
         
-        // 所有路徑進入緊急性檢查
+        // All paths go to urgency check
         graph.Connect(simpleHandler, urgencyCheck);
         graph.Connect(moderateHandler, urgencyCheck);
         graph.Connect(complexHandler, urgencyCheck);
         
-        // 緊急性路由
+        // Urgency routing
         graph.Connect(urgencyCheck, highUrgencyHandler, 
             edge => edge.When(state => urgencyCheck.EvaluateCondition(state)));
         graph.Connect(urgencyCheck, responseFormatter, 
             edge => edge.When(state => !urgencyCheck.EvaluateCondition(state)));
         
-        // 高緊急性路徑
+        // High urgency path
         graph.Connect(highUrgencyHandler, responseFormatter);
         
         graph.SetStartNode(inputNode);
 
-        // 以不同的輸入進行測試
+        // Test with different inputs
         var testRequests = new[]
         {
-            "I can't log into my account", // 簡單
-            "I need help setting up advanced security features", // 中等
-            "My entire system is down and I have a critical presentation in 2 hours" // 複雜 + 高緊急性
+            "I can't log into my account", // Simple
+            "I need help setting up advanced security features", // Moderate
+            "My entire system is down and I have a critical presentation in 2 hours" // Complex + High urgency
         };
 
         foreach (var request in testRequests)
         {
-            Console.WriteLine($"\n=== 測試：{request} ===");
+            Console.WriteLine($"\n=== Testing: {request} ===");
             
             var state = new KernelArguments { ["customerRequest"] = request };
             var result = await graph.ExecuteAsync(state);
             
-            Console.WriteLine($"複雜性：{result.GetValueOrDefault("analysis", "No analysis")}");
-            Console.WriteLine($"回應：{result.GetValueOrDefault("formattedResponse", "No response")}");
+            Console.WriteLine($"Complexity: {result.GetValueOrDefault("analysis", "No analysis")}");
+            Console.WriteLine($"Response: {result.GetValueOrDefault("formattedResponse", "No response")}");
         }
     }
 }
 ```
 
-## 條件邊緣模式
+## 條件 Edge 模式
 
-### 基本條件邊緣
+### 基本條件 Edge
 
 ```csharp
-// 簡單布林條件
+// Simple boolean condition
 graph.Connect(nodeA, nodeB, 
     edge => edge.When(state => state.ContainsKey("success") && (bool)state["success"]));
 
-// 基於字串的條件
+// String-based condition
 graph.Connect(nodeA, nodeB, 
     edge => edge.When(state => state.GetValueOrDefault("status", "").ToString() == "approved"));
 
-// 數值條件
+// Numeric condition
 graph.Connect(nodeA, nodeB, 
     edge => edge.When(state => 
     {
@@ -337,7 +337,7 @@ graph.Connect(nodeA, nodeB,
 ### 複雜的條件邏輯
 
 ```csharp
-// 多個條件
+// Multiple conditions
 graph.Connect(nodeA, nodeB, 
     edge => edge.When(state => 
     {
@@ -348,7 +348,7 @@ graph.Connect(nodeA, nodeB,
         return hasPermission && (isBusinessHours || isUrgent);
     }));
 
-// AI 生成的條件
+// AI-generated condition
 graph.Connect(nodeA, nodeB, 
     edge => edge.When(state => 
     {
@@ -357,16 +357,16 @@ graph.Connect(nodeA, nodeB,
     }));
 ```
 
-### 回退和預設路由
+### 後備和預設路由
 
 ```csharp
-// 帶有回退的主要路由
+// Primary route with fallback
 graph.Connect(decisionNode, primaryHandler, 
     edge => edge.When(state => primaryHandler.CanHandle(state)));
 graph.Connect(decisionNode, fallbackHandler, 
     edge => edge.When(state => !primaryHandler.CanHandle(state)));
 
-// 多個回退級別
+// Multiple fallback levels
 graph.Connect(decisionNode, handlerA, 
     edge => edge.When(state => conditionA(state)));
 graph.Connect(decisionNode, handlerB, 
@@ -377,13 +377,13 @@ graph.Connect(decisionNode, defaultHandler,
 
 ## 最佳實踐
 
-### 1. **保持條件簡單且易讀**
+### 1. **保持條件簡單且易於閱讀**
 ```csharp
-// 好的 - 清晰且易讀
+// Good - clear and readable
 var isAdmin = new ConditionalGraphNode("IsAdmin",
     state => state.GetValueOrDefault("userRole", "").ToString() == "admin");
 
-// 應避免 - 複雜的內嵌邏輯
+// Avoid - complex inline logic
 var complexCondition = new ConditionalGraphNode("Complex",
     state => state.ContainsKey("a") && state.ContainsKey("b") && 
              state.GetValueOrDefault("c", 0) is int i && i > 10 && 
@@ -392,11 +392,11 @@ var complexCondition = new ConditionalGraphNode("Complex",
 
 ### 2. **使用描述性名稱**
 ```csharp
-// 好的 - 描述性名稱
+// Good - descriptive names
 var shouldEscalate = new ConditionalGraphNode("ShouldEscalate", condition);
 var isHighPriority = new ConditionalGraphNode("IsHighPriority", condition);
 
-// 應避免 - 通用名稱
+// Avoid - generic names
 var check1 = new ConditionalGraphNode("Check1", condition);
 var decision = new ConditionalGraphNode("Decision", condition);
 ```
@@ -413,14 +413,14 @@ var safeCondition = new ConditionalGraphNode("SafeCondition",
         }
         catch
         {
-            return false; // 預設為安全路徑
+            return false; // Default to safe path
         }
     });
 ```
 
 ### 4. **測試不同的場景**
 ```csharp
-// 測試各種輸入組合
+// Test various input combinations
 var testCases = new[]
 {
     new { input = "positive", expected = "positive" },
@@ -433,13 +433,13 @@ foreach (var testCase in testCases)
 {
     var state = new KernelArguments { ["input"] = testCase.input };
     var result = await graph.ExecuteAsync(state);
-    Console.WriteLine($"輸入：{testCase.input}，結果：{result.GetValueOrDefault("output", "default")}");
+    Console.WriteLine($"Input: {testCase.input}, Result: {result.GetValueOrDefault("output", "default")}");
 }
 ```
 
 ## 常見模式
 
-### **類似 Switch 的路由**
+### **Switch 型路由**
 ```csharp
 var router = new ConditionalGraphNode("Router",
     state => 
@@ -490,89 +490,89 @@ var multiFactorNode = new ConditionalGraphNode("MultiFactorDecision",
     });
 ```
 
-## 故障排除
+## 疑難排解
 
 ### **常見問題**
 
-#### 條件總是傳回 False
+#### 條件始終返回 False
 ```
 System.InvalidOperationException: No next nodes found for node 'ConditionalNode'
 ```
-**解決方案**：檢查你的條件邏輯，並確保至少有一個邊界條件評估為 true。
+**解決方案**：檢查您的條件邏輯，並確保至少一個 Edge 條件評估為 true。
 
 #### 無限迴圈
 ```
 System.InvalidOperationException: Maximum execution steps exceeded
 ```
-**解決方案**：確保你的條件邏輯不會建立循環路徑或無限迴圈。
+**解決方案**：確保您的條件邏輯不會建立迴圈路徑或無限迴圈。
 
 #### 意外路由
 ```
 Node 'HandlerA' executed instead of expected 'HandlerB'
 ```
-**解決方案**：除錯你的條件邏輯，並驗證被評估的狀態值。
+**解決方案**：除錯您的條件邏輯，並驗證正在評估的狀態值。
 
 ### **除錯提示**
 
-1. **在條件中新增日誌記錄**
+1. **在條件中加入日誌**
 ```csharp
 var debugNode = new ConditionalGraphNode("DebugCondition",
     state => 
     {
         var result = state.GetValueOrDefault("key", "").ToString().Contains("expected");
-        Console.WriteLine($"條件評估：{result}，狀態：{state["key"]}");
+        Console.WriteLine($"Condition evaluated: {result} for state: {state["key"]}");
         return result;
     });
 ```
 
-2. **隔離測試條件**
+2. **獨立測試條件**
 ```csharp
-// 直接測試你的條件函數
+// Test your condition function directly
 var testState = new KernelArguments { ["key"] = "test_value" };
 var result = myCondition(testState);
-Console.WriteLine($"條件結果：{result}");
+Console.WriteLine($"Condition result: {result}");
 ```
 
-3. **驗證決策點的狀態**
+3. **在決策點驗證狀態**
 ```csharp
 var validationNode = new ConditionalGraphNode("ValidateState",
     state => 
     {
-        Console.WriteLine($"決策點的狀態：{JsonSerializer.Serialize(state)}");
+        Console.WriteLine($"State at decision point: {JsonSerializer.Serialize(state)}");
         return myCondition(state);
     });
 ```
 
-## 後續步驟
+## 下一步
 
-現在你已經理解了條件節點，請探索這些進階主題：
+現在您已了解條件 Node，請探索這些進階主題：
 
-* **[迴圈教學](loops-tutorial.md)** - 學習迴圈節點和反覆工作流
-* **[錯誤處理指南](how-to/error-handling.md)** - 處理工作流中的錯誤和異常
-* **[進階路由](how-to/advanced-routing.md)** - 掌握複雜的路由模式
-* **[模式](patterns/index.md)** - 探索常見的工作流模式
+* **[迴圈教學](loops-tutorial.md)**：了解迴圈 Node 和反覆工作流程
+* **[錯誤處理指南](how-to/error-handling.md)**：在您的工作流程中處理錯誤和異常
+* **[進階路由](how-to/advanced-routing.md)**：掌握複雜的路由模式
+* **[模式](patterns/index.md)**：發現常見的工作流程模式
 
 ## 概念和技術
 
-本教學涵蓋了幾個關鍵概念：
+本教學涵蓋多個關鍵概念：
 
-* **條件節點** - 一個評估條件並根據結果路由執行的節點
-* **條件邊緣** - 只有在其條件評估為 true 時才允許執行的邊緣
-* **路由邏輯** - 決定工作流執行路徑的決策過程
-* **狀態評估** - 條件如何分析當前狀態以進行路由決策
-* **多路徑工作流** - 建立可以根據條件採取不同路徑的工作流
+* **Conditional Node**：評估條件並根據結果路由執行的 Node
+* **Conditional Edge**：只有在其條件評估為 true 時才允許執行的 Edge
+* **Routing Logic（路由邏輯）**：決定工作流程執行路徑的決策過程
+* **State Evaluation（狀態評估）**：條件如何分析目前狀態以做出路由決策
+* **Multi-path Workflows（多路徑工作流程）**：建立可根據條件採取不同路徑的工作流程
 
-## 前置需求和最小設定
+## 先決條件和最低設定
 
-要完成本教學，你需要：
-* **SemanticKernel.Graph** 套件已安裝和配置
-* **LLM 提供者**帶有有效的 API 金鑰
-* **理解**基本圖形概念和狀態管理
-* **.NET 8.0+** 執行時環境
+若要完成本教學，您需要：
+* **SemanticKernel.Graph** 封裝已安裝並設定
+* **LLM Provider** 具有有效的 API 金鑰
+* **Understanding** 基本的 Graph 概念和狀態管理
+* **.NET 8.0+** 執行階段環境
 
 ## 另請參閱
 
-* **[狀態管理教學](state-tutorial.md)** - 了解資料如何流過你的圖形
-* **[第一個圖形教學](first-graph.md)** - 建立你的第一個完整圖形工作流
-* **[操作指南](how-to/conditional-nodes.md)** - 進階條件節點技術
-* **[API 參考](api/nodes.md)** - 完整的節點 API 文件
+* **[State Management 教學](state-tutorial.md)**：了解資料如何在 Graph 中流動
+* **[First Graph 教學](first-graph.md)**：建立您的第一個完整 Graph 工作流程
+* **[How-to 指南](how-to/conditional-nodes.md)**：進階條件 Node 技術
+* **[API 參考](api/nodes.md)**：完整的 Node API 文件

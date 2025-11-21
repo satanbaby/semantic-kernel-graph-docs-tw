@@ -1,20 +1,20 @@
-# 指標 API 參考
+# 指標 APIs 參考
 
-本參考文件詳細記錄了 SemanticKernel.Graph 中的綜合指標和效能監控 API，這些 API 提供了關於圖形執行效能、資源使用和操作狀態的詳細見解。
+本參考文件詳述了 SemanticKernel.Graph 中全面的指標和性能監控 APIs，提供了關於 Graph 執行性能、資源使用和運營狀況的詳細見解。
 
 ## GraphPerformanceMetrics
 
-圖形執行的綜合效能指標收集器。追蹤節點級別的指標、執行路徑、資源使用和效能指標。
+Graph 執行的全面性能指標收集器。追蹤節點級指標、執行路徑、資源使用和性能指標。
 
 ### 屬性
 
-* `TotalExecutions`：追蹤的圖形執行總數
-* `Uptime`：指標收集啟動後經過的時間
-* `NodeMetrics`：每個節點指標的字典
-* `PathMetrics`：每個執行路徑指標的字典
-* `CircuitBreakerMetrics`：每個節點的斷路器指標字典
-* `ResourceUsage`：當前系統資源使用情況（CPU、記憶體）
-* `LastSampleTime`：最後一次資源取樣的時間戳
+* `TotalExecutions`：追蹤的總 Graph 執行次數
+* `Uptime`：自指標收集開始以來經過的時間
+* `NodeMetrics`：每個節點的指標字典
+* `PathMetrics`：每個執行路徑的指標字典
+* `CircuitBreakerMetrics`：每個節點的熔斷器指標字典
+* `ResourceUsage`：當前系統資源使用情況 (CPU、記憶體)
+* `LastSampleTime`：最後一次資源樣本的時間戳
 
 ### 方法
 
@@ -24,14 +24,14 @@
 public NodeExecutionTracker StartNodeTracking(string nodeId, string nodeName, string executionId)
 ```
 
-開始追蹤節點執行並返回完成追蹤器。
+開始追蹤節點執行並返回完成的追蹤器。
 
 **參數：**
-* `nodeId`：節點識別碼
+* `nodeId`：節點識別符
 * `nodeName`：節點名稱
-* `executionId`：執行識別碼
+* `executionId`：執行識別符
 
-**返回：** 完成追蹤的追蹤令牌
+**返回值：** 完成的追蹤令牌
 
 #### CompleteNodeTracking
 
@@ -44,13 +44,13 @@ public void CompleteNodeTracking(NodeExecutionTracker tracker, bool success, obj
 **參數：**
 * `tracker`：節點執行追蹤器
 * `success`：執行是否成功
-* `result`：執行結果（可選）
-* `exception`：失敗時的異常（可選）
+* `result`：執行結果 (選擇性)
+* `exception`：失敗時的例外狀況 (選擇性)
 
 #### GetNodeMetrics
 
 ```csharp
-// 指標收集器公開 NodeMetrics 字典。使用範例：
+// 指標收集器公開 NodeMetrics 字典。範例用法：
 if (metrics.NodeMetrics.TryGetValue(nodeId, out var nodeMetrics))
 {
     // nodeMetrics 是 NodeExecutionMetrics 實例
@@ -61,7 +61,7 @@ else
 }
 ```
 
-從 `NodeMetrics` 屬性檢索特定節點的指標。
+從 `NodeMetrics` 屬性中檢索特定節點的指標。
 
 #### GetPerformanceSummary
 
@@ -69,14 +69,14 @@ else
 public GraphPerformanceSummary GetPerformanceSummary(TimeSpan timeWindow)
 ```
 
-為指定的 `timeWindow` 生成具有聚合統計資料的綜合效能摘要。
+針對指定的 `timeWindow` 生成全面的性能摘要，包含彙總統計數據。
 
 **參數：**
-- `timeWindow`：要分析的時間窗口（例如 `TimeSpan.FromMinutes(5)`）
+- `timeWindow`：要分析的時間窗口 (例如 `TimeSpan.FromMinutes(5)`)
 
-**返回：** 包含關鍵指標的效能摘要
+**返回值：** 包含關鍵指標的性能摘要
 
-### 配置
+### 組態設定
 
 ```csharp
 var options = new GraphMetricsOptions
@@ -94,20 +94,20 @@ var metrics = new GraphPerformanceMetrics(options);
 
 ## NodeExecutionMetrics
 
-追蹤特定圖形節點的執行指標。提供關於節點效能和行為的詳細統計資料。
+追蹤特定 Graph Node 的執行指標。提供有關節點性能和行為的詳細統計資訊。
 
 ### 屬性
 
-* `NodeId`：節點識別碼
+* `NodeId`：節點識別符
 * `NodeName`：節點名稱
 * `TotalExecutions`：執行總次數
 * `SuccessfulExecutions`：成功執行次數
 * `FailedExecutions`：失敗執行次數
-* `SuccessRate`：成功率百分比（0-100）
+* `SuccessRate`：成功率 (百分比 0-100)
 * `AverageExecutionTime`：平均執行時間
 * `MinExecutionTime`：最小執行時間
 * `MaxExecutionTime`：最大執行時間
-* `FirstExecution`：第一次執行的時間戳
+* `FirstExecution`：首次執行的時間戳
 * `LastExecution`：最後一次執行的時間戳
 
 ### 方法
@@ -118,52 +118,52 @@ var metrics = new GraphPerformanceMetrics(options);
 public void RecordExecution(TimeSpan duration, bool success, object? result = null, Exception? exception = null)
 ```
 
-記錄單個執行及其結果和計時。
+記錄單次執行及其結果和計時。
 
 **參數：**
 * `duration`：執行時間
 * `success`：執行是否成功
-* `result`：執行結果（可選）
-* `exception`：失敗時的異常（可選）
+* `result`：執行結果 (選擇性)
+* `exception`：失敗時的例外狀況 (選擇性)
 
 #### GetPercentiles
 
 ```csharp
 // NodeExecutionMetrics 提供單一百分位數的 GetPercentile 方法。
-// 範例：獲取節點的 P95 執行時間
+// 範例：取得節點的 P95 執行時間
 var p95 = nodeMetrics.GetPercentile(95);
 ```
 
-計算節點的單個執行時間百分位數（例如 P50、P95、P99）。
+計算節點的單一執行時間百分位數 (例如 P50、P95、P99)。
 
 **參數：**
-- `percentile`：百分位值（0-100）
+- `percentile`：百分位數值 (0-100)
 
-**返回：** 在要求的百分位處的執行時間（TimeSpan）
+**返回值：** 要求的百分位數的執行時間 (TimeSpan)
 
-## OpenTelemetry 計量整合
+## OpenTelemetry Meter 整合
 
-SemanticKernel.Graph 與 OpenTelemetry 的 `Meter` 整合，以進行標準化的指標收集和匯出。
+SemanticKernel.Graph 與 OpenTelemetry 的 `Meter` 整合，提供標準化的指標收集和導出。
 
-### 計量配置
+### Meter 組態設定
 
 ```csharp
-// 框架使用的預設計量名稱
+// 框架使用的預設 Meter 名稱
 var streamingMeter = new Meter("SemanticKernel.Graph.Streaming", "1.0.0");
 var distributionMeter = new Meter("SemanticKernel.Graph.Distribution", "1.0.0");
 var agentPoolMeter = new Meter("skg.agent_pool", "1.0.0");
 ```
 
-### 指標工具
+### 指標計量器
 
 #### 計數器
 
 ```csharp
-// 帶標籤的事件計數器
+// 帶有標籤的事件計數器
 var eventsCounter = meter.CreateCounter<long>("skg.stream.events", unit: "count", 
     description: "Total events emitted by the stream");
 
-// 使用方式
+// 用法
 eventsCounter.Add(1, new KeyValuePair<string, object?>("event_type", "NodeStarted"),
     new KeyValuePair<string, object?>("executionId", executionId),
     new KeyValuePair<string, object?>("graph", graphId),
@@ -177,11 +177,11 @@ eventsCounter.Add(1, new KeyValuePair<string, object?>("event_type", "NodeStarte
 var eventLatencyMs = meter.CreateHistogram<double>("skg.stream.event.latency_ms", 
     unit: "ms", description: "Latency per event");
 
-// 負載大小直方圖
+// 承載大小直方圖
 var serializedPayloadBytes = meter.CreateHistogram<long>("skg.stream.event.payload_bytes", 
     unit: "bytes", description: "Serialized payload size per event");
 
-// 使用方式
+// 用法
 eventLatencyMs.Record(elapsedMs, new KeyValuePair<string, object?>("event_type", "NodeCompleted"),
     new KeyValuePair<string, object?>("executionId", executionId),
     new KeyValuePair<string, object?>("graph", graphId),
@@ -190,23 +190,23 @@ eventLatencyMs.Record(elapsedMs, new KeyValuePair<string, object?>("event_type",
 
 ### 標準指標標籤
 
-SemanticKernel.Graph 中的所有指標都使用一致的標籤進行關聯和篩選：
+SemanticKernel.Graph 中的所有指標都使用一致的標籤進行相關性和篩選：
 
 #### 核心標籤
 
-* **`executionId`**：每次圖形執行的唯一識別碼
-* **`graph`**：圖形定義的穩定識別碼
-* **`node`**：特定節點的穩定識別碼
-* **`event_type`**：正在測量的事件或操作的類型
+* **`executionId`**：每個 Graph 執行的唯一識別符
+* **`graph`**：Graph 定義的穩定識別符
+* **`node`**：特定 Node 的穩定識別符
+* **`event_type`**：被測量的事件或操作的類型
 
-#### 額外的上下文標籤
+#### 其他內容標籤
 
-* **`workflow.id`**：多代理工作流程識別碼
-* **`workflow.name`**：人類可讀的工作流程名稱
-* **`agent.id`**：多代理場景中的代理識別碼
-* **`operation.type`**：正在執行的操作類型
+* **`workflow.id`**：多代理工作流識別符
+* **`workflow.name`**：人類可讀的工作流名稱
+* **`agent.id`**：多代理場景中的代理識別符
+* **`operation.type`**：執行的操作類型
 * **`compressed`**：是否應用了資料壓縮
-* **`memory_mapped`**：是否使用了記憶體對應緩衝區
+* **`memory_mapped`**：是否使用了記憶體對映緩衝區
 
 ### 指標命名慣例
 
@@ -219,10 +219,10 @@ skg.{component}.{metric_name}
 範例：
 * `skg.stream.events` - 串流事件計數器
 * `skg.stream.event.latency_ms` - 事件延遲直方圖
-* `skg.stream.event.payload_bytes` - 事件負載大小直方圖
-* `skg.stream.producer.flush_ms` - 製作者緩衝區排清延遲
+* `skg.stream.event.payload_bytes` - 事件承載大小直方圖
+* `skg.stream.producer.flush_ms` - 生產者緩衝區刷新延遲
 * `skg.agent_pool.connections` - 代理池連線計數器
-* `skg.work_distributor.tasks` - 工作分發工作計數器
+* `skg.work_distributor.tasks` - 工作分配任務計數器
 
 ## 串流指標
 
@@ -235,15 +235,15 @@ var options = new StreamingExecutionOptions
     MetricsMeterName = "MyApp.GraphExecution"
 };
 
-// executor 可能是 IStreamingGraphExecutor（例如 StreamingGraphExecutor）
+// executor 可能是 IStreamingGraphExecutor (例如 StreamingGraphExecutor)
 var stream = executor.ExecuteStreamAsync(kernel, args, options);
 ```
 
 **可用指標：**
-* `skg.stream.events` - 發出的事件總數（計數器）
-* `skg.stream.event.latency_ms` - 事件處理延遲（直方圖）
-* `skg.stream.event.payload_bytes` - 序列化負載大小（直方圖）
-* `skg.stream.producer.flush_ms` - 製作者緩衝區排清延遲（直方圖）
+* `skg.stream.events` - 發出的事件總數 (計數器)
+* `skg.stream.event.latency_ms` - 事件處理延遲 (直方圖)
+* `skg.stream.event.payload_bytes` - 序列化承載大小 (直方圖)
+* `skg.stream.producer.flush_ms` - 生產者緩衝區刷新延遲 (直方圖)
 
 ### 連線池指標
 
@@ -256,9 +256,9 @@ var poolOptions = new StreamingPoolOptions
 ```
 
 **可用指標：**
-* `skg.stream.pool.connections` - 活躍連線（計數器）
-* `skg.stream.pool.requests` - 要求計數（計數器）
-* `skg.stream.pool.latency_ms` - 要求延遲（直方圖）
+* `skg.stream.pool.connections` - 活動連線 (計數器)
+* `skg.stream.pool.requests` - 請求計數 (計數器)
+* `skg.stream.pool.latency_ms` - 請求延遲 (直方圖)
 
 ## 多代理指標
 
@@ -273,11 +273,11 @@ var agentOptions = new AgentConnectionPoolOptions
 ```
 
 **可用指標：**
-* `skg.agent_pool.connections` - 活躍代理連線（計數器）
-* `skg.agent_pool.requests` - 要求計數（計數器）
-* `skg.agent_pool.latency_ms` - 要求延遲（直方圖）
+* `skg.agent_pool.connections` - 活動代理連線 (計數器)
+* `skg.agent_pool.requests` - 請求計數 (計數器)
+* `skg.agent_pool.latency_ms` - 請求延遲 (直方圖)
 
-### 工作分發指標
+### 工作分配指標
 
 ```csharp
 var distributorOptions = new WorkDistributorOptions
@@ -288,11 +288,11 @@ var distributorOptions = new WorkDistributorOptions
 ```
 
 **可用指標：**
-* `skg.work_distributor.tasks` - 工作計數（計數器）
-* `skg.work_distributor.latency_ms` - 工作分發延遲（直方圖）
-* `skg.work_distributor.queue_size` - 佇列大小（量測）
+* `skg.work_distributor.tasks` - 任務計數 (計數器)
+* `skg.work_distributor.latency_ms` - 任務分配延遲 (直方圖)
+* `skg.work_distributor.queue_size` - 隊列大小 (量表)
 
-## 效能監控
+## 性能監控
 
 ### 資源監控
 
@@ -307,9 +307,9 @@ var metrics = new GraphPerformanceMetrics(metricsOptions);
 ```
 
 **監控的資源：**
-* CPU 使用百分比
-* 可用記憶體（MB）
-* 處理程序處理器時間
+* CPU 使用率百分比
+* 可用記憶體 (MB)
+* 進程處理時間
 * 系統負載指標
 
 ### 執行路徑分析
@@ -325,14 +325,14 @@ if (metrics.PathMetrics.TryGetValue("path_signature", out var pathMetrics))
 ```
 
 **路徑指標：**
-* 每個路徑的執行計數
+* 每條路徑的執行計數
 * 成功/失敗率
 * 平均執行時間
-* 特定路徑的效能趨勢
+* 路徑特定的性能趨勢
 
-## 指標匯出和視覺化
+## 指標導出和視覺化
 
-### 匯出格式
+### 導出格式
 
 ```csharp
 var exporter = new GraphMetricsExporter();
@@ -350,13 +350,13 @@ var heatmap = dashboard.GeneratePerformanceHeatmap(metrics, visualizationData);
 var summary = dashboard.ExportMetricsForVisualization(metrics, MetricsExportFormat.Json);
 ```
 
-## 配置範例
+## 組態設定範例
 
 ### 開發環境
 
 ```csharp
 var devOptions = GraphMetricsOptions.CreateDevelopmentOptions();
-// 高頻率取樣、詳細追蹤、短期保留
+// 高頻取樣、詳細追蹤、短期保留
 ```
 
 ### 生產環境
@@ -366,7 +366,7 @@ var prodOptions = GraphMetricsOptions.CreateProductionOptions();
 // 平衡的取樣、全面的追蹤、延長的保留
 ```
 
-### 效能臨界情況
+### 性能關鍵情景
 
 ```csharp
 var minimalOptions = GraphMetricsOptions.CreateMinimalOptions();
@@ -377,26 +377,26 @@ var minimalOptions = GraphMetricsOptions.CreateMinimalOptions();
 
 ### 指標標籤
 
-1. **一致的標籤**：始終使用標準標籤集（`executionId`、`graph`、`node`）
-2. **基數管理**：避免可能導致指標系列爆炸的高基數標籤
-3. **語義命名**：使用有助於除錯和分析的描述性標籤值
+1. **一致的標籤**：始終使用標準標籤集 (`executionId`、`graph`、`node`)
+2. **基數管理**：避免可能導致指標數列爆增的高基數標籤
+3. **語意命名**：使用描述性的標籤值來幫助調試和分析
 
-### 效能考量
+### 性能考慮
 
 1. **取樣**：為資源監控使用適當的取樣間隔
-2. **保留**：平衡歷史資料需求和記憶體使用
-3. **匯出頻率**：根據監控要求設定匯出間隔
+2. **保留**：平衡歷史數據需求與記憶體使用
+3. **導出頻率**：根據監控需求設定導出間隔
 
 ### 整合
 
 1. **OpenTelemetry**：利用內建的 OpenTelemetry 整合進行標準可觀測性
 2. **自訂指標**：使用相同的標籤模式擴展應用程式特定的指標
-3. **告警**：使用指標閾值進行主動監控和告警
+3. **警示**：使用指標閾值進行主動監控和警示
 
 ## 另請參閱
 
-* [指標和可觀測性指南](../how-to/metrics-and-observability.md) - 綜合可觀測性指南
+* [指標和可觀測性指南](../how-to/metrics-and-observability.md) - 全面的可觀測性指南
 * [指標快速入門](../metrics-logging-quickstart.md) - 開始使用指標和日誌
-* [串流 API 參考](./streaming.md) - 具有指標的串流執行
+* [串流 APIs 參考](./streaming.md) - 含指標的串流執行
 * [多代理參考](./multi-agent.md) - 多代理指標和監控
-* [圖形選項參考](./graph-options.md) - 指標配置選項
+* [Graph 選項參考](./graph-options.md) - 指標組態設定選項

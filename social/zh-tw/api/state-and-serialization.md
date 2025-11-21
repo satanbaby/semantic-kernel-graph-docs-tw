@@ -1,64 +1,64 @@
-# 狀態與序列化
+# State 與 Serialization
 
-SemanticKernel.Graph 中的狀態管理系統為數據流、執行跟蹤和持久化提供了堅實的基礎。本參考涵蓋核心狀態類別、序列化功能以及用於處理圖形狀態的實用程式方法。
+SemanticKernel.Graph 中的 state 管理系統提供了強大的基礎，用於數據流、執行追蹤和持久化。本參考涵蓋核心 state 類別、serialization 功能和處理 graph state 的實用方法。
 
-## 概述
+## 概觀
 
-狀態系統圍繞 `GraphState` 構建，該系統使用增強功能包裹 `KernelArguments`，包括執行跟蹤、元資料管理、驗證和序列化。該系統支援版本控制、完整性檢查、壓縮以及用於並行執行場景的高級合併操作。
+state 系統以 `GraphState` 為中心，它以增強的功能包裝 `KernelArguments`，用於執行追蹤、metadata 管理、驗證和 serialization。該系統支持版本控制、完整性檢查、compression 和用於平行執行場景的高級合併操作。
 
-## 主要概念
+## 關鍵概念
 
-**GraphState**：增強的 `KernelArguments` 包裝器，提供執行跟蹤、元資料、驗證和序列化功能。
+**GraphState**：`KernelArguments` 的增強包裝器，提供執行追蹤、metadata、驗證和 serialization 功能。
 
-**ISerializableState**：定義標準序列化方法的介面，具有版本控制和完整性檢查。
+**ISerializableState**：定義標準 state serialization 方法的介面，包括版本控制和完整性檢查。
 
-**StateVersion**：用於狀態相容性控制和遷移支援的語義版本控制系統。
+**StateVersion**：語義版本控制系統，用於 state 相容性控制和遷移支持。
 
-**SerializationOptions**：可配置的選項，用於控制序列化行為、壓縮和元資料包含。
+**SerializationOptions**：可配置的選項，用於控制 serialization 行為、compression 和 metadata 包含。
 
-**StateHelpers**：常見狀態操作的實用程式方法，包括序列化、合併、驗證和檢查點。
+**StateHelpers**：常見 state 操作的實用方法，包括 serialization、合併、驗證和 checkpointing。
 
 ## 核心類別
 
 ### GraphState
 
-主要狀態容器，使用額外的圖形特定功能包裝 `KernelArguments`。
+主要 state 容器，以額外的 graph 特定功能包裝 `KernelArguments`。
 
 #### 屬性
 
-* **`KernelArguments`**：底層 `KernelArguments` 執行個體
-* **`StateId`**：此狀態執行個體的唯一識別符
-* **`Version`**：當前狀態版本，用於相容性控制
-* **`CreatedAt`**：狀態建立時的時間戳記
-* **`LastModified`**：上次狀態修改的時間戳記
+* **`KernelArguments`**：底層 `KernelArguments` 實例
+* **`StateId`**：此 state 實例的唯一識別碼
+* **`Version`**：目前 state 版本，用於相容性控制
+* **`CreatedAt`**：state 建立時的時間戳
+* **`LastModified`**：上次 state 修改的時間戳
 * **`ExecutionHistory`**：執行步驟的唯讀集合
-* **`ExecutionStepCount`**：記錄的執行步驟總數
-* **`IsModified`**：指示狀態自建立後是否已修改
+* **`ExecutionStepCount`**：已記錄的執行步驟總數
+* **`IsModified`**：指示 state 自建立後是否已被修改
 
-#### 建構函式
+#### 建構函數
 
 ```csharp
-// GraphState 為建立狀態執行個體提供了便利的建構函式。
+// GraphState 提供便利的建構函數來建立 state 實例。
 public class GraphState
 {
-    // 使用預設 KernelArguments 建立空狀態
+    // 使用預設 KernelArguments 建立空 state
     public GraphState() { /* implementation omitted */ }
 
-    // 從現有 KernelArguments 初始化建立狀態
+    // 從現有 KernelArguments 初始化 state
     public GraphState(KernelArguments kernelArguments) { /* implementation omitted */ }
 }
 ```
 
 **範例：**
 ```csharp
-// 使用現有引數建立狀態並讀取值。
+// 使用現有引數建立 state 並讀取值。
 var arguments = new KernelArguments
 {
     ["input"] = "Hello World",
     ["timestamp"] = DateTimeOffset.UtcNow
 };
 
-// 使用 KernelArguments 初始化 GraphState
+// 以 KernelArguments 初始化 GraphState
 var graphState = new GraphState(arguments);
 
 // 安全地存取底層 KernelArguments
@@ -66,10 +66,10 @@ var kernelArgs = graphState.KernelArguments;
 var input = kernelArgs.GetValue<string>("input");
 ```
 
-#### 狀態存取方法
+#### State 存取方法
 
 ```csharp
-// GraphState 中用於存取值的範例方法簽章。
+// GraphState 中存取值的範例方法簽名。
 public class GraphState
 {
     public T? GetValue<T>(string name) { /* returns typed value or default */ throw null!; }
@@ -83,31 +83,31 @@ public class GraphState
 
 **範例：**
 ```csharp
-// 使用 GraphState API 設定和擷取值。
+// 使用 GraphState API 設定和取得值。
 graphState.SetValue("userName", "Alice");
 graphState.SetValue("age", 30);
 
-// 型別安全的擷取
-var userName = graphState.GetValue<string>("userName"); // 傳回 "Alice"
-var age = graphState.GetValue<int>("age"); // 傳回 30
+// 類型安全的取值
+var userName = graphState.GetValue<string>("userName"); // returns "Alice"
+var age = graphState.GetValue<int>("age"); // returns 30
 
-// 使用 TryGetValue 安全擷取
+// 使用 TryGetValue 安全取值
 if (graphState.TryGetValue<string>("email", out var email) && email is not null)
 {
     Console.WriteLine($"Email: {email}");
 }
 
-// 檢查是否存在
+// 檢查存在性
 if (graphState.ContainsValue("userName"))
 {
     Console.WriteLine("Username is set");
 }
 ```
 
-#### 元資料方法
+#### Metadata 方法
 
 ```csharp
-// GraphState 上的元資料協助程式。
+// GraphState 上的 metadata 協助程式。
 public class GraphState
 {
     public T? GetMetadata<T>(string key) { /* returns typed metadata */ throw null!; }
@@ -118,7 +118,7 @@ public class GraphState
 
 **範例：**
 ```csharp
-// 在狀態上儲存和擷取元資料。
+// 在 state 上存儲和檢索 metadata。
 graphState.SetMetadata("source", "user_input");
 graphState.SetMetadata("priority", "high");
 
@@ -130,7 +130,7 @@ Console.WriteLine($"source={source}, priority={priority}");
 #### ISerializableState 實作
 
 ```csharp
-// 典型的 ISerializableState 實作表面。
+// 典型的 ISerializableState 實作面。
 public interface ISerializableState
 {
     StateVersion Version { get; }
@@ -145,7 +145,7 @@ public interface ISerializableState
 
 **範例：**
 ```csharp
-// 序列化和驗證狀態完整性。
+// Serialize 和驗證 state 完整性。
 var serialized = graphState.Serialize();
 
 var options = new SerializationOptions
@@ -167,18 +167,18 @@ if (!validation.IsValid)
     }
 }
 
-// 計算檢查和以供日後驗證
+// 計算 checksum 以供稍後驗證
 var checksum = graphState.CreateChecksum();
 ```
 
 ### ISerializableState
 
-定義標準序列化方法的介面，具有版本控制和完整性檢查。
+定義標準 state serialization 方法的介面，包括版本控制和完整性檢查。
 
 #### 介面方法
 
 ```csharp
-// 可序列化狀態的範例介面成員。
+// serializable state 的範例介面成員。
 public interface ISerializableState
 {
     StateVersion Version { get; }
@@ -193,22 +193,22 @@ public interface ISerializableState
 
 ### SerializationOptions
 
-用於控制序列化行為的可配置選項。
+用於控制 serialization 行為的可配置選項。
 
 #### 屬性
 
-* **`Indented`**：是否使用縮排格式化
-* **`EnableCompression`**：是否為大型狀態啟用壓縮
-* **`IncludeMetadata`**：是否在序列化中包含元資料
+* **`Indented`**：是否使用縮排格式
+* **`EnableCompression`**：是否為大型 state 啟用 compression
+* **`IncludeMetadata`**：是否在 serialization 中包含 metadata
 * **`IncludeExecutionHistory`**：是否包含執行歷史記錄
-* **`CompressionLevel`**：要使用的壓縮等級
-* **`JsonOptions`**：自訂 JSON 序列化程式選項
-* **`ValidateIntegrity`**：是否在序列化後驗證完整性
+* **`CompressionLevel`**：要使用的 compression 級別
+* **`JsonOptions`**：自訂 JSON serializer 選項
+* **`ValidateIntegrity`**：是否在 serialization 後驗證完整性
 
 #### 工廠方法
 
 ```csharp
-// SerializationOptions 的常見工廠預設值。
+// SerializationOptions 的常見工廠預設。
 public class SerializationOptions
 {
     public bool Indented { get; set; }
@@ -241,7 +241,7 @@ public class SerializationOptions
 
 **範例：**
 ```csharp
-// 選擇預定義的選項預設值或建立自訂預設值。
+// 選擇預定義的選項預設或建立自訂選項。
 var compactOptions = SerializationOptions.Compact;
 var verboseOptions = SerializationOptions.Verbose;
 
@@ -257,20 +257,20 @@ var customOptions = new SerializationOptions
 
 ### StateVersion
 
-代表用於相容性控制和遷移的狀態版本。
+表示 state 版本，用於相容性控制和遷移。
 
 #### 屬性
 
-* **`Major`**：主要版本號碼
-* **`Minor`**：次要版本號碼
-* **`Patch`**：修補程式版本號碼
-* **`IsCompatible`**：指示此版本是否與當前版本相容
+* **`Major`**：主版本號
+* **`Minor`**：次版本號
+* **`Patch`**：修補程式版本號
+* **`IsCompatible`**：指示此版本是否與目前版本相容
 * **`RequiresMigration`**：指示此版本是否需要遷移
 
 #### 常數
 
 ```csharp
-// 狀態系統使用的範例版本常數。
+// state 系統使用的範例版本常數。
 public static class StateVersionConstants
 {
     public static readonly StateVersion Current = new StateVersion(1, 1, 0);
@@ -278,10 +278,10 @@ public static class StateVersionConstants
 }
 ```
 
-#### 建構函式
+#### 建構函數
 
 ```csharp
-// 構造狀態版本執行個體。
+// 建構一個 state 版本實例。
 public record StateVersion(int Major, int Minor, int Patch)
 {
     public StateVersion(int major, int minor, int patch) : this(major, minor, patch) { }
@@ -296,8 +296,8 @@ public record StateVersion(int Major, int Minor, int Patch)
 var version = new StateVersion(1, 2, 3);
 
 // 檢查相容性
-var isCompatible = version.IsCompatible; // 如果相容則為 true
-var needsMigration = version.RequiresMigration; // 如果需要遷移則為 true
+var isCompatible = version.IsCompatible; // true if compatible
+var needsMigration = version.RequiresMigration; // true if needs migration
 
 // 比較版本
 if (version < StateVersion.Current)
@@ -309,7 +309,7 @@ if (version < StateVersion.Current)
 #### 靜態方法
 
 ```csharp
-// StateVersion 的剖析協助程式。
+// StateVersion 的 Parsing 協助程式。
 public static class StateVersionParser
 {
     public static StateVersion Parse(string version) =>
@@ -333,16 +333,16 @@ public static class StateVersionParser
 
 **範例：**
 ```csharp
-// 剖析版本字串
+// Parse 版本字串
 var version = StateVersion.Parse("1.2.3");
 Console.WriteLine($"Major: {version.Major}");    // 1
 Console.WriteLine($"Minor: {version.Minor}");    // 2
 Console.WriteLine($"Patch: {version.Patch}");    // 3
 
-// 安全的剖析
+// 安全 parsing
 if (StateVersion.TryParse("invalid", out var parsedVersion))
 {
-    // 使用剖析的版本
+    // Use parsed version
 }
 else
 {
@@ -352,17 +352,17 @@ else
 
 ### StateHelpers
 
-常見狀態操作的實用程式方法，包括序列化、合併、驗證和檢查點。
+常見 state 操作的實用方法，包括 serialization、合併、驗證和 checkpointing。
 
-#### 序列化方法
+#### Serialization 方法
 
 ```csharp
-// GraphState 執行個體的序列化和反序列化協助程式。
+// GraphState 實例的 serialization 和 deserialization 協助程式。
 public static class StateHelpers
 {
     public static string SerializeState(GraphState state, bool indented = false, bool enableCompression = true, bool useCache = true)
     {
-        // 實作委派至 GraphState.Serialize，並帶有 SerializationOptions 執行個體。
+        // Implementation delegates to GraphState.Serialize with a SerializationOptions instance.
         var options = new SerializationOptions { Indented = indented, EnableCompression = enableCompression };
         return state.Serialize(options);
     }
@@ -378,7 +378,7 @@ public static class StateHelpers
 
     public static GraphState DeserializeState(string serializedData)
     {
-        // 委派至 GraphState 反序列化邏輯 (為簡潔起見省略實作)。
+        // Delegates to GraphState deserialization logic (implementation omitted for brevity).
         throw new NotImplementedException();
     }
 }
@@ -386,27 +386,27 @@ public static class StateHelpers
 
 **範例：**
 ```csharp
-// 使用協助程式和選擇性計量進行基本序列化。
+// 使用協助程式和選擇性 metrics 進行基本 serialization。
 var serialized = StateHelpers.SerializeState(graphState);
 
 var serializedWithMetrics = StateHelpers.SerializeState(graphState, indented: true, enableCompression: true, useCache: true, out var metrics);
 Console.WriteLine($"Serialization took: {metrics.Duration}");
 
-// 反序列化 (若在文件中未實作可能擲回)
+// Deserialization (might throw if unimplemented in docs)
 // var restoredState = StateHelpers.DeserializeState(serialized);
 ```
 
-#### 狀態管理方法
+#### State 管理方法
 
 ```csharp
-// 高階狀態管理協助程式。實作應在適當的地方保留不可變性。
+// 高階 state 管理協助程式。實作應在適當的情況下保持不變性。
 public static class StateHelpers
 {
     public static GraphState CloneState(GraphState state) => new GraphState(state.KernelArguments);
 
     public static GraphState MergeStates(GraphState baseState, GraphState overlayState, StateMergeConflictPolicy policy)
     {
-        // 簡化的合併：預設情況下覆蓋優先。
+        // Simplified merge: overlay takes precedence by default.
         var merged = CloneState(baseState);
         foreach (var name in overlayState.GetParameterNames())
         {
@@ -420,7 +420,7 @@ public static class StateHelpers
 
     public static StateMergeResult MergeStatesWithConflictDetection(GraphState baseState, GraphState overlayState, StateMergeConfiguration configuration, bool detectConflicts = true)
     {
-        // 在此範例中傳回表示沒有衝突的簡單結果。
+        // Returns a simple result indicating no conflicts in this example.
         return new StateMergeResult { HasConflicts = false };
     }
 }
@@ -428,11 +428,11 @@ public static class StateHelpers
 
 **範例：**
 ```csharp
-// 使用協助程式複製和合併狀態。
+// 使用協助程式複製和合併 state。
 var clonedState = StateHelpers.CloneState(graphState);
 var mergedState = StateHelpers.MergeStates(baseState, overlayState, StateMergeConflictPolicy.PreferSecond);
 
-// 使用組態型合併
+// 使用基於組態的合併
 var config = new StateMergeConfiguration { DefaultPolicy = StateMergeConflictPolicy.Reduce };
 config.SetKeyPolicy("counters", StateMergeConflictPolicy.Reduce);
 var advancedMergedState = StateHelpers.MergeStates(baseState, overlayState, config);
@@ -451,7 +451,7 @@ if (mergeResult.HasConflicts)
 #### 驗證方法
 
 ```csharp
-// 驗證協助程式以檢查必需參數並強制執行型別條件約束。
+// 驗證協助程式以檢查必要的參數和強制執行類型約束。
 public static class StateHelpers
 {
     public static IList<string> ValidateRequiredParameters(GraphState state, IEnumerable<string> requiredParameters)
@@ -502,10 +502,10 @@ if (violations.Count > 0)
 }
 ```
 
-#### 交易方法
+#### Transaction 方法
 
 ```csharp
-// 交易協助程式：開始、提交和復原。
+// Transaction 協助程式：開始、提交和回滾。
 public static class StateHelpers
 {
     public static string BeginTransaction(GraphState state) => Guid.NewGuid().ToString();
@@ -519,11 +519,11 @@ public static class StateHelpers
 var transactionId = StateHelpers.BeginTransaction(graphState);
 try
 {
-    // 執行暫時性變更
+    // 執行暫時變更
     graphState.SetValue("tempValue", "will be rolled back");
 
-    // 域驗證預留位置
-    var valid = true; // 以真實驗證取代
+    // 佔位符用於域驗證
+    var valid = true; // replace with real validation
     if (valid)
     {
         StateHelpers.CommitTransaction(graphState, transactionId);
@@ -539,10 +539,10 @@ catch (Exception)
 }
 ```
 
-#### 檢查點方法
+#### Checkpoint 方法
 
 ```csharp
-// 檢查點協助程式建立和還原輕量級狀態快照。
+// Checkpoint 協助程式建立和還原 state 的輕量級快照。
 public static class StateHelpers
 {
     public static string CreateCheckpoint(GraphState state, string checkpointName) => Guid.NewGuid().ToString();
@@ -554,14 +554,14 @@ public static class StateHelpers
 ```csharp
 var checkpointId = StateHelpers.CreateCheckpoint(graphState, "before_processing");
 graphState.SetValue("processed", true);
-// 如果需要復原：
+// If rollback needed:
 // graphState = StateHelpers.RestoreCheckpoint(graphState, checkpointId);
 ```
 
-#### 壓縮方法
+#### Compression 方法
 
 ```csharp
-// 壓縮相關協助程式，用於測量和管理自適應壓縮。
+// Compression 相關協助程式，用於測量和管理自適應 compression。
 public static class StateHelpers
 {
     public static CompressionStats GetCompressionStats(string data) => new CompressionStats { OriginalSizeBytes = data.Length, CompressedSizeBytes = data.Length };
@@ -576,17 +576,17 @@ public static class StateHelpers
 var stats = StateHelpers.GetCompressionStats(serializedData);
 Console.WriteLine($"Original size: {stats.OriginalSizeBytes} bytes");
 Console.WriteLine($"Compressed size: {stats.CompressedSizeBytes} bytes");
-// 自適應壓縮資訊
+// 自適應 compression 資訊
 var threshold = StateHelpers.GetAdaptiveCompressionThreshold();
 var adaptiveState = StateHelpers.GetAdaptiveCompressionState();
 ```
 
 ## 使用模式
 
-### 基本狀態建立和管理
+### 基本 State 建立和管理
 
 ```csharp
-// 範例：建立和檢查 GraphState 執行個體。
+// 範例：建立和檢視 GraphState 實例。
 var arguments = new KernelArguments
 {
     ["input"] = "Hello World",
@@ -601,10 +601,10 @@ Console.WriteLine($"State ID: {graphState.StateId}");
 Console.WriteLine($"Version: {graphState.Version}");
 ```
 
-### 狀態序列化和持久化
+### State Serialization 和持久化
 
 ```csharp
-// 使用內建預設值或自訂選項執行個體進行序列化。
+// 使用內建預設或自訂選項實例進行 serialization。
 var compactSerialized = graphState.Serialize(SerializationOptions.Compact);
 var verboseSerialized = graphState.Serialize(SerializationOptions.Verbose);
 
@@ -619,16 +619,16 @@ var customOptions = new SerializationOptions
 
 var customSerialized = graphState.Serialize(customOptions);
 
-// 儲存和載入範例 (需要非同步內容)
+// 保存和加載範例（需要 async 上下文）
 // await File.WriteAllTextAsync("state.json", customSerialized);
 // var loadedData = await File.ReadAllTextAsync("state.json");
 // var restoredState = StateHelpers.DeserializeState(loadedData);
 ```
 
-### 狀態合併和衝突解決
+### State 合併和衝突解決
 
 ```csharp
-// 建立要合併的狀態
+// 建立要合併的 state
 var baseState = new GraphState(new KernelArguments
 {
     ["user"] = "Alice",
@@ -642,21 +642,21 @@ var overlayState = new GraphState(new KernelArguments
     ["settings"] = new Dictionary<string, object> { ["language"] = "en" }
 });
 
-// 簡單合併 (覆蓋優先)
+// 簡單合併（overlay 具有優先權）
 var mergedState = StateHelpers.MergeStates(baseState, overlayState, 
     StateMergeConflictPolicy.PreferSecond);
 
-// 進階合併含組態
+// 使用組態的高級合併
 var config = new StateMergeConfiguration
 {
     DefaultPolicy = StateMergeConflictPolicy.PreferSecond
 };
 
-// 設定特定原則
+// 組態特定原則
 config.SetKeyPolicy("count", StateMergeConflictPolicy.Reduce);
 config.SetTypePolicy(typeof(Dictionary<string, object>), StateMergeConflictPolicy.Reduce);
 
-// 字典的自訂合併器
+// 字典的自訂合併程式
 config.SetCustomKeyMerger("settings", (baseVal, overlayVal) =>
 {
     if (baseVal is Dictionary<string, object> baseDict && 
@@ -675,10 +675,10 @@ config.SetCustomKeyMerger("settings", (baseVal, overlayVal) =>
 var advancedMergedState = StateHelpers.MergeStates(baseState, overlayState, config);
 ```
 
-### 狀態驗證和完整性
+### State 驗證和完整性
 
 ```csharp
-// 驗證狀態完整性
+// 驗證 state 完整性
 var validation = graphState.ValidateIntegrity();
 if (!validation.IsValid)
 {
@@ -693,7 +693,7 @@ if (!validation.IsValid)
     }
 }
 
-// 建立和驗證檢查和
+// 建立和驗證 checksum
 var originalChecksum = graphState.CreateChecksum();
 
 // 進行變更
@@ -706,7 +706,7 @@ if (originalChecksum != newChecksum)
     Console.WriteLine("State has been modified");
 }
 
-// 驗證必需參數
+// 驗證必要參數
 var required = new[] { "user", "email", "age" };
 var missing = StateHelpers.ValidateRequiredParameters(graphState, required);
 
@@ -716,7 +716,7 @@ if (missing.Count > 0)
         $"Missing required parameters: {string.Join(", ", missing)}");
 }
 
-// 驗證參數型別
+// 驗證參數類型
 var typeConstraints = new Dictionary<string, Type>
 {
     ["user"] = typeof(string),
@@ -732,31 +732,31 @@ if (violations.Count > 0)
 }
 ```
 
-### 狀態交易和檢查點
+### State Transaction 和 Checkpointing
 
 ```csharp
-// 建立檢查點
+// 建立 checkpoint
 var checkpointId = StateHelpers.CreateCheckpoint(graphState, "initial_state");
 
-// 開始交易
+// 開始 transaction
 var transactionId = StateHelpers.BeginTransaction(graphState);
 
 try
 {
-    // 在交易中進行變更
+    // 在 transaction 中進行變更
     graphState.SetValue("temp1", "value1");
     graphState.SetValue("temp2", "value2");
     
     // 驗證變更
     if (ValidateChanges(graphState))
     {
-        // 提交交易
+        // 提交 transaction
         StateHelpers.CommitTransaction(graphState, transactionId);
         Console.WriteLine("Transaction committed successfully");
     }
     else
     {
-        // 復原交易
+        // 回滾 transaction
         var rolledBackState = StateHelpers.RollbackTransaction(graphState, transactionId);
         graphState = rolledBackState;
         Console.WriteLine("Transaction rolled back due to validation failure");
@@ -764,13 +764,13 @@ try
 }
 catch (Exception ex)
 {
-    // 因錯誤復原
+    // 在錯誤時回滾
     var rolledBackState = StateHelpers.RollbackTransaction(graphState, transactionId);
     graphState = rolledBackState;
     Console.WriteLine($"Transaction rolled back due to error: {ex.Message}");
 }
 
-// 必要時還原檢查點
+// 如果需要，從 checkpoint 還原
 if (needToRestore)
 {
     var restoredState = StateHelpers.RestoreCheckpoint(graphState, checkpointId);
@@ -781,31 +781,31 @@ if (needToRestore)
 
 ## 效能考量
 
-* **序列化快取**：對同一狀態的重複序列化使用 `useCache: true`
-* **壓縮**：為大型狀態啟用壓縮以降低儲存和傳輸成本
-* **自適應壓縮**：系統根據觀察到的優勢自動調整壓縮閾值
+* **Serialization Caching**：對相同 state 的重複 serialization 使用 `useCache: true`
+* **Compression**：為大型 state 啟用 compression 以減少儲存和轉移成本
+* **自適應 Compression**：系統會根據觀察到的優勢自動調整 compression 閾值
 * **驗證**：在生產環境中謹慎使用驗證；考慮快取驗證結果
-* **元資料**：保持元資料輕量級以避免序列化開銷
+* **Metadata**：保持 metadata 輕量級以避免 serialization 開銷
 
 ## 執行緒安全性
 
-* **GraphState**：執行緒安全用於並行讀取；並行寫入需要外部同步
-* **StateHelpers**：靜態方法為執行緒安全；為共用狀態使用適當的鎖定
-* **序列化**：快取序列化為執行緒安全，具有內部鎖定
+* **GraphState**：執行緒安全的並行讀取；並行寫入需要外部同步
+* **StateHelpers**：靜態方法是執行緒安全的；對共用 state 使用適當的鎖定
+* **Serialization**：快取的 serialization 是執行緒安全的，具有內部鎖定
 
 ## 錯誤處理
 
-* **驗證**：反序列化後務必驗證狀態完整性
-* **檢查和**：使用檢查和偵測狀態損毀
-* **交易**：實作適當的錯誤處理和復原邏輯
-* **遷移**：使用遷移邏輯優雅地處理版本不相容
+* **驗證**：在 deserialization 後始終驗證 state 完整性
+* **Checksums**：使用 checksums 偵測 state 損壞
+* **Transactions**：實作適當的錯誤處理和回滾邏輯
+* **遷移**：使用遷移邏輯優雅地處理版本不相容性
 
 ## 另請參閱
 
-* [狀態管理指南](../concepts/state.md)
-* [檢查點指南](../how-to/checkpointing.md)
-* [狀態快速入門](../state-quickstart.md)
-* [狀態教程](../state-tutorial.md)
+* [State Management Guide](../concepts/state.md)
+* [Checkpointing Guide](../how-to/checkpointing.md)
+* [State Quickstart](../state-quickstart.md)
+* [State Tutorial](../state-tutorial.md)
 * [ConditionalEdge](conditional-edge.md)
 * [StateMergeConfiguration](state-merge-configuration.md)
 * [StateMergeConflictPolicy](state-merge-conflict-policy.md)

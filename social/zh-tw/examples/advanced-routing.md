@@ -1,60 +1,60 @@
 # 進階路由範例
 
-本範例展示語義核心圖中的進階路由功能，包括語義路由、內容相似性、概率性路由、上下文路由和回饋學習。
+本範例展示了 Semantic Kernel Graph 中的進階路由功能，包括語意路由、內容相似度、機率路由、上下文路由和回饋學習。
 
 ## 目標
 
-學習如何在基於圖的工作流中實現進階路由策略，以便：
-* 使用語義路由搭配嵌入進行內容感知決策
-* 使用歷史執行模式實現基於相似性的路由
-* 設定具動態權重的概率性路由
-* 根據執行歷史和狀態啟用上下文路由
-* 實現回饋學習以長期改進路由決策
+學習如何在基於 Graph 的工作流程中實現進階路由策略：
+* 使用具有 Embedding 的語意路由進行內容感知決策
+* 使用歷史執行模式實現基於相似度的路由
+* 配置具有動態權重的機率路由
+* 基於執行歷史和狀態啟用上下文路由
+* 實現回饋學習以隨著時間改進路由決策
 
-## 先決條件
+## 前置條件
 
 * **.NET 8.0** 或更新版本
-* **OpenAI API 金鑰**已在 `appsettings.json` 中設定
-* **語義核心圖套件**已安裝
-* **文字嵌入服務**已設定（OpenAI、Azure OpenAI 或本機）
-* 基本瞭解 [圖概念](../concepts/graph-concepts.md) 和 [路由](../concepts/routing.md)
-* 熟悉 [動態路由](../how-to/advanced-routing.md)
+* **OpenAI API Key** 配置於 `appsettings.json`
+* **Semantic Kernel Graph package** 已安裝
+* **文本 Embedding 服務** 已配置（OpenAI、Azure OpenAI 或本機）
+* 基本了解 [Graph Concepts](../concepts/graph-concepts.md) 和 [Routing](../concepts/routing.md)
+* 熟悉 [Dynamic Routing](../how-to/advanced-routing.md)
 
 ## 關鍵元件
 
 ### 概念和技術
 
-* **語義路由**：使用文字嵌入和相似性進行內容感知路由
-* **相似性路由**：根據歷史執行模式和結果進行路由
-* **概率性路由**：具有加權機率和學習的動態路由
-* **上下文路由**：根據執行上下文和狀態進行路由決策
-* **回饋學習**：通過回饋持續改進路由決策
+* **語意路由**: 使用文本 Embedding 和相似度進行內容感知路由
+* **相似度路由**: 基於歷史執行模式和結果的路由
+* **機率路由**: 具有加權機率和學習的動態路由
+* **上下文路由**: 基於執行上下文和狀態的路由決策
+* **回饋學習**: 透過回饋連續改進路由決策
 
 ### 核心類別
 
-* `DynamicRoutingEngine`：具有多個策略的進階路由引擎
-* `ITextEmbeddingGenerationService`：用於產生文字嵌入的服務
+* `DynamicRoutingEngine`：具有多種策略的進階路由引擎
+* `ITextEmbeddingGenerationService`：用於生成文本 Embedding 的服務
 * `IGraphMemoryService`：用於儲存和檢索路由歷史的服務
 * `GraphExecutor`：具有進階路由功能的增強執行器
-* `FunctionGraphNode`：可使用進階策略進行路由的節點
+* `FunctionGraphNode`：可使用進階策略進行路由的 Node
 
 ## 執行範例
 
-### 快速入門
+### 開始使用
 
-本範例展示語義核心圖套件中的進階路由和決策制定。下方程式碼片段說明如何在自己的應用程式中實現此模式。
+本範例展示了使用 Semantic Kernel Graph package 進行進階路由和決策制定。下面的程式碼片段向您展示如何在自己的應用程式中實現此模式。
 
-## 逐步實作
+## 逐步實施
 
-### 1. 建立進階路由圖
+### 1. 建立進階路由 Graph
 
-範例首先建立針對展示進階路由案例最佳化的圖。
+此範例從建立針對展示進階路由情境優化的 Graph 開始。
 
 ```csharp
-// 使用核心感知建構式建立圖
+// Create a graph using a Kernel-aware constructor
 var graph = new GraphExecutor(kernel, logger: null);
 
-// 建立模擬不同決策點類型的節點（使用核心函數）
+// Create nodes that simulate different types of decision points using Kernel functions
 var startNode = new FunctionGraphNode(
     kernel.CreateFunctionFromMethod((string input) => $"Analyzed: {input}", functionName: "Analyze", description: "Analyze the input"),
     nodeId: "start",
@@ -85,7 +85,7 @@ var summaryNode = new FunctionGraphNode(
     nodeId: "summary",
     description: "Generates final summary and results").StoreResultAs("summary");
 
-// 將節點新增到圖
+// Add nodes to graph
 graph.AddNode(startNode);
 graph.AddNode(semanticNode);
 graph.AddNode(statisticalNode);
@@ -94,23 +94,23 @@ graph.AddNode(errorHandlerNode);
 graph.AddNode(summaryNode);
 graph.SetStartNode(startNode.NodeId);
 
-// 建立條件邊。注意：ConnectWhen 需要 KernelArguments 的述詞。
+// Create conditional edges. Note: ConnectWhen expects a predicate over KernelArguments.
 graph.ConnectWhen(startNode.NodeId, semanticNode.NodeId, ka => ka.ContainsKey("input") && ka["input"]?.ToString()?.Contains("semantic", StringComparison.OrdinalIgnoreCase) == true);
 graph.ConnectWhen(startNode.NodeId, statisticalNode.NodeId, ka => ka.ContainsKey("input") && ka["input"]?.ToString()?.Contains("stat", StringComparison.OrdinalIgnoreCase) == true);
 graph.ConnectWhen(startNode.NodeId, hybridNode.NodeId, ka => ka.ContainsKey("input") && ka["input"]?.ToString()?.Contains("hybrid", StringComparison.OrdinalIgnoreCase) == true);
 graph.ConnectWhen(startNode.NodeId, errorHandlerNode.NodeId, ka => ka.ContainsKey("error") && ka["error"]?.ToString() == "true");
 
-// 所有處理節點都可前往摘要節點
+// All processing nodes can go to summary
 graph.Connect(semanticNode.NodeId, summaryNode.NodeId);
 graph.Connect(statisticalNode.NodeId, summaryNode.NodeId);
 graph.Connect(hybridNode.NodeId, summaryNode.NodeId);
 graph.Connect(errorHandlerNode.NodeId, summaryNode.NodeId);
 ```
 
-### 2. 設定進階路由引擎
+### 2. 配置進階路由引擎
 
 ```csharp
-// 建立具有所有功能的進階路由引擎
+// Create advanced routing engine with all capabilities
 var typedLogger = kernel.Services.GetService<ILogger<DynamicRoutingEngine>>();
 var routingEngine = new DynamicRoutingEngine(
     templateEngine: null,
@@ -119,15 +119,15 @@ var routingEngine = new DynamicRoutingEngine(
     embeddingService: embeddingService,
     memoryService: memoryService);
 
-// 設定圖使用進階路由
+// Configure the graph to use advanced routing
 graph.RoutingEngine = routingEngine;
 
 logger.LogInformation("Advanced routing enabled: {IsEnabled}", routingEngine.IsAdvancedRoutingEnabled);
 ```
 
-### 3. 語義路由演示
+### 3. 語意路由演示
 
-語義路由使用嵌入進行內容感知的路由決策。
+語意路由使用 Embedding 進行內容感知的路由決策。
 
 ```csharp
 var semanticQueries = new[]
@@ -149,12 +149,12 @@ foreach (var query in semanticQueries)
 }
 ```
 
-### 4. 相似性路由演示
+### 4. 相似度路由演示
 
-相似性路由使用歷史執行模式進行路由決策。
+相似度路由使用歷史執行模式進行路由決策。
 
 ```csharp
-// 執行相似的模式以建立歷史
+// Execute similar patterns to build history
 var similarPatterns = new[]
 {
     ("customer_feedback", "positive"),
@@ -180,12 +180,12 @@ foreach (var (category, type) in similarPatterns)
 logger.LogInformation("Similarity patterns established for future routing decisions");
 ```
 
-### 5. 概率性路由演示
+### 5. 機率路由演示
 
-概率性路由使用動態權重和學習進行路由決策。
+機率路由使用動態權重和學習進行路由決策。
 
 ```csharp
-// 執行多個類似案例以展示概率選擇
+// Execute multiple similar scenarios to show probabilistic selection
 for (int i = 0; i < 10; i++)
 {
     var args = new KernelArguments
@@ -198,14 +198,14 @@ for (int i = 0; i < 10; i++)
     logger.LogInformation("Executing probabilistic routing iteration {Iteration}", i);
     var result = await graph.ExecuteAsync(kernel, args);
     
-    // 模擬學習回饋
+    // Simulate feedback for learning
     var feedback = new RoutingFeedback
     {
         ExecutionId = result.ExecutionId,
-        // FunctionResult 不直接公開路由中繼資料。使用函數輸出
-        // 或專用的圖狀態金鑰在實際整合中擷取路由資訊。
+        // The FunctionResult does not expose routing metadata directly. Use the function output
+        // or a dedicated graph state key to capture route information in a real integration.
         RouteSelected = result.GetValue<object>()?.ToString() ?? string.Empty,
-        Success = Random.Shared.Next(100) < 85, // 85% 成功率
+        Success = Random.Shared.Next(100) < 85, // 85% success rate
         Performance = TimeSpan.FromMilliseconds(Random.Shared.Next(100, 500))
     };
     
@@ -215,10 +215,10 @@ for (int i = 0; i < 10; i++)
 
 ### 6. 上下文路由演示
 
-上下文路由考慮執行歷史和目前狀態以進行路由決策。
+上下文路由在進行路由決策時考慮執行歷史和目前狀態。
 
 ```csharp
-// 使用不同上下文執行以展示上下文路由
+// Execute with different contexts to show contextual routing
 var contexts = new[]
 {
     new { TimeOfDay = "morning", Load = "low", Priority = "normal" },
@@ -239,7 +239,7 @@ foreach (var context in contexts)
     logger.LogInformation("Executing with context: {Context}", context);
     var result = await graph.ExecuteAsync(kernel, args);
     
-    // 展示上下文如何影響路由（FunctionResult 不公開路由欄位）
+    // Show how context influenced routing (FunctionResult doesn't expose a route field)
     logger.LogInformation("Route taken (inferred): {Route} based on context {Context}",
         result.GetValue<object>()?.ToString() ?? string.Empty, context);
 }
@@ -247,10 +247,10 @@ foreach (var context in contexts)
 
 ### 7. 回饋學習演示
 
-回饋學習根據執行結果持續改進路由決策。
+回饋學習基於執行結果連續改進路由決策。
 
 ```csharp
-// 模擬回饋收集和學習
+// Simulate feedback collection and learning
 var feedbackBatch = new List<RoutingFeedback>();
 
 for (int i = 0; i < 20; i++)
@@ -264,70 +264,70 @@ for (int i = 0; i < 20; i++)
 
     var result = await graph.ExecuteAsync(kernel, args);
     
-    // 收集回饋
+    // Collect feedback
     var feedback = new RoutingFeedback
     {
         ExecutionId = result.ExecutionId,
-        // 在文件範例中使用函數輸出作為路由識別的後備
+        // Use the function output as a fallback for route identification in the docs example
         RouteSelected = result.GetValue<object>()?.ToString() ?? string.Empty,
-        Success = Random.Shared.Next(100) < 90, // 90% 成功率
+        Success = Random.Shared.Next(100) < 90, // 90% success rate
         Performance = TimeSpan.FromMilliseconds(Random.Shared.Next(50, 300)),
-        UserSatisfaction = Random.Shared.Next(1, 6) // 1-5 刻度
+        UserSatisfaction = Random.Shared.Next(1, 6) // 1-5 scale
     };
     
     feedbackBatch.Add(feedback);
 }
 
-// 提供批次回饋以進行學習
+// Provide batch feedback for learning
 await routingEngine.ProvideBatchFeedbackAsync(feedbackBatch);
 logger.LogInformation("Provided feedback for {Count} executions", feedbackBatch.Count);
 ```
 
 ### 8. 路由分析和見解
 
-範例結論透過顯示綜合路由分析。
+此範例最後顯示全面的路由分析。
 
 ```csharp
-// 顯示分析
+// Show analytics
 await DisplayRoutingAnalyticsAsync(routingEngine, logger);
 
-// 清理
+// Cleanup
 await routingEngine.DisposeAsync();
 logger.LogInformation("=== Advanced Routing Demonstration Complete ===");
 ```
 
 ## 預期輸出
 
-範例產生的綜合輸出顯示：
+此範例產生的全面輸出顯示：
 
-* ✅ 使用多個節點類型建立的進階路由圖
-* 🔀 根據內容分析進行的語義路由決策
-* 📊 使用歷史模式進行的相似性路由
-* 🎲 具有動態權重的概率性路由
-* 🧠 根據執行上下文進行的上下文路由
-* 📈 回饋學習和持續改進
-* 📋 綜合路由分析和見解
+* ✅ 具有多種 Node 類型的進階路由 Graph 建立
+* 🔀 基於內容分析的語意路由決策
+* 📊 使用歷史模式的相似度路由
+* 🎲 具有動態權重的機率路由
+* 🧠 基於執行上下文的上下文路由
+* 📈 回饋學習和連續改進
+* 📋 全面的路由分析和見解
 
 ## 疑難排解
 
 ### 常見問題
 
-1. **嵌入服務錯誤**：確保文字嵌入服務已正確設定
-2. **記憶體服務故障**：檢查記憶體服務組態和連線能力
-3. **路由決策故障**：驗證路由條件和邊設定
-4. **效能問題**：監視路由決策計時並最佳化臨界值
+1. **Embedding 服務錯誤**：確保文本 Embedding 服務已正確配置
+2. **記憶體服務故障**：檢查記憶體服務配置和連線
+3. **路由決策失敗**：驗證路由條件和 Edge 配置
+4. **效能問題**：監控路由決策計時並優化閾值
 
-### 除錯提示
+### 偵錯提示
 
 * 啟用詳細記錄以追蹤路由決策
-* 監視相似性分數和信心等級
+* 監控相似度分數和信心水準
 * 檢查回饋收集和學習進度
 * 驗證上下文路由條件和狀態
 
 ## 另請參閱
 
-* [進階路由](../how-to/advanced-routing.md)
-* [動態路由](../how-to/dynamic-routing.md)
-* [圖概念](../concepts/graph-concepts.md)
-* [路由](../concepts/routing.md)
-* [狀態管理](../concepts/state.md)
+* [Advanced Routing](../how-to/advanced-routing.md)
+* [Dynamic Routing](../how-to/dynamic-routing.md)
+* [Graph Concepts](../concepts/graph-concepts.md)
+* [Routing](../concepts/routing.md)
+* [State Management](../concepts/state.md)

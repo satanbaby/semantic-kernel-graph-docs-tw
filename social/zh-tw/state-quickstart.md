@@ -1,30 +1,30 @@
 # 狀態快速入門
 
-本快速教程將教你如何在 SemanticKernel.Graph 中使用狀態。你將學習如何使用 `KernelArguments` 和 `GraphState` 以及擴充方法來管理節點之間的資料流。
+本快速教程將教您如何在 SemanticKernel.Graph 中處理狀態。您將學習如何使用 `KernelArguments` 和 `GraphState` 與擴充方法來管理節點間的資料流動。
 
-## 你將學到什麼
+## 您將學習的內容
 
 * 使用 `KernelArguments` 建立和管理狀態
 * 使用 `GraphState` 進行增強的狀態管理
-* 使用擴充方法讀取和寫入變數
-* 節點之間的狀態流
-* 基本的狀態驗證和追蹤
+* 使用擴充方法讀寫變數
+* 節點間的狀態流動
+* 基本狀態驗證和追蹤
 
 ## 概念和技術
 
-**KernelArguments**：一個類似字典的容器，其中保存代表圖形執行的狀態和內容的鍵值對。
+**KernelArguments**: 一個類似字典的容器，包含代表圖形執行狀態和上下文的鍵值對。
 
-**GraphState**：圍繞 `KernelArguments` 的增強包裝器，提供額外的元資料、驗證和序列化功能。
+**GraphState**: 圍繞 `KernelArguments` 的增強包裝器，提供額外的後設資料、驗證和序列化功能。
 
-**狀態流**：當圖形執行時，資料在節點之間的移動，其中每個節點都可以讀取和寫入共享狀態。
+**State Flow**: 當圖形執行時，資料在節點間移動，其中每個節點都可以讀取和寫入共享狀態。
 
-**擴充方法**：延伸 `KernelArguments` 的實用程式方法，具有圖形特定功能，以便於狀態管理。
+**Extension Methods**: 使用圖形特定功能擴充 `KernelArguments` 的實用方法，便於狀態管理。
 
 ## 先決條件
 
-* 完成 [首個圖形教程](first-graph-5-minutes.md)
-* 對 SemanticKernel.Graph 概念的基本了解
-* .NET 8.0+ 執行時環境
+* [第一個圖形教程](first-graph-5-minutes.md)已完成
+* 對 SemanticKernel.Graph 概念的基本理解
+* .NET 8.0+ 執行時
 
 ## 步驟 1：基本狀態建立
 
@@ -76,11 +76,11 @@ var stateWithObjects = new KernelArguments
 
 ```csharp
 // 讀取簡單值
-var name = state["userName"]; // 傳回物件
+var name = state["userName"]; // 返回物件
 var age = state.TryGetValue("userAge", out var ageValue) ? ageValue : 0; // 安全讀取
 var preferences = state.TryGetValue("preferences", out var prefValue) ? prefValue : new string[0];
 
-// 使用預設值的安全讀取
+// 使用預設值進行安全讀取
 var department = state.TryGetValue("department", out var deptValue) ? deptValue : "Unknown";
 var score = state.TryGetValue("score", out var scoreValue) ? scoreValue : 0;
 ```
@@ -111,7 +111,7 @@ state["result"] = "Success";
 state["score"] = 95.5;
 
 // 更新現有值
-state["userAge"] = 31; // 覆蓋現有值
+state["userAge"] = 31; // 覆寫現有值
 ```
 
 ### 使用擴充方法
@@ -128,7 +128,7 @@ state.SetCurrentNode("analysis_node");
 state.CompleteExecutionStep("Analysis completed successfully");
 ```
 
-## 步驟 4：使用 GraphState 進行增強狀態管理
+## 步驟 4：使用 GraphState 增強狀態
 
 ### 建立 GraphState
 
@@ -147,10 +147,10 @@ var version = enhancedState.Version;
 var createdAt = enhancedState.CreatedAt;
 ```
 
-### 狀態驗證和元資料
+### 狀態驗證和後設資料
 
 ```csharp
-// 新增元資料
+// 新增後設資料
 enhancedState.SetMetadata("source", "user_input");
 enhancedState.SetMetadata("priority", "high");
 
@@ -159,9 +159,9 @@ var history = enhancedState.ExecutionHistory;
 var stepCount = enhancedState.ExecutionStepCount;
 ```
 
-## 步驟 5：節點之間的狀態流
+## 步驟 5：節點間的狀態流動
 
-### 建立狀態感知的圖形
+### 建立狀態感知圖形
 
 ```csharp
 using Microsoft.SemanticKernel;
@@ -224,7 +224,7 @@ class Program
             "analysis_node"
         ).StoreResultAs("analysisResult");
 
-        // 節點 3：總結
+        // 節點 3：摘要
         var summaryNode = new FunctionGraphNode(
             KernelFunctionFactory.CreateFromMethod(
                 (KernelArguments args) =>
@@ -255,7 +255,7 @@ class Program
         graph.AddNode(analysisNode);
         graph.AddNode(summaryNode);
         
-        // 使用節點名稱連接節點序列
+        // 使用節點名稱連接節點
         graph.Connect("input_node", "analysis_node");
         graph.Connect("analysis_node", "summary_node");
         
@@ -287,7 +287,7 @@ class Program
 }
 ```
 
-## 步驟 6：運行你的狀態範例
+## 步驟 6：執行您的狀態範例
 
 ### 設定環境變數
 
@@ -305,7 +305,7 @@ export OPENAI_API_KEY="your-api-key-here"
 dotnet run
 ```
 
-你應該會看到類似的輸出：
+您應該看到如下輸出：
 
 ```
 === State Flow Example ===
@@ -325,20 +325,20 @@ Final Result: Input: 'Hello world from SemanticKernel.Graph' -> Processed: 'Proc
 ✅ State flow completed successfully!
 ```
 
-## 剛剛發生了什麼？
+## 剛才發生了什麼？
 
 ### 1. **狀態建立和管理**
 ```csharp
 var state = new KernelArguments { ["userName"] = "Alice" };
 ```
-`KernelArguments` 提供了一個靈活的類似字典的結構來儲存狀態資料。
+`KernelArguments` 提供一個靈活的類似字典的結構來儲存狀態資料。
 
-### 2. **使用型別安全的狀態讀取**
+### 2. **類型安全的狀態讀取**
 ```csharp
 var age = state.TryGetValue("userAge", out var ageValue) ? ageValue : 0;
 var name = state.TryGetValue("name", out var nameValue) ? nameValue : "Unknown";
 ```
-使用 `TryGetValue` 進行安全讀取，並附帶後備值。
+使用 `TryGetValue` 進行帶回退值的安全讀取。
 
 ### 3. **狀態寫入和更新**
 ```csharp
@@ -347,22 +347,22 @@ state["result"] = "Success";
 ```
 簡單的鍵值指派用於寫入狀態。
 
-### 4. **使用 GraphState 進行增強狀態管理**
+### 4. **使用 GraphState 增強狀態**
 ```csharp
 var graphState = state.ToGraphState();
 ```
-`GraphState` 新增了執行追蹤、元資料和驗證功能。
+`GraphState` 新增執行追蹤、後設資料和驗證功能。
 
-### 5. **節點之間的狀態流**
-每個節點從共享狀態讀取並寫入共享狀態，建立一個穿過圖形的資料管線。
+### 5. **節點間的狀態流動**
+每個節點讀取和寫入共享狀態，建立通過圖形流動的資料管道。
 
 ## 關鍵概念
 
-* **狀態**：流經圖形的資料，在 `KernelArguments` 中維護
-* **GraphState**：增強包裝器，新增執行追蹤和元資料
-* **狀態流**：資料從節點移動到節點，每個節點讀取輸入並寫入輸出
-* **安全讀取**：使用 `TryGetValue` 進行狀態值的安全讀取，並附帶後備預設值
-* **型別安全**：在讀取狀態值時使用正確的型別檢查和轉換
+* **State**: 通過圖形流動的資料，維護在 `KernelArguments` 中
+* **GraphState**: 增強包裝器，新增執行追蹤和後設資料
+* **State Flow**: 資料通過圖形從節點移動到節點，每個節點讀取輸入並寫入輸出
+* **Safe Reading**: 使用 `TryGetValue` 進行帶回退預設值的安全讀取狀態值
+* **Type Safety**: 讀取狀態值時使用適當的類型檢查和轉換
 
 ## 常見模式
 
@@ -376,7 +376,7 @@ var state = new KernelArguments
 };
 ```
 
-### 使用驗證的狀態讀取
+### 帶驗證的狀態讀取
 ```csharp
 if (state.TryGetValue("requiredField", out var value))
 {
@@ -388,7 +388,7 @@ if (state.TryGetValue("requiredField", out var value))
 }
 ```
 
-### 使用元資料的狀態寫入
+### 帶後設資料的狀態寫入
 ```csharp
 state["result"] = processedData;
 state["processingTime"] = stopwatch.ElapsedMilliseconds;
@@ -401,54 +401,54 @@ state["nodeId"] = "processor_node";
 ```
 System.Collections.Generic.KeyNotFoundException: The given key 'missingKey' was not present
 ```
-**解決方案**：在讀取前使用 `TryGetValue` 或使用 `ContainsKey()` 檢查。
+**解決方案**: 使用 `TryGetValue` 或在讀取前使用 `ContainsKey()` 檢查。
 
-### **型別轉換錯誤**
+### **類型轉換錯誤**
 ```
 System.InvalidCastException: Unable to cast object of type 'System.Int32' to type 'System.String'
 ```
-**解決方案**：在讀取狀態值時使用正確的型別檢查和轉換。
+**解決方案**: 讀取狀態值時使用適當的類型檢查和轉換。
 
-### **狀態未在節點之間保留**
+### **狀態未在節點間保留**
 ```
 State values are missing in subsequent nodes
 ```
-**解決方案**：確保節點已正確連接，且圖形執行器配置正確。
+**解決方案**: 確保節點已正確連接，並正確配置圖形執行器。
 
 ## 後續步驟
 
-* **[條件邏輯](conditional-nodes-tutorial.md)**：基於狀態值新增決策制定
-* **[狀態管理教程](state-tutorial.md)**：進階狀態功能和模式
-* **[檢查點](how-to/checkpointing.md)**：儲存和還原圖形狀態
-* **[核心概念](concepts/index.md)**：瞭解基本構件
+* **[條件邏輯](conditional-nodes-tutorial.md)**: 根據狀態值新增決策
+* **[狀態管理教程](state-tutorial.md)**: 進階狀態功能和模式
+* **[檢查點](how-to/checkpointing.md)**: 儲存和恢復圖形狀態
+* **[核心概念](concepts/index.md)**: 理解基本構建塊
 
 ## 概念和技術
 
 本教程介紹了幾個關鍵概念：
 
-* **狀態**：流經圖形的資料，在執行步驟中保持內容
-* **KernelArguments**：語義核心中狀態資料的主要容器
-* **GraphState**：具有執行追蹤和元資料的增強狀態包裝器
-* **狀態流**：資料穿過圖形從節點移動到節點的模式
+* **State**: 通過圖形流動的資料，跨執行步驟維護上下文
+* **KernelArguments**: Semantic Kernel 中狀態資料的主要容器
+* **GraphState**: 具有執行追蹤和後設資料的增強狀態包裝器
+* **State Flow**: 資料通過圖形從節點移動到節點的模式
 
-## 先決條件和最小配置
+## 先決條件和最低配置
 
-要完成本教程，你需要：
+要完成本教程，您需要：
 * **.NET 8.0+** 執行時和 SDK
-* 已安裝 **SemanticKernel.Graph** 套件
-* **LLM 提供者**已配置有效的 API 金鑰
-* 為你的 API 認證**設定環境變數**
+* **SemanticKernel.Graph** 套件已安裝
+* **LLM Provider** 已配置有效的 API 金鑰
+* **環境變數** 為您的 API 認證設定
 
-## 另請參閱
+## 參見
 
-* **[首個圖形教程](first-graph-5-minutes.md)**：建立你的首個圖形工作流
-* **[狀態管理教程](state-tutorial.md)**：進階狀態管理概念
-* **[核心概念](concepts/index.md)**：瞭解圖形、節點和執行
-* **[API 參考](api/state.md)**：完整的狀態管理 API 文件
+* **[第一個圖形教程](first-graph-5-minutes.md)**: 建立您的第一個圖形工作流
+* **[狀態管理教程](state-tutorial.md)**: 進階狀態管理概念
+* **[核心概念](concepts/index.md)**: 理解圖形、節點和執行
+* **[API 參考](api/state.md)**: 完整狀態管理 API 文件
 
 ## 參考 API
 
-* **[KernelArguments](../api/core.md#kernel-arguments)**：核心狀態容器
-* **[GraphState](../api/state.md#graph-state)**：增強狀態包裝器
-* **[狀態擴充](../api/extensions.md)**：狀態擴充方法
-* **[ISerializableState](../api/state.md#iserializable-state)**：狀態序列化介面
+* **[KernelArguments](../api/core.md#kernel-arguments)**: 核心狀態容器
+* **[GraphState](../api/state.md#graph-state)**: 增強狀態包裝器
+* **[State Extensions](../api/extensions.md)**: 狀態擴充方法
+* **[ISerializableState](../api/state.md#iserializable-state)**: 狀態序列化介面

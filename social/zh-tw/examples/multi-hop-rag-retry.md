@@ -1,54 +1,54 @@
-# 多跳躍 RAG 重試範例
+# 多跳 RAG 重試範例
 
-此範例示範了具有重試機制和查詢優化的多跳躍檢索增強生成 (RAG) 在知識庫上的應用。
+此範例演示了在知識庫上進行多跳檢索擴增生成 (RAG) 與重試機制和查詢精細化的過程。
 
 ## 目標
 
-學習如何在基於圖形的系統中實現進階 RAG 工作流程，以：
-* 使用多次嘗試實現反覆檢索迴圈
-* 基於背景評估優化搜尋查詢
+了解如何在基於圖表的系統中實現進階 RAG 工作流程，以進行以下操作：
+* 實現具有多次嘗試的迭代檢索迴圈
+* 根據上下文評估精細化搜尋查詢
 * 動態調整搜尋參數 (top_k、min_score) 以獲得更好的結果
-* 從累積背景合成全面的答案
+* 從累積的上下文合成全面的答案
 * 處理需要多個檢索跳躍的複雜查詢
 
-## 先決條件
+## 必要條件
 
 * **.NET 8.0** 或更新版本
-* **OpenAI API 金鑰** 在 `appsettings.json` 中配置
+* **OpenAI API Key** 在 `appsettings.json` 中設定
 * **Semantic Kernel Graph 套件** 已安裝
-* **Kernel Memory** 為知識庫操作配置完成
-* 基本理解 [圖形概念](../concepts/graph-concepts.md) 和 [RAG 模式](../patterns/rag.md)
-* 熟悉 [檢索和記憶](../concepts/memory.md)
+* **Kernel Memory** 已設定用於知識庫操作
+* 對 [Graph Concepts](../concepts/graph-concepts.md) 和 [RAG Patterns](../patterns/rag.md) 的基本了解
+* 熟悉 [Retrieval and Memory](../concepts/memory.md)
 
-## 關鍵元件
+## 主要組件
 
 ### 概念和技術
 
-* **多跳躍 RAG**：反覆檢索程序，可優化查詢並累積背景
-* **查詢優化**：基於背景評估動態調整搜尋參數
-* **重試機制**：多次檢索嘗試，具有擴大的搜尋參數
-* **背景評估**：評估檢索內容的品質和充分性
-* **答案合成**：將多個檢索結果合併為全面的答案
+* **Multi-Hop RAG**: 精細化查詢並累積上下文的迭代檢索過程
+* **Query Refinement**: 根據上下文評估動態調整搜尋參數
+* **Retry Mechanisms**: 多次檢索嘗試，搜尋參數逐漸擴大
+* **Context Evaluation**: 評估檢索內容的品質和充分性
+* **Answer Synthesis**: 將多個檢索結果合併為全面的答案
 
 ### 核心類別
 
-* `GraphExecutor`：多跳躍 RAG 工作流程的執行程式
-* `FunctionGraphNode`：用於查詢分析、檢索、評估和合成的節點
-* `KernelMemoryGraphProvider`：知識庫操作的提供者
-* `ConditionalEdge`：控制重試迴圈和查詢優化的邊
-* `GraphState`：累積背景和搜尋參數的狀態管理
+* `GraphExecutor`: 多跳 RAG 工作流程的執行程式
+* `FunctionGraphNode`: 用於查詢分析、檢索、評估和合成的 Node
+* `KernelMemoryGraphProvider`: 知識庫操作的提供者
+* `ConditionalEdge`: 控制重試迴圈和查詢精細化的 Edge
+* `GraphState`: 針對累積上下文和搜尋參數的狀態管理
 
 ## 執行範例
 
-### 入門
+### 開始使用
 
-此範例使用 Semantic Kernel Graph 套件示範具有重試機制的多跳躍 RAG。下面的程式碼片段展示如何在你的應用程式中實現此模式。
+此範例使用 Semantic Kernel Graph 套件演示具有重試機制的多跳 RAG。以下程式碼片段顯示如何在自己的應用程式中實現此模式。
 
-## 逐步實現
+## 逐步實作
 
-### 1. 建立多跳躍 RAG 執行程式
+### 1. 建立多跳 RAG 執行程式
 
-此範例建立了一個專門用於多跳躍 RAG 工作流程的執行程式。
+此範例建立針對多跳 RAG 工作流程的專用執行程式。
 
 ```csharp
 private static GraphExecutor CreateMultiHopRagExecutor(Kernel kernel, KernelMemoryGraphProvider provider, string collection)
@@ -116,14 +116,13 @@ private static GraphExecutor CreateMultiHopRagExecutor(Kernel kernel, KernelMemo
 }
 ```
 
-### 2. 配置工作流程
+### 2. 設定工作流程
 
-工作流程透過條件邊配置以控制重試迴圈。此範例使用
-`ConditionalEdge` 實例 (而不是內聯謂詞)，以便路由邏輯明確且可測試。
+工作流程使用條件 Edge 設定來控制重試迴圈。此範例使用 `ConditionalEdge` 例項 (而不是內嵌述詞)，以便路由邏輯明確且可測試。
 
 ```csharp
-// 注意：執行程式接線在範例中的 CreateMultiHopRagExecutor 內執行
-// 設置起始節點並連接節點；條件邊決定是否重試或完成。
+// Note: the executor wiring is performed inside CreateMultiHopRagExecutor in the example
+// Set the start node and connect nodes; conditional edges decide whether to retry or finalize.
 executor.SetStartNode(analyze.NodeId);
 executor.AddEdge(ConditionalEdge.CreateUnconditional(analyze, retrieve));
 executor.AddEdge(ConditionalEdge.CreateUnconditional(retrieve, evaluate));
@@ -149,8 +148,7 @@ return executor;
 
 ### 3. 查詢分析函數
 
-初始查詢分析函數準備一個緊湊、規範化的搜尋查詢，並在缺少時初始化
-迴圈控制引數。
+初始查詢分析函數準備一個精簡的正規化搜尋查詢，並在缺少迴圈控制引數時初始化它們。
 
 ```csharp
 private static KernelFunction CreateInitialQueryFunction(Kernel kernel)
@@ -185,8 +183,7 @@ private static KernelFunction CreateInitialQueryFunction(Kernel kernel)
 
 ### 4. 檢索函數
 
-檢索函數嘗試從知識庫中取得相關背景；它從提供者串流
-結果並返回連接的文字片段。
+檢索函數嘗試從知識庫擷取相關上下文；它從提供者串流結果並傳回串聯的文字片段。
 
 ```csharp
 private static KernelFunction CreateAttemptRetrievalFunction(Kernel kernel, KernelMemoryGraphProvider provider, string collection)
@@ -225,10 +222,9 @@ private static KernelFunction CreateAttemptRetrievalFunction(Kernel kernel, Kern
 }
 ```
 
-### 5. 背景評估函數
+### 5. 上下文評估函數
 
-評估函數檢查檢索計數和閾值，並返回人類友好的
-條件邊使用的狀態訊息。
+評估函數檢查檢索計數和閾值，並傳回條件 Edge 使用的人工友善狀態訊息。
 
 ```csharp
 private static KernelFunction CreateEvaluateContextFunction(Kernel kernel)
@@ -253,10 +249,9 @@ private static KernelFunction CreateEvaluateContextFunction(Kernel kernel)
 }
 ```
 
-### 6. 查詢優化函數
+### 6. 查詢精細化函數
 
-優化函數遞增嘗試計數器，放寬閾值並應用簡單
-後續檢索嘗試啟發式來擴大查詢。
+精細化函數增加嘗試計數、放寬閾值並應用簡單的啟發式方法來擴大後續檢索嘗試的查詢範圍。
 
 ```csharp
 private static KernelFunction CreateRefineQueryFunction(Kernel kernel)
@@ -288,8 +283,7 @@ private static KernelFunction CreateRefineQueryFunction(Kernel kernel)
 
 ### 7. 答案合成函數
 
-合成函數從各嘗試中收集的任何背景格式化最終答案。如果沒有
-檢索到背景，它會返回一個資訊性訊息。
+合成函數從跨嘗試收集的任何上下文格式化最終答案。如果未檢索到任何上下文，則傳回一條資訊訊息。
 
 ```csharp
 private static KernelFunction CreateSynthesizeAnswerFunction(Kernel kernel)
@@ -316,10 +310,9 @@ private static KernelFunction CreateSynthesizeAnswerFunction(Kernel kernel)
 }
 ```
 
-### 8. 知識庫植入
+### 8. 知識庫種子設定
 
-此範例在知識庫中植入了幾個文件，以鼓勵不同的
-檢索行為 (政策對報告對客戶內容)。
+此範例使用數個文件植入一個小型知識庫，以鼓勵不同的檢索行為 (政策與報告與客戶內容)。
 
 ```csharp
 private static async Task SeedKnowledgeBaseAsync(KernelMemoryGraphProvider provider, string collection)
@@ -350,9 +343,9 @@ private static async Task SeedKnowledgeBaseAsync(KernelMemoryGraphProvider provi
 }
 ```
 
-### 9. 執行情景
+### 9. 執行案例
 
-此範例執行多個情景以示範不同的檢索模式。
+此範例執行多個案例以演示不同的檢索模式。
 
 ```csharp
 var scenarios = new[]
@@ -390,31 +383,31 @@ foreach (var question in scenarios)
 
 * 🧑‍💻 使用者問題和搜尋查詢
 * 🔍 具有不同參數的檢索嘗試
-* 📊 背景評估和品質評估
-* 🔄 查詢優化和重試機制
-* 🤖 來自累積背景的最終合成答案
-* ✅ 多跳躍 RAG 工作流程完成
+* 📊 上下文評估和品質評估
+* 🔄 查詢精細化和重試機制
+* 🤖 從累積上下文合成的最終答案
+* ✅ 多跳 RAG 工作流程完成
 
-## 故障排除
+## 疑難排解
 
 ### 常見問題
 
-1. **知識庫連接失敗**：確保 Kernel Memory 正確配置
-2. **檢索品質問題**：調整 top_k 和 min_score 參數以獲得更好的結果
-3. **無限重試迴圈**：設定適當的 max_attempts 和評估準則
-4. **背景不足**：驗證知識庫內容和查詢優化邏輯
+1. **知識庫連線失敗**: 確保 Kernel Memory 已正確設定
+2. **檢索品質問題**: 調整 top_k 和 min_score 參數以獲得更好的結果
+3. **無限重試迴圈**: 設定適當的 max_attempts 和評估條件
+4. **上下文不足**: 驗證知識庫內容和查詢精細化邏輯
 
-### 除錯提示
+### 偵錯提示
 
 * 監視每次嘗試的檢索分數和區塊計數
-* 檢查查詢優化參數及其進度
-* 驗證背景評估邏輯和充分性準則
+* 檢查查詢精細化參數及其進度
+* 驗證上下文評估邏輯和充分性條件
 * 監視重試迴圈以防止無限反覆
 
 ## 另請參閱
 
-* [RAG 模式](../patterns/rag.md)
-* [記憶和檢索](../concepts/memory.md)
-* [條件節點](../concepts/node-types.md)
-* [圖形執行](../concepts/execution.md)
-* [查詢優化](../how-to/query-optimization.md)
+* [RAG Patterns](../patterns/rag.md)
+* [Memory and Retrieval](../concepts/memory.md)
+* [Conditional Nodes](../concepts/node-types.md)
+* [Graph Execution](../concepts/execution.md)
+* [Query Optimization](../how-to/query-optimization.md)

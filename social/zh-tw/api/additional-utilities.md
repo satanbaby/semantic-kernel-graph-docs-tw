@@ -1,34 +1,34 @@
 # 其他公用程式
 
-本參考涵蓋 SemanticKernel.Graph 中公開的其他公用程式類別和方法，為常見作業、驗證和進階模式提供輔助功能。
+本參考涵蓋了在 SemanticKernel.Graph 中公開的其他實用類別和方法，為常見操作、驗證和進階模式提供協助功能。
 
-## 概述
+## 概觀
 
-SemanticKernel.Graph 程式庫提供了一套完整的公用程式類別和擴充方法，可簡化常見作業、啟用進階模式，並提供驗證和除錯功能。這些公用程式設計為非侵入性的，並在可能的情況下遵循函數程式設計原則。
+SemanticKernel.Graph 程式庫提供了一套全面的實用類別和擴充方法，可簡化常見操作、啟用進階模式，並提供驗證和偵錯功能。這些公用程式設計為非侵入式的，並盡可能遵循函數式程式設計原則。
 
 ## 擴充類別
 
 ### AdvancedPatternsExtensions
 
-整合進階模式與圖形系統的擴充方法，為學術恢復模式、最佳化和企業整合提供流暢的輔助程式。
+擴充方法可將進階模式與 Graph 系統整合，為學術彈性模式、最佳化和企業整合提供流暢的協助程式。
 
 #### 學術模式
 
 ```csharp
 public static class AdvancedPatternsExtensions
 {
-    // 新增學術恢復模式
+    // 新增學術彈性模式
     public static GraphExecutor WithAcademicPatterns(
         this GraphExecutor executor,
         Action<AcademicPatternsConfiguration>? configureOptions = null)
     
-    // 使用熔斷器保護執行
+    // 使用斷路器保護執行
     public static async Task<T> ExecuteWithCircuitBreakerAsync<T>(
         this GraphExecutor executor,
         Func<Task<T>> operation,
         Func<Task<T>>? fallback = null)
     
-    // 使用隔離執行
+    // 使用隔艙隔離執行
     public static async Task<T> ExecuteWithBulkheadAsync<T>(
         this GraphExecutor executor,
         Func<CancellationToken, Task<T>> operation,
@@ -53,7 +53,7 @@ var executor = new GraphExecutor("resilient-graph")
         config.EnableCacheAside = true;
     });
 
-// 使用熔斷器保護執行
+// 使用斷路器保護執行
 var result = await executor.ExecuteWithCircuitBreakerAsync(
     async () => await ProcessDataAsync(),
     async () => await GetFallbackDataAsync()
@@ -62,12 +62,12 @@ var result = await executor.ExecuteWithCircuitBreakerAsync(
 
 ### DynamicRoutingExtensions
 
-用於動態路由和條件執行模式的擴充方法。
+動態路由和條件執行模式的擴充方法。
 
 ```csharp
 public static class DynamicRoutingExtensions
 {
-    // 將動態路由新增至執行程式
+    // 為執行器新增動態路由
     public static GraphExecutor WithDynamicRouting(
         this GraphExecutor executor,
         Action<DynamicRoutingConfiguration>? configureOptions = null)
@@ -97,7 +97,7 @@ var executor = new GraphExecutor("dynamic-graph")
 
 ### GraphPerformanceExtensions
 
-用於效能監控和最佳化的擴充方法。
+效能監控和最佳化的擴充方法。
 
 ```csharp
 public static class GraphPerformanceExtensions
@@ -131,17 +131,17 @@ var executor = new GraphExecutor("performance-graph")
 // 執行後取得效能摘要
 var summary = executor.GetPerformanceSummary();
 Console.WriteLine($"總執行時間: {summary.TotalExecutionTime}");
-Console.WriteLine($"平均節點時間: {summary.AverageNodeExecutionTime}");
+Console.WriteLine($"平均 Node 執行時間: {summary.AverageNodeExecutionTime}");
 ```
 
 ### HumanInTheLoopExtensions
 
-人工在迴圈中 (Human-in-the-Loop) 功能的擴充方法。
+Human-in-the-Loop 功能的擴充方法。
 
 ```csharp
 public static class HumanInTheLoopExtensions
 {
-    // 新增人工核准節點
+    // 新增人工核准 Node
     public static GraphExecutor AddHumanApproval(
         this GraphExecutor executor,
         string nodeId,
@@ -149,7 +149,7 @@ public static class HumanInTheLoopExtensions
         string message,
         IHumanInteractionChannel channel)
     
-    // 新增信心度閘門
+    // 新增信心門檻
     public static GraphExecutor AddConfidenceGate(
         this GraphExecutor executor,
         string nodeId,
@@ -177,19 +177,19 @@ var executor = new GraphExecutor("hitl-graph")
 
 ### LoggingExtensions
 
-增強圖形記錄功能的擴充方法。
+增強 Graph 記錄功能的擴充方法。
 
 ```csharp
 public static class LoggingExtensions
 {
-    // 記錄圖形層級資訊
+    // 記錄 Graph 層級資訊
     public static void LogGraphInfo(
         this IGraphLogger logger,
         string executionId,
         string message,
         IDictionary<string, object>? properties = null)
     
-    // 記錄節點層級資訊
+    // 記錄 Node 層級資訊
     public static void LogNodeInfo(
         this IGraphLogger logger,
         string executionId,
@@ -207,16 +207,16 @@ public static class LoggingExtensions
 
 **範例：**
 ```csharp
-logger.LogGraphInfo(executionId, "圖形執行已開始", 
+logger.LogGraphInfo(executionId, "Graph 執行已啟動", 
     new Dictionary<string, object> { ["nodeCount"] = 5 });
 
-logger.LogNodeInfo(executionId, "node1", "節點執行已完成", 
+logger.LogNodeInfo(executionId, "node1", "Node 執行已完成", 
     new Dictionary<string, object> { ["duration"] = "150ms" });
 ```
 
 ### StreamingExtensions
 
-用於串流執行和事件處理的擴充方法。
+串流執行和事件處理的擴充方法。
 
 ```csharp
 public static class StreamingExtensions
@@ -249,18 +249,18 @@ var executor = new GraphExecutor("streaming-graph")
     });
 ```
 
-## 公用程式類別
+## 實用類別
 
 ### StateHelpers
 
-靜態公用程式方法用於常見的狀態作業，包括序列化、合併、驗證和檢查點。
+靜態實用方法，用於常見的狀態操作，包括序列化、合併、驗證和檢查點。
 
 #### 序列化方法
 
 ```csharp
 public static class StateHelpers
 {
-    // 使用選項序列化狀態
+    // 序列化具有選項的狀態
     public static string SerializeState(
         GraphState state, 
         bool indented = false, 
@@ -301,17 +301,17 @@ public static string CreateCheckpoint(GraphState state, string checkpointName)
 // 還原檢查點
 public static GraphState RestoreCheckpoint(GraphState state, string checkpointId)
 
-// 回復交易
+// 復原交易
 public static GraphState RollbackTransaction(GraphState state, string transactionId)
 ```
 
 #### 壓縮方法
 
 ```csharp
-// 取得壓縮統計資訊
+// 取得壓縮統計資料
 public static CompressionStats GetCompressionStats(string data)
 
-// 取得自適應壓縮臨界值
+// 取得自適應壓縮閾值
 public static int GetAdaptiveCompressionThreshold()
 
 // 重設自適應壓縮
@@ -323,15 +323,15 @@ public static AdaptiveCompressionState GetAdaptiveCompressionState()
 
 ### StateValidator
 
-靜態公用程式方法用於驗證圖形狀態的完整性和一致性。
+驗證 Graph 狀態完整性和一致性的靜態實用方法。
 
 ```csharp
 public static class StateValidator
 {
-    // 驗證完整狀態
+    // 驗證完整的狀態
     public static ValidationResult ValidateState(GraphState state)
     
-    // 驗證關鍵屬性
+    // 驗證重要屬性
     public static bool ValidateCriticalProperties(GraphState state)
     
     // 驗證參數名稱
@@ -344,7 +344,7 @@ public static class StateValidator
 
 ### ConditionalExpressionEvaluator
 
-使用語意核心範本和自訂邏輯評估條件運算式的公用程式類別。
+使用 Semantic Kernel 範本和自訂邏輯評估條件運算式的實用類別。
 
 ```csharp
 public sealed class ConditionalExpressionEvaluator
@@ -362,7 +362,7 @@ public sealed class ConditionalExpressionEvaluator
         Kernel kernel, 
         IDictionary<string, object> customContext)
     
-    // 取得評估統計資訊
+    // 取得評估統計資料
     public static ConditionalEvaluationStats GetStatistics()
     
     // 清除評估快取
@@ -372,7 +372,7 @@ public sealed class ConditionalExpressionEvaluator
 
 ### ChainOfThoughtValidator
 
-驗證思維鏈 (Chain-of-Thought) 推理步驟的公用程式類別。
+驗證 Chain-of-Thought 推理步驟的實用類別。
 
 ```csharp
 public sealed class ChainOfThoughtValidator
@@ -387,24 +387,24 @@ public sealed class ChainOfThoughtValidator
     // 新增自訂驗證規則
     public void AddCustomRule(IChainOfThoughtValidationRule rule)
     
-    // 設定驗證臨界值
+    // 設定驗證閾值
     public void ConfigureThresholds(IDictionary<string, double> thresholds)
     
-    // 取得驗證統計資訊
+    // 取得驗證統計資料
     public ChainOfThoughtValidationStats GetStatistics()
 }
 ```
 
-## 模組啟用
+## 模組啟動
 
 ### ModuleActivationExtensions
 
-用於透過相依性注入有條件地啟用選用圖形模組的擴充程式。
+通過相依性注入有條件地啟動選用 Graph 模組的擴充功能。
 
 ```csharp
 public static class ModuleActivationExtensions
 {
-    // 新增選用圖形模組
+    // 新增選用 Graph 模組
     public static IKernelBuilder AddGraphModules(
         this IKernelBuilder builder, 
         Action<GraphModuleActivationOptions>? configure = null)
@@ -435,7 +435,7 @@ var builder = Kernel.CreateBuilder()
         options.EnableMultiAgent = true;
     });
 
-// 環境變數可以覆寫這些設定:
+// 環境變數可以覆寫這些設定：
 // SKG_ENABLE_STREAMING=true
 // SKG_ENABLE_CHECKPOINTING=true
 // SKG_ENABLE_RECOVERY=true
@@ -467,7 +467,7 @@ var evaluator = new ConditionalExpressionEvaluator();
 var result = evaluator.Evaluate("{{user.role}} == 'admin'", graphState, kernel);
 if (result.IsTrue)
 {
-    Console.WriteLine("使用者是管理員");
+    Console.WriteLine("使用者是系統管理員");
 }
 ```
 
@@ -510,8 +510,8 @@ var kernel = builder.Build();
 
 ## 另請參閱
 
-* [擴充程式和選項](./extensions-and-options.md) - 核心擴充類別和設定選項
+* [擴充和選項](./extensions-and-options.md) - 核心擴充類別和設定選項
 * [狀態和序列化](./state-and-serialization.md) - 狀態管理和序列化公用程式
 * [執行內容](./execution-context.md) - 執行內容和事件公用程式
-* [GraphExecutor API](./graph-executor.md) - 主要執行程式介面
+* [GraphExecutor API](./graph-executor.md) - 主要執行器介面
 * [進階模式](../how-to/advanced-patterns.md) - 進階模式使用指南

@@ -1,18 +1,18 @@
-# 圖表
+# 圖形
 
-圖表是由邊連接的節點的有向網絡。執行從入口節點開始，並通過評估路由條件進行。
+Graph 是由 Edge 連接的 Node 所組成的有向網路。執行從進入節點開始，並通過評估路由條件來進行。
 
 ## 概念和技術
 
-**計算圖**：透過節點和連接表示工作流程或處理管道的資料結構。
+**Computational Graph**: 代表工作流程或處理管道的資料結構，通過節點和連接。
 
-**入口節點**：圖表執行的起點，定義為 `StartNode`。
+**Entry Node**: 圖形執行的起始點，定義為 `StartNode`。
 
-**有向邊**：兩個節點之間的連接，定義執行流程的方向。
+**Directed Edge**: 定義執行流方向的兩個節點之間的連接。
 
-**圖表驗證**：在執行前進行完整性驗證，以確保圖表有效。
+**Graph Validation**: 在執行前的完整性驗證，確保圖形有效。
 
-## 圖表結構
+## Graph 結構
 
 ### 基本組件
 ```csharp
@@ -27,14 +27,14 @@ var graph = new Graph
 };
 ```
 
-### 節點和邊
-* **節點**：封裝工作（SK 函數、迴圈、子圖、工具）
-* **邊**：執行可選條件以控制流程
-* **驗證**：引擎在執行前確保有效性
+### Nodes 和 Edges
+* **Nodes**: 封裝工作（SK 函數、迴圈、子圖、工具）
+* **Edges**: 攜帶可選條件以控制流程
+* **Validation**: 引擎在執行前確保有效性
 
-## 圖表類型
+## Graph 類型
 
-### 線性圖表
+### 線性圖形
 ```csharp
 // Simple sequence: A → B → C
 var linearGraph = new Graph
@@ -49,7 +49,7 @@ var linearGraph = new Graph
 };
 ```
 
-### 條件圖表
+### 條件圖形
 ```csharp
 // Graph with conditional branches
 var conditionalGraph = new Graph
@@ -67,7 +67,7 @@ var conditionalGraph = new Graph
 };
 ```
 
-### 迴圈圖表
+### 迴圈圖形
 ```csharp
 // Graph with controlled iteration
 var loopGraph = new Graph
@@ -102,14 +102,14 @@ if (!validationResult.IsValid)
 ```
 
 ### 驗證規則
-* **連接性**：所有節點必須可到達
-* **迴圈**：無限迴圈的檢測
-* **類型**：輸入/輸出類型的驗證
-* **依賴關係**：循環依賴檢查
+* **Connectivity**: 所有節點必須可達
+* **Cycles**: 無限迴圈的檢測
+* **Types**: 輸入/輸出類型驗證
+* **Dependencies**: 循環依賴檢查
 
-## 圖表構建
+## Graph 建構
 
-### 程式化構建
+### 程式化建構
 ```csharp
 var graphBuilder = new GraphBuilder();
 
@@ -123,7 +123,7 @@ var graph = await graphBuilder
     .BuildAsync();
 ```
 
-### 模板構建
+### 範本建構
 ```csharp
 var template = new ChainOfThoughtWorkflowTemplate();
 var graph = await template.CreateGraphAsync(
@@ -136,7 +136,7 @@ var graph = await template.CreateGraphAsync(
 );
 ```
 
-### DSL 構建
+### DSL 建構
 ```csharp
 var dslParser = new GraphDslParser();
 var graphDefinition = @"
@@ -185,9 +185,9 @@ var checkpoint = await checkpointingExecutor.CreateCheckpointAsync();
 var restoredResult = await checkpointingExecutor.RestoreFromCheckpointAsync(checkpoint);
 ```
 
-## 元資料和文檔
+## 中繼資料和文件
 
-### 圖表資訊
+### Graph 資訊
 ```csharp
 var graphMetadata = new GraphMetadata
 {
@@ -204,7 +204,7 @@ var graphMetadata = new GraphMetadata
 };
 ```
 
-### 自動文檔生成
+### 自動文件生成
 ```csharp
 var docGenerator = new GraphDocumentationGenerator();
 var documentation = await docGenerator.GenerateAsync(graph, 
@@ -217,7 +217,7 @@ var documentation = await docGenerator.GenerateAsync(graph,
 );
 ```
 
-## 監控和可觀測性
+## 監視和可觀察性
 
 ### 執行指標
 ```csharp
@@ -230,7 +230,7 @@ var metrics = new GraphPerformanceMetrics
 };
 ```
 
-### 日誌記錄和追蹤
+### 日誌和追蹤
 ```csharp
 var logger = new SemanticKernelGraphLogger();
 logger.LogGraphExecutionStart(graph.Id, executionId);
@@ -238,27 +238,27 @@ logger.LogGraphExecutionComplete(graph.Id, executionId, result);
 logger.LogGraphValidation(graph.Id, validationResult);
 ```
 
-## 另請參閱
+## 參考閱讀
 
-* [圖表概念](../concepts/graph-concepts.md)
-* [節點類型](../concepts/node-types.md)
+* [Graph 概念](../concepts/graph-concepts.md)
+* [Node 類型](../concepts/node-types.md)
 * [路由](../concepts/routing.md)
 * [執行](../concepts/execution.md)
-* [構建圖表](../how-to/build-a-graph.md)
-* [子圖示例](../examples/subgraph-examples.md)
+* [建構 Graph](../how-to/build-a-graph.md)
+* [子圖例範](../examples/subgraph-examples.md)
 
-## 參考
+## 參考資料
 
-* `Graph`：表示計算圖的主類別
-* `GraphBuilder`：圖表的流暢建構器
-* `WorkflowValidator`：圖表完整性驗證器
-* `GraphExecutor`：主圖表執行器
-* `GraphDocumentationGenerator`：自動文檔生成器
-* `GraphPerformanceMetrics`：執行效能指標
+* `Graph`: 代表計算圖的主要類別
+* `GraphBuilder`: 圖形的流暢建構器
+* `WorkflowValidator`: 圖形完整性驗證器
+* `GraphExecutor`: 主要圖形執行器
+* `GraphDocumentationGenerator`: 自動文件生成器
+* `GraphPerformanceMetrics`: 執行效能指標
 
-### 示例
+### 範例
 
-文檔中的程式碼片段可作為 `examples` 專案中可執行的 C# 示例使用。您可以透過 Examples 專案執行 `graph-concepts` 示例，以驗證程式碼片段如圖所示執行：
+文件化的程式碼片段可在 `examples` 專案中作為可執行的 C# 範例使用。您可以通過 Examples 專案執行 `graph-concepts` 範例來驗證程式碼片段按如下方式執行：
 
 ```bash
 dotnet run --project semantic-kernel-graph-docs/examples/Examples.csproj -- graph-concepts

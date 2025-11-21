@@ -1,30 +1,30 @@
-# 驗證與編譯
+# 驗證和編譯
 
-本文件涵蓋了 SemanticKernel.Graph 中的完整驗證和編譯系統，包括工作流程驗證、型別推論、狀態驗證和合併衝突解決。該系統在多個層級提供了強大的驗證，從編譯時的架構檢查到執行時的狀態完整性驗證，確保了可靠的圖形執行和資料一致性。
+本文檔涵蓋 SemanticKernel.Graph 中的全面驗證和編譯系統，包括工作流驗證、型別推論、狀態驗證和合併衝突解決。該系統在多個層級提供強大的驗證，從編譯時期架構檢查到執行時期狀態完整性驗證，確保可靠的 Graph 執行和資料一致性。
 
 ## WorkflowValidator
 
-`WorkflowValidator` 在執行前驗證多代理工作流程的結構完整性、能力相容性和資源組態健全性，提供詳細的錯誤報告的全面驗證。
+`WorkflowValidator` 驗證多代理工作流的結構完整性、能力兼容性和資源配置健全性，並在執行前提供全面驗證和詳細錯誤報告。
 
-### 概述
+### Overview
 
-此驗證器執行非拋出例外的檢查，並將問題彙總到 `ValidationResult` 中，以便早期發現問題，例如無效的依賴項、缺少的能力和組態問題。它支援工作流程結構、代理能力、容量約束和資源治理設定的驗證。
+此驗證程式執行非拋出檢查並將問題聚合到 `ValidationResult`，啟用早期檢測問題，例如無效依賴、缺失能力和配置問題。它支援工作流結構、代理能力、容量限制和資源治理設定的驗證。
 
-### 主要特性
+### 主要功能
 
-* **結構驗證**：ID 唯一性、依賴項完整性和循環檢測
-* **代理能力驗證**：確保所需的能力可用
-* **容量驗證**：驗證代理容量組態
-* **資源治理驗證**：檢查資源組態健全性
-* **全面報告**：彙總錯誤、警告和建議
-* **非拋出設計**：安全的驗證，無例外
+* **結構驗證**：ID 唯一性、依賴完整性和循環檢測
+* **代理能力驗證**：確保所需能力可用
+* **容量驗證**：驗證代理容量配置
+* **資源治理驗證**：檢查資源配置健全性
+* **全面報告**：聚合錯誤、警告和建議
+* **非拋出設計**：安全驗證，無例外狀況
 
-### 組態
+### Configuration
 
 ```csharp
 var validator = new WorkflowValidator(logger);
 
-// 使用完整上下文驗證工作流程
+// Validate workflow with full context
 var result = validator.Validate(
     workflow: workflow,
     agentRoles: agentRoles,
@@ -33,10 +33,10 @@ var result = validator.Validate(
 );
 ```
 
-### 工作流程驗證
+### 工作流驗證
 
 ```csharp
-// 建立要驗證的工作流程
+// Create a workflow to validate
 var workflow = new MultiAgentWorkflow
 {
     Id = "document-analysis-001",
@@ -61,7 +61,7 @@ var workflow = new MultiAgentWorkflow
     }
 };
 
-// 驗證工作流程
+// Validate the workflow
 var validationResult = validator.Validate(workflow);
 
 if (validationResult.IsValid)
@@ -90,7 +90,7 @@ else
 ### 代理能力驗證
 
 ```csharp
-// 定義具有能力的代理角色
+// Define agent roles with capabilities
 var agentRoles = new Dictionary<string, AgentRole>
 {
     ["analysis-agent"] = new AgentRole
@@ -105,10 +105,10 @@ var agentRoles = new Dictionary<string, AgentRole>
     }
 };
 
-// 使用代理角色驗證
+// Validate with agent roles
 var result = validator.Validate(workflow, agentRoles: agentRoles);
 
-// 檢查能力相容性
+// Check capability compatibility
 if (!result.IsValid)
 {
     var capabilityErrors = result.Errors
@@ -125,7 +125,7 @@ if (!result.IsValid)
 ### 容量和資源驗證
 
 ```csharp
-// 定義代理容量
+// Define agent capacities
 var agentCapacities = new Dictionary<string, AgentCapacity>
 {
     ["analysis-agent"] = new AgentCapacity
@@ -142,7 +142,7 @@ var agentCapacities = new Dictionary<string, AgentCapacity>
     }
 };
 
-// 定義資源治理選項
+// Define resource governance options
 var resourceOptions = new GraphResourceOptions
 {
     EnableResourceGovernance = true,
@@ -153,7 +153,7 @@ var resourceOptions = new GraphResourceOptions
     MaxBurstSize = 20
 };
 
-// 使用完整上下文驗證
+// Validate with full context
 var result = validator.Validate(
     workflow, 
     agentRoles, 
@@ -164,40 +164,40 @@ var result = validator.Validate(
 
 ## GraphTypeInferenceEngine
 
-`GraphTypeInferenceEngine` 使用可用的型別化架構對圖形執行輕量級型別推論，將已知的輸出型別從來源節點傳播到沒有宣告型別化架構的目標節點。
+`GraphTypeInferenceEngine` 使用可用的型別架構對 Graph 執行輕量級型別推論，從來源 Node 傳播已知的輸出型別到未宣告型別架構的目標。
 
-### 概述
+### Overview
 
-此靜態引擎提供保守的、基於名稱的型別推論，檢查上游節點以確定無型別目標節點的輸入需求。它支援基本型別和 .NET 執行時型別，使型別化架構能夠在圖形元件中逐步採用。
+此靜態引擎提供保守的、以名稱為基礎的型別推論，檢查上游 Node 以確定未型別化目標 Node 的輸入需求。它支援原始型別和 .NET 執行時期型別，啟用漸進式在 Graph 元件中採用型別架構。
 
-### 主要特性
+### 主要功能
 
-* **保守推論**：僅在對關係有信心時才推論型別
-* **基於名稱的傳播**：跨節點邊界按名稱對應參數
-* **上游分析**：檢查前驅節點以獲取型別資訊
-* **後退處理**：當無法獲得型別資訊時提供無型別後退
-* **靜態分析**：編譯時型別推論，無執行時開銷
+* **保守推論**：僅在關係確信時推論型別
+* **以名稱為基礎的傳播**：跨 Node 邊界按名稱對應參數
+* **上游分析**：檢查前驅 Node 以取得型別資訊
+* **後備處理**：無型別資訊時提供未型別化後備
+* **靜態分析**：編譯時期型別推論，無執行時期額外負荷
 
 ### 型別推論
 
 ```csharp
 var graph = new GraphExecutor("type-inference-example");
 
-// 添加具有已知輸出架構的型別化來源節點
+// Add typed source node with known output schema
 var sourceNode = new TypedSourceNode();
 graph.AddNode(sourceNode);
 
-// 添加無型別的目標節點
+// Add untyped target node
 var targetNode = new UntypedTargetNode();
 graph.AddNode(targetNode);
 
-// 連接節點
+// Connect nodes
 graph.Connect(sourceNode.NodeId, targetNode.NodeId);
 
-// 為無型別節點推論輸入架構
+// Infer input schemas for untyped nodes
 var inferredSchemas = GraphTypeInferenceEngine.InferInputSchemas(graph);
 
-// 檢查目標節點的推論架構
+// Check inferred schema for target node
 if (inferredSchemas.TryGetValue(targetNode.NodeId, out var targetSchema))
 {
     Console.WriteLine($"Target node input schema:");
@@ -212,29 +212,29 @@ if (inferredSchemas.TryGetValue(targetNode.NodeId, out var targetSchema))
 ### 架構傳播
 
 ```csharp
-// 建立包含多個型別化節點的圖形
+// Create a graph with multiple typed nodes
 var graph = new GraphExecutor("schema-propagation");
 
-// 具有型別化輸出的來源節點
+// Source node with typed outputs
 var dataSource = new DataSourceNode();
 graph.AddNode(dataSource);
 
-// 中間處理節點
+// Intermediate processing node
 var processor = new DataProcessorNode();
 graph.AddNode(processor);
 
-// 最終輸出節點
+// Final output node
 var output = new OutputNode();
 graph.AddNode(output);
 
-// 連接管道
+// Connect the pipeline
 graph.Connect(dataSource.NodeId, processor.NodeId);
 graph.Connect(processor.NodeId, output.NodeId);
 
-// 推論整個管道的架構
+// Infer schemas throughout the pipeline
 var inferredSchemas = GraphTypeInferenceEngine.InferInputSchemas(graph);
 
-// 檢查架構傳播
+// Check schema propagation
 foreach (var kvp in inferredSchemas)
 {
     Console.WriteLine($"Node {kvp.Key} inferred schema:");
@@ -247,18 +247,18 @@ foreach (var kvp in inferredSchemas)
 
 ## StateValidator
 
-`StateValidator` 為圖形狀態提供全面的完整性檢查，確保資料一致性並在執行生命週期早期識別潛在問題。
+`StateValidator` 為 Graph 狀態提供全面的完整性檢查，確保資料一致性並在執行生命週期早期識別潛在問題。
 
-### 概述
+### Overview
 
-此靜態驗證器執行多個驗證類別，包括基本屬性、資料驗證、執行歷史、版本相容性和大小約束。它為效能敏感的案例提供全面驗證和關鍵屬性驗證。
+此靜態驗證程式執行多個驗證類別，包括基本內容、資料驗證、執行歷程、版本相容性和大小限制。它為效能敏感的情況提供全面驗證和關鍵內容驗證。
 
-### 主要特性
+### 主要功能
 
-* **全面驗證**：完整的狀態完整性檢查
-* **關鍵屬性驗證**：快速驗證基本屬性
-* **大小和記憶體驗證**：防止過度的資源使用
-* **歷史驗證**：確保執行歷史完整性
+* **全面驗證**：完整狀態完整性檢查
+* **關鍵內容驗證**：快速驗證基本內容
+* **大小和記憶體驗證**：防止過度資源使用
+* **歷程驗證**：確保執行歷程完整性
 * **版本相容性**：檢查狀態版本需求
 
 ### 狀態驗證
@@ -266,7 +266,7 @@ foreach (var kvp in inferredSchemas)
 ```csharp
 var state = new GraphState();
 
-// 添加資料到狀態
+// Add data to the state
 state.SetValue("user_id", 123);
 state.SetValue("user_name", "John Doe");
 state.SetValue("settings", new Dictionary<string, object>
@@ -275,7 +275,7 @@ state.SetValue("settings", new Dictionary<string, object>
     ["language"] = "en"
 });
 
-// 全面驗證
+// Comprehensive validation
 var validationResult = StateValidator.ValidateState(state);
 
 if (validationResult.IsValid)
@@ -301,10 +301,10 @@ else
 }
 ```
 
-### 關鍵屬性驗證
+### 關鍵內容驗證
 
 ```csharp
-// 僅進行關鍵屬性的快速驗證
+// Fast validation of critical properties only
 var isCriticalValid = StateValidator.ValidateCriticalProperties(state);
 
 if (isCriticalValid)
@@ -320,42 +320,42 @@ else
 ### 驗證類別
 
 ```csharp
-// 驗證狀態的特定方面
+// Validate specific aspects of the state
 var state = new GraphState();
 
-// 基本屬性驗證
+// Basic properties validation
 if (string.IsNullOrWhiteSpace(state.StateId))
 {
     Console.WriteLine("State ID is missing");
 }
 
-// 資料驗證
+// Data validation
 foreach (var kvp in state.Parameters)
 {
     var key = kvp.Key;
     var value = kvp.Value;
     
-    // 檢查參數名稱長度
+    // Check parameter name length
     if (key.Length > 256)
     {
         Console.WriteLine($"Parameter name too long: {key}");
     }
     
-    // 檢查字串值長度
+    // Check string value length
     if (value is string strValue && strValue.Length > 1024 * 1024)
     {
         Console.WriteLine($"String value too long for parameter: {key}");
     }
 }
 
-// 大小驗證
+// Size validation
 var stateSize = state.EstimateSize();
 if (stateSize > 10 * 1024 * 1024) // 10MB limit
 {
     Console.WriteLine($"State size exceeds limit: {stateSize} bytes");
 }
 
-// 歷史驗證
+// History validation
 if (state.ExecutionHistory.Count > 10000)
 {
     Console.WriteLine("Execution history too large");
@@ -364,26 +364,26 @@ if (state.ExecutionHistory.Count > 10000)
 
 ## StateMergeConflictPolicy
 
-`StateMergeConflictPolicy` 定義了平行分支聯接期間狀態合併的衝突解決策略，提供靈活和可配置的合併行為。
+`StateMergeConflictPolicy` 定義狀態合併期間平行分支連接的衝突解決策略，提供靈活和可配置的合併行為。
 
-### 概述
+### Overview
 
-此列舉和組態系統支援從簡單的優先規則到複雜的類似 CRDT 的語義的多個合併策略。它在圖形執行期間實現了對衝突狀態值如何解決的細粒度控制，特別是在平行執行場景中。
+此列舉和配置系統支援多種合併策略，從簡單的優先順序規則到複雜的 CRDT 類型語義。它在 Graph 執行期間啟用對衝突狀態值解決方式的細粒度控制，特別是在平行執行案例中。
 
 ### 合併策略
 
 ```csharp
-// 可用的合併衝突策略
+// Available merge conflict policies
 public enum StateMergeConflictPolicy
 {
-    PreferFirst = 0,        // 使用基本狀態中的值
-    PreferSecond = 1,       // 使用疊加狀態中的值
-    ThrowOnConflict = 2,    // 衝突時拋出例外
-    LastWriteWins = 3,      // 使用基於時間戳的解決
-    FirstWriteWins = 4,     // 使用第一次寫入時間戳
-    Reduce = 5,             // 應用 reduce 函式
-    CrdtLike = 6,           // 類似 CRDT 的合併語義
-    Custom = 7              // 自訂合併函式
+    PreferFirst = 0,        // Use value from base state
+    PreferSecond = 1,       // Use value from overlay state
+    ThrowOnConflict = 2,    // Throw exception on conflict
+    LastWriteWins = 3,      // Use timestamp-based resolution
+    FirstWriteWins = 4,     // Use first write timestamp
+    Reduce = 5,             // Apply reduce function
+    CrdtLike = 6,           // CRDT-like merge semantics
+    Custom = 7              // Custom merge function
 }
 ```
 
@@ -406,7 +406,7 @@ overlayState.SetValue("settings", new Dictionary<string, object>
     ["language"] = "pt"
 });
 
-// 使用原則進行簡單合併
+// Simple merge with policy
 var mergedState = StateHelpers.MergeStates(
     baseState, 
     overlayState, 
@@ -417,29 +417,29 @@ Console.WriteLine($"Count: {mergedState.GetValue<int>("count")}"); // 10 (overla
 Console.WriteLine($"Theme: {mergedState.GetValue<Dictionary<string, object>>("settings")["theme"]}"); // "dark"
 ```
 
-### 進階合併組態
+### 進階合併配置
 
 ```csharp
-// 使用特定原則建立合併組態
+// Create merge configuration with specific policies
 var config = new StateMergeConfiguration
 {
     DefaultPolicy = StateMergeConflictPolicy.PreferSecond
 };
 
-// 按鍵配置特定原則
+// Configure specific policies per key
 config.SetKeyPolicy("count", StateMergeConflictPolicy.Reduce);
 config.SetKeyPolicy("settings", StateMergeConflictPolicy.Reduce);
 
-// 按型別配置原則
+// Configure policies per type
 config.SetTypePolicy(typeof(Dictionary<string, object>), StateMergeConflictPolicy.Reduce);
 config.SetTypePolicy(typeof(int), StateMergeConflictPolicy.Reduce);
 
-// 自訂合併函式
+// Custom merge functions
 config.SetCustomKeyMerger("count", (baseVal, overlayVal) =>
 {
     if (baseVal is int baseInt && overlayVal is int overlayInt)
     {
-        return baseInt + overlayInt; // 相加值
+        return baseInt + overlayInt; // Sum the values
     }
     return overlayVal;
 });
@@ -459,7 +459,7 @@ config.SetCustomKeyMerger("settings", (baseVal, overlayVal) =>
     return overlayVal;
 });
 
-// 執行進階合併
+// Perform advanced merge
 var advancedMergedState = StateHelpers.MergeStates(baseState, overlayState, config);
 
 Console.WriteLine($"Count: {advancedMergedState.GetValue<int>("count")}"); // 15 (5 + 10)
@@ -468,15 +468,15 @@ Console.WriteLine($"Theme: {settings["theme"]}"); // "dark"
 Console.WriteLine($"Language: {settings["language"]}"); // "pt"
 ```
 
-### Reduce 函式
+### Reduce Functions
 
 ```csharp
-// 為數值型別配置 reduce 函式
+// Configure reduce functions for numeric types
 config.SetReduceFunction(typeof(int), (baseVal, overlayVal) =>
 {
     if (baseVal is int baseInt && overlayVal is int overlayInt)
     {
-        return Math.Max(baseInt, overlayVal); // 取最大值
+        return Math.Max(baseInt, overlayVal); // Take maximum
     }
     return overlayVal;
 });
@@ -485,12 +485,12 @@ config.SetReduceFunction(typeof(double), (baseVal, overlayVal) =>
 {
     if (baseVal is double baseDouble && overlayVal is double overlayDouble)
     {
-        return (baseDouble + overlayDouble) / 2; // 平均值
+        return (baseDouble + overlayDouble) / 2; // Average
     }
     return overlayVal;
 });
 
-// 為集合配置 reduce 函式
+// Configure reduce functions for collections
 config.SetReduceFunction(typeof(List<string>), (baseVal, overlayVal) =>
 {
     if (baseVal is List<string> baseList && overlayVal is List<string> overlayList)
@@ -509,10 +509,10 @@ config.SetReduceFunction(typeof(List<string>), (baseVal, overlayVal) =>
 });
 ```
 
-### 衝突檢測和解決
+### 衝突偵測和解決
 
 ```csharp
-// 執行具有衝突檢測的合併
+// Perform merge with conflict detection
 var mergeResult = StateHelpers.MergeStatesWithConflicts(baseState, overlayState, config);
 
 if (mergeResult.HasConflicts)
@@ -538,13 +538,13 @@ else
     Console.WriteLine("Merge completed without conflicts");
 }
 
-// 存取合併的狀態
+// Access the merged state
 var finalState = mergeResult.MergedState;
 ```
 
-## ValidationResult 和 ValidationIssue
+## ValidationResult and ValidationIssue
 
-驗證系統提供了全面的結果物件，這些物件會彙總驗證問題並提供有關錯誤、警告和建議的詳細資訊。
+驗證系統提供全面的結果物件，聚合驗證問題並提供有關錯誤、警告和建議的詳細資訊。
 
 ### ValidationResult 結構
 
@@ -597,15 +597,15 @@ public enum ValidationSeverity
 ### 使用驗證結果
 
 ```csharp
-// 建立驗證結果
+// Create validation result
 var result = new ValidationResult();
 
-// 添加驗證問題
+// Add validation issues
 result.AddError("Required field 'name' is missing", "name");
 result.AddWarning("Field 'age' should be positive", "age");
 result.AddError("Invalid email format", "email");
 
-// 檢查驗證狀態
+// Check validation status
 if (result.IsValid)
 {
     Console.WriteLine("Validation passed");
@@ -614,7 +614,7 @@ else
 {
     Console.WriteLine($"Validation failed: {result.ErrorCount} errors, {result.WarningCount} warnings");
     
-    // 處理錯誤
+    // Process errors
     foreach (var error in result.Errors)
     {
         Console.WriteLine($"Error: {error.Message}");
@@ -624,23 +624,23 @@ else
         }
     }
     
-    // 處理警告
+    // Process warnings
     foreach (var warning in result.Warnings)
     {
         Console.WriteLine($"Warning: {warning.Message}");
     }
 }
 
-// 建立摘要
+// Create summary
 var summary = result.CreateSummary(includeWarnings: true);
 Console.WriteLine(summary);
 
-// 與另一個結果合併
+// Merge with another result
 var otherResult = new ValidationResult();
 otherResult.AddError("Additional error");
 result.Merge(otherResult);
 
-// 如果無效則拋出（對驗證鏈很有用）
+// Throw if invalid (useful for validation chains)
 try
 {
     result.ThrowIfInvalid();
@@ -651,11 +651,11 @@ catch (ValidationException ex)
 }
 ```
 
-## 另請參閱
+## 另見
 
-* [架構型別化和驗證指南](../how-to/schema-typing-and-validation.md) - 實施架構驗證的全面指南
-* [狀態和序列化參考](state-and-serialization.md) - 狀態管理和合併操作
-* [多代理參考](multi-agent.md) - 多代理系統中的工作流程驗證
-* [圖形執行器參考](graph-executor.md) - 圖形完整性驗證
-* [整合參考](integration.md) - 外部系統驗證
-* [驗證範例](../examples/validation-examples.md) - 驗證實作的實際範例
+* [Schema Typing and Validation Guide](../how-to/schema-typing-and-validation.md) - 實施架構驗證的全面指南
+* [State and Serialization Reference](state-and-serialization.md) - 狀態管理和合併操作
+* [Multi-Agent Reference](multi-agent.md) - 多代理系統中的工作流驗證
+* [Graph Executor Reference](graph-executor.md) - Graph 完整性驗證
+* [Integration Reference](integration.md) - 外部系統驗證
+* [Validation Examples](../examples/validation-examples.md) - 驗證實作的實用示例

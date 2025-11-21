@@ -1,24 +1,24 @@
-# 多代理系統
+# 多代理
 
-本文檔涵蓋 SemanticKernel.Graph 中的完整多代理協調系統，包括代理管理、工作分配、結果聚合和連接池管理。該系統能夠實現複雜的工作流程，其中多個專業化的代理通過智能協調和狀態管理在共享任務上進行協作。
+本文件涵蓋 SemanticKernel.Graph 中的完整多代理協調系統，包括代理管理、工作分配、結果聚合和連接池。該系統支援複雜的工作流程，其中多個專門的代理透過智慧協調和狀態管理協作於共享任務。
 
 ## MultiAgentCoordinator
 
-`MultiAgentCoordinator` 協調多個圖執行器實例以實現多代理執行，提供代理生命週期管理、共享狀態協調和結果聚合。
+`MultiAgentCoordinator` 協調多個 Graph Executor 實例以啟用多代理執行，提供代理生命週期管理、共享狀態協調和結果聚合。
 
 ### 概述
 
-這個中央協調器管理多個代理的完整生命週期，協調它們的執行，並提供智能工作分配和結果聚合。它與分佈式追蹤、健康監控和故障轉移機制集成，用於實現彈性多代理工作流程。
+這個中央協調器管理多個代理的完整生命週期，協調其執行，並提供智慧的工作分配和結果聚合。它與分散式追蹤、健康監控和容錯機制整合，以支持具有恢復力的多代理工作流程。
 
-### 主要功能
+### 主要特性
 
-* **代理生命週期管理**：代理實例的註冊、執行和釋放
-* **共享狀態協調**：與 `SharedStateManager` 的集成以實現狀態同步
-* **工作分配**：委派給 `WorkDistributor` 進行智能任務分配
+* **代理生命週期管理**：代理實例的註冊、執行和処理
+* **共享狀態協調**：與 `SharedStateManager` 的整合以進行狀態同步
+* **工作分配**：委託 `WorkDistributor` 進行智慧任務指派
 * **結果聚合**：使用 `ResultAggregator` 組合代理輸出
-* **健康監控**：電路破壞器模式和故障轉移機制
-* **分佈式追蹤**：OpenTelemetry 集成用於跨代理可觀測性
-* **並發執行**：具有可配置限制的有限並行性
+* **健康監控**：斷路器模式和容錯機制
+* **分散式追蹤**：OpenTelemetry 整合以進行跨代理可觀測性
+* **並行執行**：可配置上限的有界平行性
 
 ### 配置
 
@@ -53,7 +53,7 @@ var coordinator = new MultiAgentCoordinator(options, logger);
 ### 代理註冊
 
 ```csharp
-// 註冊具有特定角色的代理
+// Register agents with specific roles
 var analysisAgent = await coordinator.RegisterAgentAsync(
     agentId: "analysis-agent-1",
     executor: analysisExecutor,
@@ -82,7 +82,7 @@ var processingAgent = await coordinator.RegisterAgentAsync(
 ### 工作流程執行
 
 ```csharp
-// 建立多代理工作流程
+// Create a multi-agent workflow
 var workflow = new MultiAgentWorkflow
 {
     Id = "document-analysis-001",
@@ -90,8 +90,8 @@ var workflow = new MultiAgentWorkflow
     Description = "Analyze documents using multiple specialized agents",
     Tasks = new List<WorkflowTask>
     {
-        // 任務不嵌入特定的代理分配；協調器/分配器
-        // 根據工作流程的 RequiredAgents 和配置的分配策略分配任務。
+        // Tasks do not embed a specific agent assignment; the coordinator/distributor
+        // assigns tasks based on the workflow's RequiredAgents and configured distribution strategy.
         new WorkflowTask
         {
             Id = "extract-text",
@@ -113,14 +113,14 @@ var workflow = new MultiAgentWorkflow
     AggregationStrategy = AggregationStrategy.Merge
 };
 
-// 執行工作流程
+// Execute the workflow
 var arguments = new KernelArguments
 {
     ["document_path"] = "/path/to/document.pdf",
     ["analysis_type"] = "comprehensive"
 };
 
-// 執行工作流程（注意簽名：workflow、kernel、arguments）
+// Execute the workflow (note the signature: workflow, kernel, arguments)
 var result = await coordinator.ExecuteWorkflowAsync(
     workflow,
     kernel,
@@ -129,10 +129,10 @@ var result = await coordinator.ExecuteWorkflowAsync(
 );
 ```
 
-### 簡易工作流程執行
+### 簡單工作流程執行
 
 ```csharp
-// 使用自動分配執行簡易工作流程
+// Execute a simple workflow with automatic distribution
 var result = await coordinator.ExecuteSimpleWorkflowAsync(
     kernel: kernel,
     arguments: new KernelArguments { ["input"] = "sample data" },
@@ -147,14 +147,14 @@ if (result.Success)
 }
 ```
 
-### 健康監控和故障轉移
+### 健康監控和容錯
 
 ```csharp
-// 檢查代理健康狀態
+// Check agent health status
 var healthStatus = coordinator.HealthMonitor.GetAgentHealthStatus("agent-1");
 if (healthStatus.Status == AgentHealthStatus.Unhealthy)
 {
-    // 代理不健康，考慮故障轉移
+    // Agent is unhealthy, consider failover
     var failoverResult = await coordinator.AttemptAgentFailoverAsync("agent-1");
     if (failoverResult.Success)
     {
@@ -162,7 +162,7 @@ if (healthStatus.Status == AgentHealthStatus.Unhealthy)
     }
 }
 
-// 取得整體系統健康狀態
+// Get overall system health
 var systemHealth = coordinator.HealthMonitor.GetSystemHealth();
 Console.WriteLine($"System health: {systemHealth.OverallStatus}");
 Console.WriteLine($"Healthy agents: {systemHealth.HealthyAgentCount}/{systemHealth.TotalAgentCount}");
@@ -174,15 +174,15 @@ Console.WriteLine($"Healthy agents: {systemHealth.HealthyAgentCount}/{systemHeal
 
 ### 概述
 
-該組件使用可配置的策略提供智能結果組合、性能緩存和綜合結果驗證。它支持多種聚合方法，從簡單的合併到複雜的基於共識的聚合。
+此組件提供使用可配置策略的智慧結果組合、性能快取和全面的結果驗證。它支持從簡單合併到複雜共識聚合的多種聚合方法。
 
-### 主要功能
+### 主要特性
 
 * **多種聚合策略**：合併、加權、共識和自訂策略
-* **結果緩存**：可配置的緩存與過期和失效機制
-* **結果驗證**：內置驗證和大小限制
-* **元數據保留**：維護各個結果的元數據和來源信息
-* **性能優化**：高效的聚合演算法和緩存
+* **結果快取**：可配置的快取，支持過期和失效
+* **結果驗證**：內建驗證和大小限制
+* **元資料保留**：保持個別結果元資料和溯源
+* **性能最佳化**：高效的聚合演算法和快取
 * **可擴展架構**：自訂聚合策略註冊
 
 ### 配置
@@ -208,19 +208,19 @@ var aggregator = new ResultAggregator(options, logger);
 ### 聚合策略
 
 ```csharp
-// 可用的內置策略（與庫實現相符）
+// Available built-in strategies (matches library implementation)
 public enum AggregationStrategy
 {
-    Merge = 0,    // 組合所有成功結果
-    Concat = 1,   // 連接成功結果
-    First = 2,    // 使用第一個成功結果
-    Last = 3,     // 使用最後一個成功結果
-    Majority = 4, // 多數 / 投票式聚合
-    Weighted = 5, // 基於代理優先級或置信度的加權組合
-    Consensus = 6 // 需要代理之間的共識
+    Merge = 0,    // Combine all successful results
+    Concat = 1,   // Concatenate successful results
+    First = 2,    // Use first successful result
+    Last = 3,     // Use last successful result
+    Majority = 4, // Majority / vote-based aggregation
+    Weighted = 5, // Weighted combination based on agent priority or confidence
+    Consensus = 6 // Require consensus among agents
 }
 
-// 使用特定策略聚合結果
+// Aggregate results using specific strategy
 var aggregatedResult = await aggregator.AggregateResultsAsync(
     workflowId: "workflow-001",
     agentResults: agentResults,
@@ -238,16 +238,16 @@ if (aggregatedResult.Success)
 ### 自訂聚合策略
 
 ```csharp
-// 註冊自訂聚合策略
+// Register custom aggregation strategy
 aggregator.RegisterStrategy("custom-merge", new CustomMergeStrategy());
 
-// 自訂策略實現
+// Custom strategy implementation
 public class CustomMergeStrategy : IAggregationStrategy
 {
     public async Task<FunctionResult> AggregateAsync(string workflowId, 
         IReadOnlyList<AgentExecutionResult> results)
     {
-        // 自訂聚合邏輯
+        // Custom aggregation logic
         var successfulResults = results.Where(r => r.Success).ToList();
         
         if (successfulResults.Count == 0)
@@ -255,7 +255,7 @@ public class CustomMergeStrategy : IAggregationStrategy
             throw new InvalidOperationException("No successful results to aggregate");
         }
 
-        // 自訂合併邏輯
+        // Custom merge logic
         var mergedData = new Dictionary<string, object>();
         foreach (var result in successfulResults)
         {
@@ -285,39 +285,39 @@ public class CustomMergeStrategy : IAggregationStrategy
 }
 ```
 
-### 緩存和性能
+### 快取和性能
 
 ```csharp
-// 檢查緩存統計信息
+// Check cache statistics
 var cacheStats = aggregator.GetCacheStatistics();
 Console.WriteLine($"Cache size: {cacheStats["CacheSize"]}");
 Console.WriteLine($"Active entries: {cacheStats["ActiveEntries"]}");
 Console.WriteLine($"Expired entries: {cacheStats["ExpiredEntries"]}");
 
-// 失效特定工作流程的緩存
+// Invalidate cache for specific workflow
 var invalidatedCount = aggregator.InvalidateCacheForWorkflow("workflow-001");
 Console.WriteLine($"Invalidated {invalidatedCount} cache entries");
 
-// 清除整個緩存
+// Clear entire cache
 aggregator.ClearCache();
 ```
 
 ## AgentConnectionPool
 
-`AgentConnectionPool` 管理每個代理的可重用 `IAgentConnection` 實例，在健康連接中提供公平選擇和基本的健康感知租賃語義。
+`AgentConnectionPool` 管理每個代理的可重用 `IAgentConnection` 實例，在健康連接之間提供公平選擇和基本的健康感知租用語義。
 
 ### 概述
 
-這個線程安全的池提供遠程代理通信的高效連接管理，具有健康監控、負載平衡和自動連接生命週期管理。它支持本地和遠程代理連接，具有可配置的池策略。
+此執行緒安全的池為遠端代理通信提供高效的連接管理，具有健康監控、負載均衡和自動連接生命週期管理。它支持本地和遠端代理連接，具有可配置的池化策略。
 
-### 主要功能
+### 主要特性
 
 * **連接池**：代理連接的高效重用
 * **健康感知選擇**：自動篩選不健康的連接
-* **負載平衡**：輪詢和基於健康的連接選擇
-* **線程安全**：具有適當同步的並發訪問
-* **度量集成**：內置性能和健康度量
-* **自動清理**：連接釋放和資源管理
+* **負載均衡**：輪詢和基於健康狀況的連接選擇
+* **執行緒安全**：具有適當同步的並行存取
+* **指標整合**：內建性能和健康指標
+* **自動清理**：連接処理和資源管理
 
 ### 配置
 
@@ -338,46 +338,46 @@ var connectionPool = new AgentConnectionPool(options);
 ### 連接管理
 
 ```csharp
-// 為代理註冊連接
+// Register connections for an agent
 var connection1 = new MockAgentConnection("agent-1", "instance-1");
 var connection2 = new MockAgentConnection("agent-1", "instance-2");
 
-// 池上的公共 API 是 `Register` 和 `RentAsync`
+// The public API on the pool is `Register` and `RentAsync`
 connectionPool.Register("agent-1", connection1);
 connectionPool.Register("agent-1", connection2);
 
-// 租用連接以供使用
+// Rent a connection for use
 var rented = await connectionPool.RentAsync("agent-1", CancellationToken.None);
 if (rented != null)
 {
     try
     {
-        // 使用連接的 Executor 執行工作
+        // Use the connection's Executor to perform the work
         var execResult = await rented.Executor.ExecuteAsync(kernel, workItem.Arguments, CancellationToken.None);
         Console.WriteLine($"Execution result: {execResult.GetValue<object>()}");
     }
     finally
     {
-        // 完成後透過釋放連接來歸還連接資源
+        // Return connection resources by disposing the connection when done
         await rented.DisposeAsync();
     }
 }
 ```
 
-### 連接健康和度量
+### 連接健康和指標
 
 ```csharp
-// 檢查已註冊的連接數量（公共池 API 公開註冊計數）
+// Inspect registered connection counts (public pool API exposes registration counts)
 var counts = connectionPool.GetRegisteredConnectionCounts();
 Console.WriteLine($"Registered connections for agent-1: {counts.GetValueOrDefault("agent-1", 0)}");
 
-// 租用連接並可選地透過連接的 IsHealthyAsync API 探測其健康狀態
+// Rent a connection and optionally probe its health via the connection's IsHealthyAsync API
 var rented = await connectionPool.RentAsync("agent-1", CancellationToken.None);
 if (rented != null)
 {
     try
     {
-        // 探測健康（池本身也會在內部使用健康探測）
+        // Probe health (the pool itself will also use health probes internally)
         var isHealthy = await rented.IsHealthyAsync(CancellationToken.None);
         Console.WriteLine($"Rented connection {rented.Endpoint ?? rented.Executor.Name} healthy: {isHealthy}");
     }
@@ -388,10 +388,10 @@ if (rented != null)
 }
 ```
 
-### 連接接口
+### 連接介面
 
 ```csharp
-// 池針對可重用遠程連接的公共契約
+// The pool's public contract for reusable remote connections
 public interface IAgentConnection : IAsyncDisposable
 {
     string AgentId { get; }
@@ -400,7 +400,7 @@ public interface IAgentConnection : IAsyncDisposable
     Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default);
 }
 
-// 僅用於文檔的最小示例連接
+// Minimal example connection used for documentation only
 public class MockAgentConnection : IAgentConnection
 {
     public string AgentId { get; }
@@ -431,20 +431,20 @@ public class MockAgentConnection : IAgentConnection
 
 ## WorkDistributor
 
-`WorkDistributor` 根據配置的策略在多個代理之間分配工作項，提供負載平衡、容量管理和工作項優先級。
+`WorkDistributor` 根據配置的策略在多個代理之間分配工作項，提供負載均衡、容量管理和工作項優先化。
 
 ### 概述
 
-該組件實現智能工作分配演算法，考慮代理的能力、當前負載和配置的策略。它支持多種分配方法，並為監控和優化提供綜合度量。
+此組件實現考慮代理能力、當前負載和配置策略的智慧工作分配演算法。它支持多種分配方法，並提供全面的指標用於監控和最佳化。
 
-### 主要功能
+### 主要特性
 
-* **多種分配策略**：輪詢、基於負載、基於角色、基於容量
-* **負載平衡**：基於代理容量和當前負載的自動分配
-* **優先級支持**：工作項優先級和調度
+* **多種分配策略**：RoundRobin、LoadBased、RoleBased、CapacityBased
+* **負載均衡**：根據代理容量和當前負載自動分配
+* **優先化支持**：工作項優先化和排程
 * **容量管理**：動態代理容量追蹤和更新
-* **度量集成**：綜合分配度量和監控
-* **策略回退**：自動回退到替代分配方法
+* **指標整合**：全面的分配指標和監控
+* **策略後備**：自動後備到替代分配方法
 
 ### 配置
 
@@ -466,17 +466,17 @@ var workDistributor = new WorkDistributor(options, logger);
 ### 分配策略
 
 ```csharp
-// 可用的分配策略
+// Available distribution strategies
 public enum WorkDistributionStrategy
 {
-    RoundRobin = 0,      // 以輪詢方式分配工作
-    LoadBased = 1,       // 基於當前代理負載進行分配
-    RoleBased = 2,       // 基於代理角色和能力進行分配
-    CapacityBased = 3,   // 基於代理容量進行分配
-    Custom = 4           // 自訂分配邏輯
+    RoundRobin = 0,      // Distribute work in round-robin fashion
+    LoadBased = 1,       // Distribute based on current agent load
+    RoleBased = 2,       // Distribute based on agent roles and capabilities
+    CapacityBased = 3,   // Distribute based on agent capacity
+    Custom = 4           // Custom distribution logic
 }
 
-// 為工作流程分配工作
+// Distribute work for a workflow
 var workItems = await workDistributor.DistributeWorkAsync(workflow, arguments);
 Console.WriteLine($"Distributed {workItems.Count} work items");
 
@@ -490,7 +490,7 @@ foreach (var workItem in workItems)
 ### 代理容量管理
 
 ```csharp
-// 更新代理容量信息
+// Update agent capacity information
 var capacity = new AgentCapacity
 {
     AgentId = "agent-1",
@@ -502,7 +502,7 @@ var capacity = new AgentCapacity
 
 workDistributor.UpdateAgentCapacity("agent-1", capacity);
 
-// 取得容量信息
+// Get capacity information
 var agentCapacity = workDistributor.GetAgentCapacity("agent-1");
 if (agentCapacity != null)
 {
@@ -527,28 +527,28 @@ public class WorkItem
     public Dictionary<string, object> Metadata { get; set; } = new();
 }
 
-// 工作項狀態列舉
+// Work item status enumeration
 public enum WorkItemStatus
 {
-    Pending = 0,      // 工作項等待執行
-    InProgress = 1,   // 工作項目前正在執行
-    Completed = 2,    // 工作項成功完成
-    Failed = 3,       // 工作項執行失敗
-    Cancelled = 4     // 工作項已取消
+    Pending = 0,      // Work item is pending execution
+    InProgress = 1,   // Work item is currently being executed
+    Completed = 2,    // Work item completed successfully
+    Failed = 3,       // Work item failed during execution
+    Cancelled = 4     // Work item was cancelled
 }
 ```
 
-### 度量和監控
+### 指標和監控
 
 ```csharp
-// 取得分配度量
+// Get distribution metrics
 var metrics = workDistributor.GetDistributionMetrics();
 Console.WriteLine($"Distribution requests: {metrics.DistributionRequests}");
 Console.WriteLine($"Distribution items: {metrics.DistributionItems}");
 Console.WriteLine($"Strategy fallbacks: {metrics.StrategyFallbacks}");
 Console.WriteLine($"Distribution errors: {metrics.DistributionErrors}");
 
-// 取得代理分配統計
+// Get agent assignment statistics
 var assignmentStats = workDistributor.GetAgentAssignmentStatistics();
 foreach (var stat in assignmentStats)
 {
@@ -563,7 +563,7 @@ foreach (var stat in assignmentStats)
 ### 代理類型
 
 ```csharp
-// 代理實例表示正在運行的代理
+// Agent instance representing a running agent
 public sealed class AgentInstance : IDisposable
 {
     public string AgentId { get; }
@@ -574,7 +574,7 @@ public sealed class AgentInstance : IDisposable
     public DateTimeOffset LastActivity { get; set; }
 }
 
-// 代理角色定義
+// Agent role definition
 public sealed class AgentRole
 {
     public required string Name { get; set; }
@@ -585,22 +585,22 @@ public sealed class AgentRole
     public Dictionary<string, object> Metadata { get; set; } = new();
 }
 
-// 代理狀態列舉
+// Agent status enumeration
 public enum AgentStatus
 {
-    Idle = 0,         // 代理處於閒置狀態並準備好執行工作
-    Running = 1,      // 代理目前正在執行工作
-    Stopping = 2,     // 代理正在停止進程中
-    Stopped = 3,      // 代理已停止
-    Failed = 4,       // 代理已失敗
-    Disposed = 5      // 代理已釋放
+    Idle = 0,         // Agent is idle and ready for work
+    Running = 1,      // Agent is currently executing work
+    Stopping = 2,     // Agent is in the process of stopping
+    Stopped = 3,      // Agent has been stopped
+    Failed = 4,       // Agent has failed
+    Disposed = 5      // Agent has been disposed
 }
 ```
 
 ### 工作流程類型
 
 ```csharp
-// 多代理工作流程定義
+// Multi-agent workflow definition
 public sealed class MultiAgentWorkflow
 {
     public required string Id { get; set; }
@@ -612,7 +612,7 @@ public sealed class MultiAgentWorkflow
     public Dictionary<string, object> Metadata { get; set; } = new();
 }
 
-// 工作流程任務定義
+// Workflow task definition
 public sealed class WorkflowTask
 {
     public required string Id { get; set; }
@@ -628,7 +628,7 @@ public sealed class WorkflowTask
 ### 結果類型
 
 ```csharp
-// 多代理工作流程結果
+// Multi-agent workflow result
 public sealed class MultiAgentResult
 {
     public required string WorkflowId { get; set; }
@@ -640,7 +640,7 @@ public sealed class MultiAgentResult
     public Exception? Error { get; set; }
 }
 
-// 個別代理執行結果
+// Individual agent execution result
 public sealed class AgentExecutionResult
 {
     public required string AgentId { get; set; }
@@ -653,7 +653,7 @@ public sealed class AgentExecutionResult
     public Dictionary<string, object> Metadata { get; set; } = new();
 }
 
-// 聚合結果
+// Aggregated result
 public sealed class AggregatedResult
 {
     public required string WorkflowId { get; set; }
@@ -669,9 +669,9 @@ public sealed class AggregatedResult
 
 ## 另請參閱
 
-* [多代理和共享狀態指南](../how-to/multi-agent-and-shared-state.md) - 實現多代理工作流程的綜合指南
+* [多代理和共享狀態指南](../how-to/multi-agent-and-shared-state.md) - 實現多代理工作流程的全面指南
 * [狀態和序列化參考](state-and-serialization.md) - 代理協調的狀態管理
-* [錯誤策略參考](error-policies.md) - 多代理系統中的錯誤處理和彈性
-* [圖執行器參考](graph-executor.md) - 個別代理的核心執行引擎
+* [錯誤策略參考](error-policies.md) - 多代理系統中的錯誤處理和恢復力
+* [Graph Executor 參考](graph-executor.md) - 個別代理的核心執行引擎
 * [整合參考](integration.md) - 多代理工作流程的外部系統整合
-* [多代理示例](../examples/multi-agent-examples.md) - 多代理實現的實際示例
+* [多代理範例](../examples/multi-agent-examples.md) - 多代理實現的實踐範例

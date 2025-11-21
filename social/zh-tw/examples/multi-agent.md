@@ -1,80 +1,80 @@
-# 多代理範例
+# 多代理示例
 
-此範例示範了 Semantic Kernel Graph 中的多代理協調功能，展示如何創建、配置和執行具有多個協調代理的工作流程。
+此示例演示了 Semantic Kernel Graph 中的多代理協調功能，展示如何使用多個協調代理創建、配置和執行工作流程。
 
 ## 目標
 
-學習如何在基於圖形的工作流程中實現多代理協調，以便：
+學習如何在基於圖的工作流程中實現多代理協調：
 * 創建和管理具有特定功能的專業化代理
-* 使用不同策略在多個代理間分配工作
-* 通過顯式任務定義協調複雜工作流程
+* 使用不同的策略在多個代理之間分配工作
+* 使用明確的任務定義協調複雜的工作流程
 * 監控代理健康狀況和系統性能
-* 使用各種策略聚合來自多個代理的結果
+* 使用各種策略聚合多個代理的結果
 
 ## 先決條件
 
-* **.NET 8.0** 或更新版本
-* **OpenAI API 密鑰**已在 `appsettings.json` 中配置
+* **.NET 8.0** 或更高版本
+* **OpenAI API 金鑰**在 `appsettings.json` 中配置
 * **Semantic Kernel Graph 套件**已安裝
-* 對[圖形概念](../concepts/graph-concepts.md)和[多代理協調](../how-to/multi-agent-and-shared-state.md)的基本理解
-* 熟悉[工作流程管理](../concepts/execution.md)
+* 基本了解 [Graph 概念](../concepts/graph-concepts.md) 和 [多代理協調](../how-to/multi-agent-and-shared-state.md)
+* 熟悉 [工作流程管理](../concepts/execution.md)
 
 ## 主要組件
 
 ### 概念和技術
 
-* **多代理協調**：在協調工作流程中管理多個專業化代理
-* **工作分配**：自動和手動分配任務給各個代理
-* **功能管理**：定義和要求特定代理的功能
-* **健康監控**：追蹤代理狀態和系統性能
-* **結果聚合**：使用各種策略組合來自多個代理的結果
+* **多代理協調**：在協調的工作流程中管理多個專業化代理
+* **工作分配**：在代理之間自動和手動分配任務
+* **功能管理**：定義和要求特定的代理功能
+* **健康監控**：跟蹤代理狀態和系統性能
+* **結果聚合**：使用各種策略從多個代理組合結果
 
 ### 核心類別
 
-* `MultiAgentCoordinator`：管理多個代理的主要協調器
+* `MultiAgentCoordinator`：用於管理多個代理的主要協調器
 * `AgentInstance`：具有特定功能的個別代理實例
 * `MultiAgentOptions`：協調行為的配置選項
-* `WorkflowBuilder`：用於創建複雜工作流程的構建器模式
+* `WorkflowBuilder`：用於創建複雜工作流程的建造者模式
 * `AgentHealthMonitor`：監控代理健康狀況和系統狀態
 
-## 運行範例
+## 運行示例
 
 ### 開始使用
 
-此範例示範了 Semantic Kernel Graph 套件的多代理協調和工作流程編排。以下代碼片段展示如何在自己的應用程式中實現此模式。
+此示例演示了 Semantic Kernel Graph 套件的多代理協調和工作流程編排。下面的程式碼片段展示了如何在您自己的應用程式中實現此模式。
 
 ## 逐步實現
 
 ### 1. 創建多代理協調器
 
-該範例首先創建一個具有自訂配置選項的協調器。
+示例首先創建具有自訂配置選項的協調器。
 
 ```csharp
-// 創建用於配置多代理行為的協調器選項。
-// 註解解釋了每個設置，以便讀者可以安全地調整它們。
+// Create coordinator options used to configure multi-agent behavior.
+// Comments explain each setting so readers can adapt them safely.
 var options = new MultiAgentOptions
 {
-    // 可同時運行的最大代理數量。
+    // Maximum number of agents that may run concurrently.
     MaxConcurrentAgents = 5,
 
-    // 協調操作的總超時時間。
+    // Overall timeout for coordination operations.
     CoordinationTimeout = TimeSpan.FromMinutes(10),
 
-    // 代理之間共享狀態處理的配置。
+    // Configuration for shared state handling between agents.
     SharedStateOptions = new SharedStateOptions
     {
         ConflictResolutionStrategy = ConflictResolutionStrategy.Merge,
         AllowOverwrite = true
     },
 
-    // 工作如何在代理間分配（基於角色、輪詢等）。
+    // How work is distributed among agents (role-based, round-robin, etc.).
     WorkDistributionOptions = new WorkDistributionOptions
     {
         DistributionStrategy = WorkDistributionStrategy.RoleBased,
         EnablePrioritization = true
     },
 
-    // 來自多個代理的結果如何聚合。
+    // How results from multiple agents are aggregated.
     ResultAggregationOptions = new ResultAggregationOptions
     {
         DefaultAggregationStrategy = AggregationStrategy.Consensus,
@@ -82,9 +82,9 @@ var options = new MultiAgentOptions
     }
 };
 
-// 使用上述選項創建協調器實例。loggerFactory
-// 符號被假定在周圍的範例應用程式中可用
-//（在文檔中的其他地方有介紹）。在生產中使用真實的 ILoggerFactory。
+// Create the coordinator instance using the options above. The loggerFactory
+// symbol is assumed to be available in the surrounding example application
+// (it's shown elsewhere in the docs). Use a real ILoggerFactory in production.
 using var coordinator = new MultiAgentCoordinator(options,
     new SemanticKernelGraphLogger(loggerFactory.CreateLogger<SemanticKernelGraphLogger>(), new GraphOptions()));
 ```
@@ -94,14 +94,14 @@ using var coordinator = new MultiAgentCoordinator(options,
 #### 創建專業化代理
 
 ```csharp
-// 創建並註冊此範例使用的專業化代理。每個輔助
-// 方法返回一個已向協調器註冊的 AgentInstance。
+// Create and register specialized agents used by this example. Each helper
+// method returns an AgentInstance already registered with the coordinator.
 var analysisAgent = await CreateAnalysisAgentAsync(coordinator, kernel, loggerFactory);
 var processingAgent = await CreateProcessingAgentAsync(coordinator, kernel, loggerFactory);
 var reportingAgent = await CreateReportingAgentAsync(coordinator, kernel, loggerFactory);
 
-// 準備將傳遞給工作流程的核心參數。使用顯式
-// 鍵，以便下游函數可以安全地檢索值。
+// Prepare kernel arguments that will be passed to the workflow. Use explicit
+// keys so downstream functions can retrieve values safely.
 var arguments = new KernelArguments
 {
     ["input_text"] = "The quick brown fox jumps over the lazy dog. This is a sample text for analysis.",
@@ -109,8 +109,8 @@ var arguments = new KernelArguments
     ["output_format"] = "detailed_report"
 };
 
-// 執行一個具有自動分配和合併聚合的小型工作流程。
-// 協調器將根據需要向已註冊的代理分發任務。
+// Execute a small workflow with automatic distribution and merge aggregation.
+// The coordinator will dispatch tasks to the registered agents as required.
 var result = await coordinator.ExecuteSimpleWorkflowAsync(
     kernel,
     arguments,
@@ -119,7 +119,7 @@ var result = await coordinator.ExecuteSimpleWorkflowAsync(
 );
 ```
 
-#### 代理創建範例
+#### 代理創建示例
 
 ```csharp
 private static async Task<AgentInstance> CreateAnalysisAgentAsync(
@@ -127,17 +127,17 @@ private static async Task<AgentInstance> CreateAnalysisAgentAsync(
     Kernel kernel,
     ILoggerFactory loggerFactory)
 {
-    // 創建一個為分析任務配置的 GraphExecutor。GraphExecutor
-    // 是範例中使用的輕量級範例執行器；在生產代碼中替換為真實的
-    // 執行器實現。
+    // Create a GraphExecutor configured for analysis tasks. The GraphExecutor
+    // is a lightweight example executor used in examples; replace with a real
+    // executor implementation in production code.
     var executor = new GraphExecutor(
         "Analysis Graph",
         "Specialized in text analysis",
         new SemanticKernelGraphLogger(loggerFactory.CreateLogger<SemanticKernelGraphLogger>(), new GraphOptions()));
 
-    // 創建一個包裝 Kernel 函數的單個分析節點。我們設置
-    // 存儲和元數據來指導下游代理並放鬆嚴格的提示
-    // 對範例的驗證。
+    // Create a single analysis node that wraps a Kernel function. We set
+    // storage and metadata to guide downstream agents and relax strict prompt
+    // validation for examples.
     var analysisNode = new FunctionGraphNode(CreateAnalysisFunction(kernel), "analyze-text", "Text Analysis");
     analysisNode.StoreResultAs("input");
     analysisNode.SetMetadata("StrictValidation", false);
@@ -145,8 +145,8 @@ private static async Task<AgentInstance> CreateAnalysisAgentAsync(
     executor.AddNode(analysisNode);
     executor.SetStartNode(analysisNode.NodeId);
 
-    // 向協調器註冊代理。功能幫助協調器
-    // 為任務選擇合適的代理。
+    // Register the agent with the coordinator. Capabilities help the
+    // coordinator select suitable agents for tasks.
     var agent = await coordinator.RegisterAgentAsync(
         agentId: "analysis-agent",
         name: "Text Analysis Agent",
@@ -166,12 +166,12 @@ private static async Task<AgentInstance> CreateAnalysisAgentAsync(
 
 ### 3. 進階工作流程場景
 
-進階工作流程使用具有顯式任務定義的構建器模式。
+進階工作流程使用具有明確任務定義的建造者模式。
 
 ```csharp
-// 使用協調器的流暢構建器構建複雜的工作流程。
-// 構建器允許以可讀的方式聲明所需代理、任務、參數和
-// 聚合策略。
+// Build a complex workflow using the coordinator's fluent builder. The
+// builder allows declaring required agents, tasks, parameters, and
+// aggregation strategies in a readable way.
 var workflow = coordinator.CreateWorkflow("advanced-analysis", "Advanced Text Analysis Workflow")
     .WithDescription("Comprehensive text analysis using multiple specialized agents")
     .RequireAgents("analysis-agent", "processing-agent", "reporting-agent")
@@ -198,8 +198,8 @@ var workflow = coordinator.CreateWorkflow("advanced-analysis", "Advanced Text An
     .WithMetadata("complexity", "high")
     .Build();
 
-// 準備工作流程的參數。保持鍵明確且文檔完善，以便
-// 任務可以毫不含糊地讀取它們。
+// Prepare arguments for the workflow. Keep keys explicit and documented so
+// tasks can read them without ambiguity.
 var arguments = new KernelArguments
 {
     ["document_content"] = GetSampleDocument(),
@@ -207,56 +207,56 @@ var arguments = new KernelArguments
     ["output_preferences"] = "json_structured"
 };
 
-// 執行工作流程並等待聚合的結果。
+// Execute the workflow and await the aggregated result.
 var result = await coordinator.ExecuteWorkflowAsync(workflow, kernel, arguments);
 ```
 
 ### 4. 健康監控場景
 
-健康監控場景追蹤代理狀態和系統性能。
+健康監控場景跟蹤代理狀態和系統性能。
 
 ```csharp
-// 檢索所有已註冊的代理以進行監控和診斷。
+// Retrieve all registered agents for monitoring and diagnostics.
 var agents = coordinator.GetAllAgents();
 logger.LogInformation($"Monitoring {agents.Count} agents...");
 
-// 遍歷代理並執行同步和異步健康檢查。
+// Iterate agents and perform synchronous and asynchronous health checks.
 foreach (var agent in agents)
 {
-    // 獲取快速檢查的緩存或計算的健康狀態。
+    // Get cached or computed health status for quick inspection.
     var healthStatus = agent.GetHealthStatus(coordinator);
     logger.LogInformation($"Agent {agent.AgentId}: {healthStatus?.Status ?? HealthStatus.Unknown}");
 
-    // 執行顯式的健康檢查，可能會執行網絡或運行時檢查。
+    // Perform an explicit health check which may perform network or runtime checks.
     var healthCheck = await agent.PerformHealthCheckAsync(coordinator);
     logger.LogInformation($"  Health Check: {(healthCheck.Success ? "Passed" : "Failed")} " +
                         $"(Response: {healthCheck.ResponseTime.TotalMilliseconds:F2} ms)");
 }
 
-// 從協調器監視器記錄聚合的系統健康指標。
+// Log aggregated system health metrics from the coordinator's monitor.
 var healthMonitor = coordinator.HealthMonitor;
 logger.LogInformation($"System Health: {healthMonitor.HealthyAgentCount}/{healthMonitor.MonitoredAgentCount} agents healthy ({healthMonitor.SystemHealthRatio:P})");
 ```
 
 ### 5. 代理函數創建
 
-該範例為不同代理類型創建專業化函數。
+此示例為不同的代理類型創建了專業化函數。
 
 ```csharp
-// 創建一個在範例中使用的輕量級 KernelFunction 來執行分析。
-// 該函數讀取參數、執行小型確定性計算、
-// 將結果存儲回參數中，並返回人類友好的訊息。
+// Create a lightweight KernelFunction used in examples to perform analysis.
+// The function reads arguments, performs a small deterministic computation,
+// stores results back into the arguments, and returns a human-friendly message.
 private static KernelFunction CreateAnalysisFunction(Kernel kernel)
 {
     return KernelFunctionFactory.CreateFromMethod(
         (KernelArguments args) =>
         {
-            // 安全地從參數中讀取輸入文本和分析類型。
+            // Safely read the input text and analysis type from arguments.
             var input = args.TryGetValue("input_text", out var i) ? i?.ToString() ?? string.Empty : string.Empty;
             var analysisType = args.TryGetValue("analysis_type", out var a) ? a?.ToString() ?? "basic" : "basic";
 
-            // 模擬一個簡單的分析結果。在實際場景中替換為
-            // 對 LLM 或其他處理組件的呼叫。
+            // Simulate a simple analysis result. In real scenarios replace with
+            // calls to LLMs or other processing components.
             var analysisResult = new
             {
                 TextLength = input.Length,
@@ -266,7 +266,7 @@ private static KernelFunction CreateAnalysisFunction(Kernel kernel)
                 Confidence = 0.95
             };
 
-            // 存儲結果，以便下游任務可以使用它。
+            // Store the result so downstream tasks can use it.
             args["analysis_result"] = analysisResult;
             return $"Analysis completed: {analysisResult.WordCount} words, {analysisResult.Insights.Length} insights";
         },
@@ -275,8 +275,8 @@ private static KernelFunction CreateAnalysisFunction(Kernel kernel)
     );
 }
 
-// 創建一個處理分析結果的處理函數，並為
-// 報告或聚合準備更豐富的處理結果。
+// Create a processing function that consumes the analysis result and prepares
+// a richer processed result for reporting or aggregation.
 private static KernelFunction CreateProcessingFunction(Kernel kernel)
 {
     return KernelFunctionFactory.CreateFromMethod(
@@ -284,7 +284,7 @@ private static KernelFunction CreateProcessingFunction(Kernel kernel)
         {
             var analysisResult = args.TryGetValue("analysis_result", out var ar) ? ar : null;
 
-            // 模擬增強洞察和元數據標記。
+            // Simulate enhancement of insights and metadata tagging.
             var processedResult = new
             {
                 ProcessedAt = DateTime.UtcNow,
@@ -293,7 +293,7 @@ private static KernelFunction CreateProcessingFunction(Kernel kernel)
                 Metadata = new { Source = "analysis_agent", Version = "1.0" }
             };
 
-            // 存儲處理的結果供後來的任務使用。
+            // Store processed result for later tasks.
             args["processed_result"] = processedResult;
             return $"Processing completed: {processedResult.EnhancedInsights.Length} enhanced insights";
         },
@@ -303,14 +303,14 @@ private static KernelFunction CreateProcessingFunction(Kernel kernel)
 }
 ```
 
-### 6. 工作流程結果日誌
+### 6. 工作流程結果日誌記錄
 
-該範例包含工作流程執行的全面結果日誌。
+此示例包括工作流程執行的全面結果日誌記錄。
 
 ```csharp
-// 幫助以簡潔、人類友好的方式記錄 WorkflowExecutionResult。
-// 此函數顯示成功、時序、涉及的代理、聚合結果和
-// 如果存在，則顯示錯誤樣本。
+// Helper to log a WorkflowExecutionResult in a concise, human-friendly way.
+// This function shows success, timing, agents involved, aggregated result and
+// a sample of errors if present.
 private static void LogWorkflowResult(WorkflowExecutionResult result, ILogger logger)
 {
     logger.LogInformation("\nWorkflow Execution Results:");
@@ -342,29 +342,29 @@ private static void LogWorkflowResult(WorkflowExecutionResult result, ILogger lo
 
 ## 預期輸出
 
-該範例產生全面的輸出，顯示：
+此示例生成全面的輸出，包括：
 
 * 🤖 多代理協調設置和配置
 * 📋 具有任務分配的基本多代理場景
-* 🔄 具有顯式任務定義的進階工作流程
-* 🏥 健康監控和代理狀態追蹤
+* 🔄 具有明確任務定義的進階工作流程
+* 🏥 健康監控和代理狀態跟蹤
 * 📊 工作流程執行結果和性能指標
-* ✅ 跨多個專業化代理的成功協調
+* ✅ 多個專業化代理之間的成功協調
 
 ## 故障排除
 
 ### 常見問題
 
-1. **代理註冊失敗**：確保代理 ID 是唯一的且功能定義正確
+1. **代理註冊失敗**：確保代理 ID 是唯一的並且功能已正確定義
 2. **工作流程執行錯誤**：檢查所需的代理和功能是否可用
 3. **健康檢查失敗**：驗證代理連接和資源可用性
-4. **協調超時**：為複雜工作流程調整超時設置
+4. **協調超時**：調整複雜工作流程的超時設置
 
 ### 調試提示
 
 * 啟用詳細日誌記錄以追蹤代理交互
 * 監控代理健康狀況和性能指標
-* 驗證工作流程要求和代理功能匹配
+* 驗證工作流程要求和代理功能是否匹配
 * 檢查協調超時和並發設置
 
 ## 另請參閱

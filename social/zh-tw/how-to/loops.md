@@ -1,20 +1,20 @@
-# 迴圈
+# Loops
 
-本指南說明如何在 SemanticKernel.Graph 中使用迴圈節點實現反覆工作流。你將學習如何建立 while 迴圈、foreach 迴圈，以及透過迭代限制和 break/continue 邏輯實現正確的迴圈控制。
+本指南說明如何使用 SemanticKernel.Graph 中的迴圈節點來實現反覆工作流程。您將學習如何建立 while 迴圈、foreach 迴圈，以及使用反覆限制和 break/continue 邏輯來實現適當的迴圈控制。
 
 ## 概述
 
-迴圈節點使你能夠建立可以執行以下操作的反覆工作流：
-- **重複操作** 直到符合條件為止
-- **處理集合** 中的資料項目
-- **實現重試邏輯** 並使用指數退避
-- **控制迭代流** 並支援 break 和 continue 陳述式
+Loop 節點可讓您建立反覆工作流程，能夠：
+- **重複操作** 直到符合條件
+- **處理數據項目的集合**
+- **使用指數退避實現重試邏輯**
+- **使用 break 和 continue 陳述式控制反覆流程**
 
 ## 基本迴圈類型
 
-### While 迴圈
+### While Loops
 
-使用 `WhileLoopGraphNode` 建立在條件為真時繼續的迴圈。以下代碼片段使用文檔中記錄的執行時型別和最小化的輔助 API，因此當放置在示例專案中時是可執行的。
+使用 `WhileLoopGraphNode` 建立在條件為真時繼續的迴圈。下面的程式碼片段使用已記錄的運行時型別和最小輔助 API，因此在放置在範例專案中時是可執行的。
 
 ```csharp
 using Microsoft.SemanticKernel;
@@ -22,23 +22,23 @@ using SemanticKernel.Graph.Core;
 using SemanticKernel.Graph.Nodes;
 using SemanticKernel.Graph.State;
 
-// 建立具有迭代限制的 while 迴圈
+// 建立具有反覆限制的 while 迴圈
 var whileNode = new WhileLoopGraphNode(
     condition: state => state.GetValue<int>("attempt") < 3,
     maxIterations: 5,
     nodeId: "retry_loop"
 );
 
-// 將迴圈新增到你的圖執行器或圖表示
+// 將迴圈新增至您的 Graph executor 或 Graph 表示
 graph.AddNode(whileNode)
      .AddEdge("start", "retry_loop")
      .AddEdge("retry_loop", "process")
      .AddEdge("process", "retry_loop"); // 迴圈返回
 ```
 
-### ForEach 迴圈
+### ForEach Loops
 
-使用 `ForeachLoopGraphNode` 在集合上進行迭代。該節點接受集合存取器（或範本），並在每次迭代時將目前項目和索引公開在圖狀態中。
+使用 `ForeachLoopGraphNode` 來反覆集合。該節點接受集合訪問子（或範本），並在每次反覆時在 Graph 狀態中公開目前項目和索引。
 
 ```csharp
 using SemanticKernel.Graph.Nodes;
@@ -62,7 +62,7 @@ graph.AddNode(foreachNode)
 
 ### Break 和 Continue 邏輯
 
-透過評估狀態變數和連接條件邊來實現 break 和 continue 邏輯。使用 `GetValue<T>` 從 `GraphState` 讀取型別化的值。
+透過評估狀態變數並連接條件邊來實現 break 和 continue 邏輯。使用 `GetValue<T>` 從 `GraphState` 讀取已鍵入的值。
 
 ```csharp
 var whileNode = new WhileLoopGraphNode(
@@ -85,9 +85,9 @@ graph.AddConditionalEdge("controlled_loop", "break_loop",
     condition: state => state.GetValue<bool>("should_continue"));
 ```
 
-### 迭代計數
+### 反覆計數
 
-追蹤和控制迭代進度。在 `FunctionGraphNode` 中從 `GraphState` 讀取和更新迭代計數器。
+追蹤和控制反覆進度。在 `FunctionGraphNode` 中從 `GraphState` 讀取和更新反覆計數器。
 
 ```csharp
 var loopNode = new WhileLoopGraphNode(
@@ -103,7 +103,7 @@ var loopNode = new WhileLoopGraphNode(
     nodeId: "counting_loop"
 );
 
-// 在每次迭代中遞增計數器（在 FunctionGraphNode 中實現）
+// 在每次反覆中遞增計數器（在 FunctionGraphNode 中實現）
 graph.AddEdge("counting_loop", "increment_counter")
      .AddEdge("increment_counter", "process_work")
      .AddEdge("process_work", "check_work_status")
@@ -112,9 +112,9 @@ graph.AddEdge("counting_loop", "increment_counter")
 
 ## 進階迴圈模式
 
-### 具有退避的重試迴圈
+### 使用退避的重試迴圈
 
-實現具有退避的重試邏輯。使用型別化存取器和輔助函數節點來計算延遲。
+實現具有退避的重試邏輯。使用已鍵入的訪問子和輔助函式節點來計算延遲。
 
 ```csharp
 var retryNode = new WhileLoopGraphNode(
@@ -131,7 +131,7 @@ var retryNode = new WhileLoopGraphNode(
     nodeId: "retry_with_backoff"
 );
 
-// 使用函數節點計算退避延遲
+// 使用函式節點計算退避延遲
 var backoffNode = new FunctionGraphNode(
     kernelFunction: CalculateBackoffDelay,
     nodeId: "calculate_backoff"
@@ -151,7 +151,7 @@ graph.AddNode(retryNode)
 
 ### 批次處理迴圈
 
-使用迴圈控制進行批次資料處理。使用 `GraphState` 來追蹤進度，並使用函數節點處理每個批次。
+使用迴圈控制處理批次中的資料。使用 `GraphState` 追蹤進度，並使用函式節點來處理每個批次。
 
 ```csharp
 var batchLoop = new WhileLoopGraphNode(
@@ -181,7 +181,7 @@ graph.AddNode(batchLoop)
 
 ### 巢狀迴圈
 
-透過組合迴圈節點實現巢狀迴圈結構以進行複雜處理。
+透過組合迴圈節點來實現複雜處理的巢狀迴圈結構。
 
 ```csharp
 var outerLoop = new WhileLoopGraphNode(
@@ -208,7 +208,7 @@ graph.AddNode(outerLoop)
 
 ### 狀態初始化
 
-使用函數節點正確初始化迴圈狀態變數，該節點在 `GraphState` 中設定必要的鍵。
+使用函式節點來正確初始化迴圈狀態變數，該節點在 `GraphState` 中設定必要的鍵。
 
 ```csharp
 var initializeLoop = new FunctionGraphNode(
@@ -238,7 +238,7 @@ graph.AddNode(initializeLoop)
 
 ### 狀態更新
 
-在每次迭代中使用函數節點更新迴圈狀態，該節點讀取/寫入型別化的值。
+在每次反覆中使用函式節點來更新迴圈狀態，該節點讀取/寫入已鍵入的值。
 
 ```csharp
 var updateState = new FunctionGraphNode(
@@ -266,7 +266,7 @@ graph.AddEdge("main_loop", "process_work")
 
 ### 迴圈效率
 
-透過正確的狀態管理和昂貴計算的快取來優化迴圈效能。
+使用適當的狀態管理和昂貴計算的快取來最佳化迴圈效能。
 
 ```csharp
 var optimizedLoop = new WhileLoopGraphNode(
@@ -289,7 +289,7 @@ var optimizedLoop = new WhileLoopGraphNode(
 
 ### 批次處理
 
-在每次迭代中處理多個項目：
+在每次反覆中處理多個項目：
 
 ```csharp
 var batchLoop = new WhileLoopGraphNode(
@@ -325,9 +325,9 @@ var batchProcessor = new FunctionGraphNode(
 
 ## 迴圈中的錯誤處理
 
-### 迴圈錯誤復原
+### 迴圈錯誤恢復
 
-透過路由到錯誤處理器節點並應用恢復策略來在迴圈內優雅地處理錯誤。
+透過路由至錯誤處理節點並應用恢復策略，在迴圈內優雅地處理錯誤。
 
 ```csharp
 var errorHandlingLoop = new WhileLoopGraphNode(
@@ -359,7 +359,7 @@ graph.AddNode(errorHandlingLoop)
 
 ### 優雅降級
 
-在迴圈失敗時實現後備邏輯：
+當迴圈失敗時實現回退邏輯：
 
 ```csharp
 var fallbackLoop = new WhileLoopGraphNode(
@@ -383,7 +383,7 @@ graph.AddConditionalEdge("attempt_primary", "primary_success",
     .AddEdge("attempt_fallback", "fallback_loop");
 ```
 
-## 監控和指標
+## 監控和計量
 
 ### 迴圈效能追蹤
 
@@ -397,7 +397,7 @@ var monitoredLoop = new WhileLoopGraphNode(
         var maxDuration = TimeSpan.FromMinutes(5);
         var elapsed = DateTimeOffset.UtcNow - startTime;
 
-        // 追蹤迴圈指標
+        // 追蹤迴圈計量
         var iteration = state.GetValue<int>("iteration");
         state.SetValue("loop_metrics", new {
             Iteration = iteration,
@@ -414,7 +414,7 @@ var monitoredLoop = new WhileLoopGraphNode(
 
 ### 迴圈健康檢查
 
-為長期執行的迴圈實現健康檢查：
+為長期運行的迴圈實現健康檢查：
 
 ```csharp
 var healthCheckLoop = new WhileLoopGraphNode(
@@ -434,7 +434,7 @@ var healthCheckLoop = new WhileLoopGraphNode(
             if (!isHealthy)
             {
                 state.SetValue("health_check_failed", true);
-                return false; // 健康檢查失敗時退出迴圈
+                return false; // 健康檢查失敗時結束迴圈
             }
         }
 
@@ -449,14 +449,14 @@ var healthCheckLoop = new WhileLoopGraphNode(
 
 ### 迴圈設計
 
-1. **設定迭代限制** - 始終定義 `maxIterations` 以防止無限迴圈
-2. **正確初始化狀態** - 進入迴圈前設定迴圈變數
-3. **處理邊界情況** - 為意外條件提供後備路徑
+1. **設定反覆限制** - 總是定義 `maxIterations` 以防止無限迴圈
+2. **正確初始化狀態** - 在進入迴圈之前設定迴圈變數
+3. **處理邊界情況** - 為意外條件提供回退路徑
 4. **監控效能** - 追蹤迴圈效率和資源使用情況
 
 ### 狀態管理
 
-1. **一致地更新狀態** - 確保在每次迭代中更新迴圈變數
+1. **一致地更新狀態** - 確保在每次反覆中更新迴圈變數
 2. **快取昂貴的操作** - 儲存結果以避免重新計算
 3. **清理資源** - 正確處理迴圈中使用的資源
 4. **驗證狀態變更** - 驗證狀態更新是否正確
@@ -464,46 +464,46 @@ var healthCheckLoop = new WhileLoopGraphNode(
 ### 錯誤處理
 
 1. **實現重試邏輯** - 優雅地處理暫時性失敗
-2. **設定超時限制** - 防止迴圈無限期執行
-3. **記錄迴圈進度** - 追蹤迭代進度以便除錯
-4. **提供後備** - 當迴圈失敗時有替代路徑
+2. **設定逾時限制** - 防止迴圈無限期運行
+3. **記錄迴圈進度** - 追蹤反覆進度以便偵錯
+4. **提供回退** - 當迴圈失敗時有替代路徑
 
 ## 疑難排解
 
 ### 常見問題
 
-**無限迴圈**：檢查迴圈條件並確保它們最終變為假
+**無限迴圈**: 檢查迴圈條件並確保它們最終變為假
 
-**效能降低**：監控迭代時間並優化昂貴的操作
+**效能降級**: 監控反覆時間並最佳化昂貴的操作
 
-**狀態損壞**：驗證狀態更新並實現正確的錯誤處理
+**狀態損毀**: 驗證狀態更新並實現適當的錯誤處理
 
-**記憶體洩漏**：清理資源並避免在迴圈中累積資料
+**記憶體洩漏**: 清理資源並避免在迴圈中累積資料
 
 ### 偵錯提示
 
-1. **啟用迴圈記錄** 以追蹤迭代進度
+1. **啟用迴圈記錄** 追蹤反覆進度
 2. **在迴圈條件和狀態更新中新增中斷點**
-3. **監控迴圈指標** 以尋找效能問題
+3. **監控迴圈計量** 以了解效能問題
 4. **使用迴圈視覺化** 以了解執行流程
 
 ## 概念和技術
 
-**WhileLoopNode**：一種專門化的圖節點，建立在指定條件為真時繼續的迴圈。它透過適當的迭代限制和狀態管理啟用反覆工作流。
+**WhileLoopNode**: 一個專門的 Graph 節點，建立在指定條件為真時繼續的迴圈。它能夠透過適當的反覆限制和狀態管理來實現反覆工作流程。
 
-**ForeachLoopNode**：一種圖節點，在資料項目集合上進行迭代。它處理集合中的每個項目並在整個過程中維護迭代狀態。
+**ForeachLoopNode**: 一個 Graph 節點，反覆集合中的資料項目。它處理集合中的每個項目，並在整個過程中維護反覆狀態。
 
-**迴圈控制**：控制迴圈執行的機制，包括 break 和 continue 邏輯、迭代限制以及反覆工作流中的狀態管理。
+**Loop Control**: 控制迴圈執行的機制，包括 break 和 continue 邏輯、反覆限制以及反覆工作流程內的狀態管理。
 
-**迭代限制**：安全機制，透過設定最大迭代計數和迴圈執行的超時限制來防止無限迴圈。
+**Iteration Limits**: 安全機制，透過設定最大反覆計數和迴圈執行的逾時約束來防止無限迴圈。
 
-**迴圈狀態管理**：在迴圈執行期間正確初始化、更新和維護狀態變數的實踐，以確保正確的行為和效能。
+**Loop State Management**: 在迴圈執行過程中正確初始化、更新和維護狀態變數的做法，以確保正確的行為和效能。
 
 ## 另請參閱
 
-- [建立圖](build-a-graph.md) - 瞭解圖建立的基礎知識
-- [條件節點](conditional-nodes.md) - 在工作流中實現分支邏輯
-- [進階路由](advanced-routing.md) - 探索複雜的路由模式
-- [狀態管理](../state-quickstart.md) - 了解如何管理節點之間的資料流
-- [錯誤處理和復原能力](error-handling-and-resilience.md) - 瞭解迴圈中的錯誤處理
-- [範例：迴圈工作流](../examples/loop-nodes-example.md) - 迴圈實現的完整工作範例
+- [Build a Graph](build-a-graph.md) - 學習 Graph 構建的基礎知識
+- [Conditional Nodes](conditional-nodes.md) - 在工作流程中實現分支邏輯
+- [Advanced Routing](advanced-routing.md) - 探索複雜的路由模式
+- [State Management](../state-quickstart.md) - 了解如何管理節點之間的資料流
+- [Error Handling and Resilience](error-handling-and-resilience.md) - 了解迴圈中的錯誤處理
+- [Examples: Loop Workflows](../examples/loop-nodes-example.md) - 迴圈實現的完整工作範例

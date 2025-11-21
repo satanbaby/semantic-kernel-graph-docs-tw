@@ -1,46 +1,46 @@
 # ConditionalEdge
 
-`ConditionalEdge` 類別代表兩個圖形節點之間的有向且可選受保護的轉移。它封裝了導航規則，這些規則根據運行時條件決定執行何時可以從源節點流向目標節點。
+`ConditionalEdge` 類別代表兩個 Graph Node 之間的有向、可選擇受保護的過渡。它封裝了導航規則，這些規則根據運行時條件決定執行何時可以從源 Node 流向目標 Node。
 
 ## 概述
 
-條件邊緣在圖形工作流中充當把關者，允許你建立動態執行路徑來回應當前狀態。邊緣評估針對 `KernelArguments` 或 `GraphState` 的謂詞函數，以決定是否允許遍歷。
+條件 Edge 在您的 Graph 工作流中充當守門人，允許您創建動態執行路徑以響應當前狀態。Edge 針對 `KernelArguments` 或 `GraphState` 評估謂詞函數，以確定是否允許遍歷。
 
 ## 關鍵概念
 
-**條件路由**：僅在滿足特定條件時允許遍歷的邊緣，實現動態工作流分支。
+**條件路由**：只有在滿足特定條件時才允許遍歷的 Edge，啟用動態工作流分支。
 
-**謂詞評估**：檢查當前執行上下文並傳回真假值來決定路由決策的函數。
+**謂詞評估**：檢查當前執行上下文並返回 true/false 來確定路由決策的函數。
 
-**基於狀態的決策**：可以訪問簡單參數和豐富圖形狀態資訊的條件。
+**基於狀態的決策**：可以訪問簡單參數和豐富 Graph 狀態信息的條件。
 
-**合併配置**：控制當多個平行分支聚合時狀態如何組合的設定。
+**合併配置**：控制多個並行分支收斂時狀態如何組合的設置。
 
 ## 核心屬性
 
-### 邊緣標識
-* **`EdgeId`**：在構造時生成的唯一、不可變識別碼
-* **`Name`**：用於診斷和視覺化的人類可讀名稱
-* **`SourceNode`**：遍歷開始的源節點
-* **`TargetNode`**：條件為真時到達的目標節點
+### Edge Identity
+* **`EdgeId`**：在構造時生成的唯一、不可變識別符
+* **`Name`**：用於診斷和可視化的人類可讀名稱
+* **`SourceNode`**：遍歷開始的源 Node
+* **`TargetNode`**：條件為真時到達的目標 Node
 
 ### 條件評估
-* **`Condition`**：針對 `KernelArguments` 評估的謂詞函數
-* **`StateCondition`**：針對 `GraphState` 評估的可選謂詞函數
-* **`CreatedAt`**：建立邊緣時的 UTC 時間戳
+* **`Condition`**：針對 `KernelArguments` 進行評估的謂詞函數
+* **`StateCondition`**：針對 `GraphState` 進行評估的可選謂詞函數
+* **`CreatedAt`**：Edge 創建時的 UTC 時間戳
 
 ### 執行元數據
-* **`TraversalCount`**：此邊緣被遍歷的次數
+* **`TraversalCount`**：此 Edge 被遍歷的次數
 * **`LastTraversedAt`**：最後一次遍歷的 UTC 時間戳
-* **`HasBeenTraversed`**：指示邊緣是否已被使用的布林值
+* **`HasBeenTraversed`**：表示 Edge 是否已被使用的布林值
 
 ### 配置
-* **`Metadata`**：用於儲存路由權重、視覺化提示或出處資訊的可變集合
-* **`MergeConfiguration`**：平行分支聚合期間狀態聯接的設定
+* **`Metadata`**：用於存儲路由權重、可視化提示或來源信息的可變集合
+* **`MergeConfiguration`**：並行分支收斂期間狀態聯接的設置
 
-## 構造函數
+## 建構函式
 
-### 基本條件邊緣
+### 基本條件 Edge
 
 ```csharp
 public ConditionalEdge(
@@ -50,13 +50,13 @@ public ConditionalEdge(
     string? name = null)
 ```
 
-建立一個邊緣，其謂詞在 `KernelArguments` 上評估。
+創建一個使用針對 `KernelArguments` 進行評估的謂詞的 Edge。
 
 **參數：**
-* `sourceNode`：源節點
-* `targetNode`：目標節點
-* `condition`：無副作用的謂詞函數
-* `name`：選用的人類可讀名稱（預設為「Source -> Target」）
+* `sourceNode`：源 Node
+* `targetNode`：目標 Node
+* `condition`：無副作用謂詞函數
+* `name`：可選的人類可讀名稱（默認為「Source -> Target」）
 
 **範例：**
 ```csharp
@@ -68,7 +68,7 @@ var edge = new ConditionalEdge(
 );
 ```
 
-### 基於狀態的條件邊緣
+### 基於狀態的條件 Edge
 
 ```csharp
 public ConditionalEdge(
@@ -78,13 +78,13 @@ public ConditionalEdge(
     string? name = null)
 ```
 
-建立一個邊緣，其謂詞在 `GraphState` 上評估。
+創建一個使用針對 `GraphState` 進行評估的謂詞的 Edge。
 
 **參數：**
-* `sourceNode`：源節點
-* `targetNode`：目標節點
-* `stateCondition`：針對圖形狀態的無副作用謂詞函數
-* `name`：選用的人類可讀名稱
+* `sourceNode`：源 Node
+* `targetNode`：目標 Node
+* `stateCondition`：用於 Graph 狀態的無副作用謂詞函數
+* `name`：可選的人類可讀名稱
 
 **範例：**
 ```csharp
@@ -107,7 +107,7 @@ public static ConditionalEdge CreateUnconditional(
     string? name = null)
 ```
 
-建立一個始終可遍歷的邊緣（條件始終傳回真）。
+創建始終可遍歷的 Edge（條件始終返回 true）。
 
 **範例：**
 ```csharp
@@ -129,7 +129,7 @@ public static ConditionalEdge CreateParameterEquals(
     string? name = null)
 ```
 
-建立一個邊緣，僅當特定引數等於預期值時才可遍歷。
+創建只有當特定參數等於預期值時才可遍歷的 Edge。
 
 **範例：**
 ```csharp
@@ -152,7 +152,7 @@ public static ConditionalEdge CreateParameterExists(
     string? name = null)
 ```
 
-建立一個邊緣，僅當特定引數存在時才可遍歷。
+創建只有當特定參數存在時才可遍歷的 Edge。
 
 **範例：**
 ```csharp
@@ -172,23 +172,23 @@ var authEdge = ConditionalEdge.CreateParameterExists(
 public bool EvaluateCondition(KernelArguments arguments)
 ```
 
-針對提供的引數評估條件。
+針對提供的參數評估條件。
 
 **參數：**
-* `arguments`：要評估的引數包
+* `arguments`：要評估的參數集
 
-**傳回值：** 如果滿足條件則為 `true`，否則為 `false`
+**返回值：** 如果滿足條件則為 `true`，否則為 `false`
 
-**例外狀況：**
-* `ArgumentNullException`：當引數為空值時
-* `InvalidOperationException`：當基礎謂詞拋出時
+**異常：**
+* `ArgumentNullException`：當參數為 null 時
+* `InvalidOperationException`：當基礎謂詞拋出異常時
 
 **範例：**
 ```csharp
 var args = new KernelArguments { ["status"] = "approved" };
 if (edge.EvaluateCondition(args))
 {
-    // 遍歷到目標節點
+    // 遍歷到目標 Node
 }
 ```
 
@@ -198,19 +198,19 @@ if (edge.EvaluateCondition(args))
 public bool EvaluateCondition(GraphState graphState)
 ```
 
-使用 `GraphState` 評估條件（如果可用），否則回退到 `KernelArguments` 謂詞。
+當可用時使用 `GraphState` 評估條件，否則回退到 `KernelArguments` 謂詞。
 
 **參數：**
-* `graphState`：要評估的圖形狀態
+* `graphState`：要評估的 Graph 狀態
 
-**傳回值：** 如果滿足條件則為 `true`，否則為 `false`
+**返回值：** 如果滿足條件則為 `true`，否則為 `false`
 
 **範例：**
 ```csharp
 var state = new GraphState(new KernelArguments { ["score"] = 85 });
 if (edge.EvaluateCondition(state))
 {
-    // 遍歷到目標節點
+    // 遍歷到目標 Node
 }
 ```
 
@@ -222,7 +222,7 @@ if (edge.EvaluateCondition(state))
 public ConditionalEdge WithMergePolicy(StateMergeConflictPolicy defaultPolicy)
 ```
 
-配置邊緣以針對所有參數使用特定的合併原則。
+配置 Edge 為所有參數使用特定的合併策略。
 
 **範例：**
 ```csharp
@@ -236,7 +236,7 @@ var edge = ConditionalEdge.CreateUnconditional(source, target)
 public ConditionalEdge WithMergeConfiguration(StateMergeConfiguration configuration)
 ```
 
-配置邊緣以針對平行分支聯接設定詳細的合併設定。
+使用用於並行分支聯接的詳細合併設置配置 Edge。
 
 **範例：**
 ```csharp
@@ -254,7 +254,7 @@ var edge = ConditionalEdge.CreateUnconditional(source, target)
 public ConditionalEdge WithKeyMergePolicy(string key, StateMergeConflictPolicy policy)
 ```
 
-為特定參數鍵配置合併原則。
+為特定參數鍵配置合併策略。
 
 **範例：**
 ```csharp
@@ -268,7 +268,7 @@ var edge = ConditionalEdge.CreateUnconditional(source, target)
 public ConditionalEdge WithTypeMergePolicy(Type type, StateMergeConflictPolicy policy)
 ```
 
-為特定 .NET 型別配置合併原則。
+為特定的 .NET 類型配置合併策略。
 
 **範例：**
 ```csharp
@@ -282,7 +282,7 @@ var edge = ConditionalEdge.CreateUnconditional(source, target)
 public ConditionalEdge WithCustomKeyMerger(string key, Func<object?, object?, object?> merger)
 ```
 
-為特定參數鍵配置自訂合併函數。
+為特定參數鍵配置自定義合併函數。
 
 **範例：**
 ```csharp
@@ -301,7 +301,7 @@ var edge = ConditionalEdge.CreateUnconditional(source, target)
 public ConditionalEdge WithReduceSemantics()
 ```
 
-配置邊緣以對常見型別使用減少語義和預設化簡工具。
+配置 Edge 使用具有常見類型默認 Reducer 的 Reduce 語義。
 
 **範例：**
 ```csharp
@@ -317,9 +317,9 @@ var edge = ConditionalEdge.CreateUnconditional(source, target)
 public ValidationResult ValidateIntegrity()
 ```
 
-驗證邊緣的潛在問題，如自迴圈和無效條件函數。
+驗證 Edge 是否存在潛在問題，如自我循環和無效條件函數。
 
-**傳回值：** 包含警告和錯誤的 `ValidationResult`
+**返回值：** 包含警告和錯誤的 `ValidationResult`
 
 **範例：**
 ```csharp
@@ -338,7 +338,7 @@ if (validation.HasErrors)
 ### 基本條件路由
 
 ```csharp
-// 建立包含函數的節點
+// 使用函數創建 Node
 var startNode = new FunctionGraphNode(
     KernelFunctionFactory.CreateFromMethod(
         (KernelArguments args) => "Start executed",
@@ -366,7 +366,7 @@ var failureNode = new FunctionGraphNode(
     "failure"
 );
 
-// 建立條件邊緣
+// 創建條件 Edge
 var successEdge = new ConditionalEdge(
     startNode, 
     successNode,
@@ -381,7 +381,7 @@ var failureEdge = new ConditionalEdge(
     "Failure Path"
 );
 
-// 新增到執行器
+// 添加到執行器
 executor.AddEdge(successEdge);
 executor.AddEdge(failureEdge);
 ```
@@ -429,7 +429,7 @@ var defaultEdge = ConditionalEdge.CreateUnconditional(
 );
 ```
 
-### 平行分支的合併配置
+### 並行分支的合併配置
 
 ```csharp
 var mergeEdge = ConditionalEdge.CreateUnconditional(source, target)
@@ -438,7 +438,7 @@ var mergeEdge = ConditionalEdge.CreateUnconditional(source, target)
     .WithTypeMergePolicy(typeof(List<string>), StateMergeConflictPolicy.Reduce)
     .WithCustomKeyMerger("userData", (baseVal, overlayVal) => 
     {
-        // 自訂使用者資料的合併邏輯
+        // 用戶數據的自定義合併邏輯
         if (baseVal is Dictionary<string, object> baseDict && 
             overlayVal is Dictionary<string, object> overlayDict)
         {
@@ -453,16 +453,16 @@ var mergeEdge = ConditionalEdge.CreateUnconditional(source, target)
     });
 ```
 
-## 與圖形執行器的整合
+## 與 Graph 執行器整合
 
-### 直接邊緣新增
+### 直接 Edge 添加
 
 ```csharp
 var edge = new ConditionalEdge(sourceNode, targetNode, condition);
 executor.AddEdge(edge);
 ```
 
-### 使用 ConnectWhen 擴充方法
+### 使用 ConnectWhen 擴展
 
 ```csharp
 executor.ConnectWhen("sourceNode", "targetNode", 
@@ -470,7 +470,7 @@ executor.ConnectWhen("sourceNode", "targetNode",
     "Conditional Route");
 ```
 
-### 範本型路由
+### 基於範本的路由
 
 ```csharp
 executor.ConnectWithTemplate("sourceNode", "targetNode", 
@@ -479,32 +479,32 @@ executor.ConnectWithTemplate("sourceNode", "targetNode",
     "High Priority Urgent Route");
 ```
 
-## 效能考量
+## 性能考慮
 
 * **條件函數**：保持謂詞快速且無副作用
-* **狀態訪問**：使用 `GraphState` 方法（如 `GetValue<T>()`）進行型別安全訪問
-* **快取**：考慮快取成本高昂的條件評估
-* **驗證**：在開發期間使用 `ValidateIntegrity()` 及早發現問題
+* **狀態訪問**：使用 `GraphState` 方法如 `GetValue<T>()` 進行類型安全訪問
+* **緩存**：考慮緩存昂貴的條件評估
+* **驗證**：在開發期間使用 `ValidateIntegrity()` 提早發現問題
 
-## 執行緒安全性
+## 線程安全
 
-* 執行個體對並行讀取是安全的
+* 實例對於並發讀取是安全的
 * `Metadata` 包和遍歷計數器未同步
-* 當多個執行緒可能同時變更時需要外部同步
-* 當精確計數很重要時，使用 `RecordTraversal()` 進行原子更新
+* 當多個線程可能並發變動時需要外部同步
+* 當精確計數很重要時使用 `RecordTraversal()` 進行原子更新
 
 ## 錯誤處理
 
-* 拋出的條件包裝在 `InvalidOperationException` 中
-* 在生產程式碼中，在條件評估周圍使用 try-catch 區塊
-* 在新增到圖形前驗證邊緣完整性
-* 監控遍歷指標以查找意外行為
+* 拋出異常的條件被包裝在 `InvalidOperationException` 中
+* 在生產代碼中的條件評估周圍使用 try-catch 塊
+* 驗證邊缘完整性，然後再添加到 Graph
+* 監視遍歷指標以查找意外行為
 
 ## 另請參閱
 
-* [條件節點指南](../how-to/conditional-nodes.md)
+* [條件 Node 指南](../how-to/conditional-nodes.md)
 * [狀態管理](../concepts/state.md)
-* [圖形執行模型](../concepts/execution-model.md)
+* [Graph 執行模型](../concepts/execution-model.md)
 * [路由概念](../concepts/routing.md)
 * [StateMergeConfiguration](state-merge-configuration.md)
 * [StateMergeConflictPolicy](state-merge-conflict-policy.md)

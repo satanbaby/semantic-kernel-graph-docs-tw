@@ -1,41 +1,41 @@
-# 安全性和資料處理
+# 安全性與資料處理
 
-本指南說明如何在 SemanticKernel.Graph 中實作全面的安全措施和資料處理政策，包括資料清理、敏感金鑰管理、保留政策和加密功能。
+本指南說明如何在 SemanticKernel.Graph 中實現全面的安全措施和資料處理政策，包括資料清潔、敏感金鑰管理、保留政策和加密功能。
 
 ## 概述
 
-SemanticKernel.Graph 提供企業級安全功能，確保敏感資料保護、安全執行和資料治理要求合規。該系統包括：
+SemanticKernel.Graph 提供企業級安全功能，確保敏感資料保護、安全執行和合規資料治理要求。該系統包括：
 
-* **資料清理**：自動編輯日誌、事件和匯出中的敏感資訊
-* **身份驗證與授權**：Bearer 令牌驗證和基於範圍的存取控制
+* **資料清潔**：自動刪除日誌、事件和匯出中的敏感資訊
+* **身份驗證與授權**：Bearer Token 驗證和基於範圍的存取控制
 * **加密**：支援加密檢查點和安全資料傳輸
-* **保留政策**：可設定的資料生命週期管理和自動清理
-* **多租戶隔離**：不同租戶環境之間的安全邊界
+* **保留政策**：可配置的資料生命週期管理和自動清理
+* **多租戶隔離**：不同租戶上下文之間的安全邊界
 
-## 資料清理
+## 資料清潔
 
-### 核心清理元件
+### 核心清潔元件
 
-清理系統由多個關鍵元件組成：
+清潔系統包含幾個關鍵元件：
 
-* **`SensitiveDataSanitizer`**：清理物件和字典的主要公用程式
-* **`SensitiveDataPolicy`**：定義清理行為的組態政策
-* **`SanitizationLevel`**：控制清理強度的列舉
+* **`SensitiveDataSanitizer`**：用於清潔物件和字典的主要工具
+* **`SensitiveDataPolicy`**：定義清潔行為的配置政策
+* **`SanitizationLevel`**：控制清潔強度的列舉
 
-### 清理等級
+### 清潔級別
 
 ```csharp
 public enum SanitizationLevel
 {
-    None = 0,      // 不套用任何清理
-    Basic = 1,     // 僅在金鑰提示敏感性時編輯
-    Strict = 2     // 編輯所有字串值，不論金鑰為何
+    None = 0,      // 不應用清潔
+    Basic = 1,     // 僅在金鑰提示敏感性時刪除
+    Strict = 2     // 無論金鑰如何，刪除所有字串值
 }
 ```
 
-### 基本清理組態
+### 基本清潔配置
 
-使用預設敏感金鑰模式設定清理：
+使用預設敏感金鑰模式配置清潔：
 
 ```csharp
 using SemanticKernel.Graph.Integration;
@@ -53,7 +53,7 @@ var sanitizer = new SensitiveDataSanitizer(policy);
 
 ### 自訂敏感金鑰模式
 
-定義您特定領域敏感資料的自訂模式：
+定義特定於您的領域的敏感資料自訂模式：
 
 ```csharp
 var customPolicy = new SensitiveDataPolicy
@@ -70,7 +70,7 @@ var customPolicy = new SensitiveDataPolicy
         "ssn", "credit_card", "bank_account", "social_security",
         "medical_record", "patient_id", "diagnosis",
         
-        // 自訂業務模式
+        // 自訂商業模式
         "internal_note", "confidential", "restricted"
     },
     MaskAuthorizationBearerToken = true
@@ -79,14 +79,14 @@ var customPolicy = new SensitiveDataPolicy
 var sanitizer = new SensitiveDataSanitizer(customPolicy);
 ```
 
-### 清理不同資料類型
+### 清潔不同的資料類型
 
-清理器自動處理各種資料結構：
+清潔工具自動處理各種資料結構：
 
 ```csharp
-// 建立包含潛在敏感項目的字典。將變數宣告為
-// IDictionary<string, object?> 以確保選擇清理器的
-// IDictionary 多載（解決多載歧義）。
+// 建立包含可能敏感項目的字典。將變數宣告為
+// IDictionary<string, object?> 以確保選擇清潔工具的 IDictionary 重載
+//（解決重載歧義）。
 IDictionary<string, object?> sensitiveData = new Dictionary<string, object?>
 {
     ["username"] = "john_doe",
@@ -97,23 +97,23 @@ IDictionary<string, object?> sensitiveData = new Dictionary<string, object?>
     ["normal_data"] = "This is not sensitive"
 };
 
-// 呼叫 IDictionary 多載來清理原位語意。
+// 通過調用 IDictionary 重載來原地清潔。
 var sanitizedData = sanitizer.Sanitize(sensitiveData);
 
-// 範例輸出：敏感值根據政策進行編輯
+// 範例輸出：根據政策刪除敏感值
 foreach (var kvp in sanitizedData)
 {
     Console.WriteLine($"{kvp.Key}: {kvp.Value}");
 }
 
-// JSON 範例：清理 JsonDocument 承載（對 HTTP 主體很有用）
+// JSON 範例：清潔 JsonDocument 有效負載（適用於 HTTP 主體）
 using var doc = System.Text.Json.JsonDocument.Parse(
     "{\"api_key\":\"sk-abcdef\",\"nested\":{\"password\":\"p@ss\"}}"
 );
 
 var sanitizedJson = sanitizer.Sanitize(doc.RootElement);
 
-// 如果 sanitizedJson 是字典，迭代並顯示值
+// 如果 sanitizedJson 是字典，反覆檢視並顯示值
 if (sanitizedJson is IDictionary<string, object?> dict)
 {
     foreach (var kv in dict)
@@ -124,12 +124,12 @@ if (sanitizedJson is IDictionary<string, object?> dict)
 
 ```
 
-### 與日誌整合
+### 與日誌記錄整合
 
-將清理套用至日誌輸出以防止敏感資料洩露：
+將清潔應用於日誌記錄輸出以防止敏感資料洩露：
 
 ```csharp
-// 使用清理設定日誌記錄
+// 配置帶清潔的日誌記錄
 var loggingOptions = new GraphLoggingOptions
 {
     LogSensitiveData = false,
@@ -141,7 +141,7 @@ var loggingOptions = new GraphLoggingOptions
     }
 };
 
-// 套用至核心產生器
+// 應用於 Kernel Builder
 builder.AddGraphSupport(opts =>
 {
     opts.EnableLogging = true;
@@ -149,11 +149,11 @@ builder.AddGraphSupport(opts =>
 });
 ```
 
-## 身份驗證和授權
+## 身份驗證與授權
 
-### Bearer 令牌驗證
+### Bearer Token 驗證
 
-SemanticKernel.Graph 透過 `IBearerTokenValidator` 介面提供靈活的 Bearer 令牌驗證：
+SemanticKernel.Graph 透過 `IBearerTokenValidator` 介面提供靈活的 Bearer Token 驗證：
 
 ```csharp
 using SemanticKernel.Graph.Integration;
@@ -161,7 +161,7 @@ using SemanticKernel.Graph.Integration;
 // Azure AD JWT 驗證
 var validator = new AzureAdBearerTokenValidator();
 
-// 使用必需的範圍驗證令牌
+// 使用必需的範圍驗證 Token
 var isValid = await validator.ValidateAsync(
     bearerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1Ni...",
     requiredScopes: new[] { "graph.read", "graph.write" },
@@ -169,9 +169,9 @@ var isValid = await validator.ValidateAsync(
 );
 ```
 
-### 自訂令牌驗證程式
+### 自訂 Token 驗證器
 
-為您的身份驗證系統實作自訂驗證邏輯：
+為您的驗證系統實現自訂驗證邏輯：
 
 ```csharp
 public sealed class CustomBearerTokenValidator : IBearerTokenValidator
@@ -181,19 +181,19 @@ public sealed class CustomBearerTokenValidator : IBearerTokenValidator
         IEnumerable<string>? requiredAppRoles = null, 
         CancellationToken cancellationToken = default)
     {
-        // 實作您的自訂驗證邏輯
-        // 例如，針對您的身份提供者進行驗證
+        // 實現您的自訂驗證邏輯
+        // 例如，根據您的身份提供者進行驗證
         
         if (string.IsNullOrWhiteSpace(bearerToken))
             return false;
             
         try
         {
-            // 解析並驗證令牌
+            // 解析並驗證 Token
             // 檢查範圍和角色
-            // 驗證過期和其他聲明
+            // 驗證過期和其他聲稱
             
-            return true; // 根據驗證傳回 true 或 false
+            return true; // 或根據驗證返回 false
         }
         catch
         {
@@ -205,7 +205,7 @@ public sealed class CustomBearerTokenValidator : IBearerTokenValidator
 
 ### REST API 安全性
 
-設定圖形 REST API 的安全性：
+為 Graph REST API 配置安全性：
 
 ```csharp
 var restApiOptions = new GraphRestApiOptions
@@ -214,11 +214,11 @@ var restApiOptions = new GraphRestApiOptions
     EnableBearerTokenAuth = true,
     RequiredScopes = new[] { "graph.execute", "graph.read" },
     RequiredAppRoles = new[] { "GraphUser" },
-    ApiKey = null, // 改用 Bearer 令牌
+    ApiKey = null, // 改用 Bearer Token
     RateLimitRequestsPerMinute = 100
 };
 
-// 在相依性注入容器中登錄
+// 在 DI 容器中註冊
 builder.Services.AddSingleton(restApiOptions);
 builder.Services.AddSingleton<IBearerTokenValidator, AzureAdBearerTokenValidator>();
 ```
@@ -227,19 +227,19 @@ builder.Services.AddSingleton<IBearerTokenValidator, AzureAdBearerTokenValidator
 
 ### 檢查點加密
 
-啟用敏感檢查點資料的加密：
+為敏感的檢查點資料啟用加密：
 
 ```csharp
 var checkpointOptions = new CheckpointOptions
 {
     EnableCompression = true,
     EnableEncryption = true,
-    EncryptionKey = "your-encryption-key", // 使用安全金鑰管理
+    EncryptionKey = "your-encryption-key", // 使用安全的金鑰管理
     MaxCacheSize = 1000,
     EnableAutoCleanup = true
 };
 
-// 使用備份加密進行設定
+// 使用備份加密配置
 var backupOptions = new CheckpointBackupOptions
 {
     CompressBackup = true,
@@ -253,7 +253,7 @@ checkpointOptions.DefaultBackupOptions = backupOptions;
 
 ### 安全金鑰管理
 
-透過 `ISecretResolver` 介面實作安全金鑰解析：
+透過 `ISecretResolver` 介面實現安全金鑰解析：
 
 ```csharp
 public sealed class AzureKeyVaultSecretResolver : ISecretResolver
@@ -279,7 +279,7 @@ public sealed class AzureKeyVaultSecretResolver : ISecretResolver
     }
 }
 
-// 在相依性注入容器中登錄
+// 在 DI 容器中註冊
 builder.Services.AddSingleton<ISecretResolver, AzureKeyVaultSecretResolver>();
 ```
 
@@ -302,16 +302,16 @@ var memoryOptions = new GraphMemoryOptions
 
 ### 檢查點保留政策
 
-設定自動清理和保留政策：
+配置自動清理和保留政策：
 
 ```csharp
 var retentionPolicy = new CheckpointRetentionPolicy
 {
     MaxAge = TimeSpan.FromDays(30),           // 保留 30 天
     MaxCheckpointsPerExecution = 100,         // 每次執行最多 100 個
-    MaxTotalStorageBytes = 5L * 1024 * 1024 * 1024,  // 總儲存空間 5GB
-    KeepCriticalCheckpoints = true,           // 一律保留關鍵檢查點
-    CriticalCheckpointInterval = 10           // 每 10 個常規檢查點後進行關鍵檢查點
+    MaxTotalStorageBytes = 5L * 1024 * 1024 * 1024,  // 總共 5GB 儲存空間
+    KeepCriticalCheckpoints = true,           // 始終保留關鍵檢查點
+    CriticalCheckpointInterval = 10           // 每 10 個常規檢查點一個關鍵檢查點
 };
 
 var checkpointOptions = new CheckpointOptions
@@ -324,7 +324,7 @@ var checkpointOptions = new CheckpointOptions
 
 ### 日誌保留和清理
 
-設定日誌保留和自動清理：
+配置日誌保留和自動清理：
 
 ```csharp
 var loggingOptions = new GraphLoggingOptions
@@ -334,13 +334,13 @@ var loggingOptions = new GraphLoggingOptions
     MaxLogFileSize = 100 * 1024 * 1024, // 100MB
     MaxLogFiles = 10,
     EnableCompression = true,
-    EnableEncryption = false // 啟用敏感日誌的加密
+    EnableEncryption = false // 為敏感日誌啟用
 };
 ```
 
 ### 記憶體清理政策
 
-設定記憶體清理和保留：
+配置記憶體清理和保留：
 
 ```csharp
 var memoryCleanupOptions = new MemoryCleanupOptions
@@ -355,9 +355,9 @@ var memoryCleanupOptions = new MemoryCleanupOptions
 
 ## 多租戶隔離
 
-### 租戶內容管理
+### 租戶上下文管理
 
-為多租戶應用程式實作租戶隔離：
+為多租戶應用程式實現租戶隔離：
 
 ```csharp
 public sealed class TenantContext
@@ -368,7 +368,7 @@ public sealed class TenantContext
     public TimeSpan SessionTimeout { get; init; } = TimeSpan.FromHours(8);
 }
 
-// 租戶感知圖形執行
+// 租戶感知的 Graph 執行
 public sealed class TenantAwareGraphExecutor
 {
     private readonly GraphExecutor _baseExecutor;
@@ -378,7 +378,7 @@ public sealed class TenantAwareGraphExecutor
         KernelArguments arguments, 
         CancellationToken cancellationToken = default)
     {
-        // 將租戶內容注入至引數
+        // 將租戶上下文注入參數
         arguments["tenant_id"] = _tenantContext.TenantId;
         arguments["user_id"] = _tenantContext.UserId;
         
@@ -388,9 +388,9 @@ public sealed class TenantAwareGraphExecutor
 }
 ```
 
-### 子圖隔離
+### 子 Graph 隔離
 
-使用子圖隔離模式進行安全執行邊界：
+使用子 Graph 隔離模式進行安全執行邊界：
 
 ```csharp
 var subgraphConfig = new SubgraphConfiguration
@@ -412,9 +412,9 @@ var subgraphConfig = new SubgraphConfiguration
 var subgraphNode = new SubgraphGraphNode(subgraphExecutor, subgraphConfig);
 ```
 
-### API 層級租戶隔離
+### API 級租戶隔離
 
-在 REST API 層級實作租戶隔離：
+在 REST API 級別實現租戶隔離：
 
 ```csharp
 var restApiOptions = new GraphRestApiOptions
@@ -426,23 +426,23 @@ var restApiOptions = new GraphRestApiOptions
     MaxTenantsPerRequest = 1
 };
 
-// 自訂租戶驗證程式
+// 自訂租戶驗證器
 public sealed class TenantValidator : ITenantValidator
 {
     public async Task<bool> ValidateTenantAsync(string tenantId, string userId, CancellationToken cancellationToken = default)
     {
-        // 實作租戶驗證邏輯
-        // 檢查使用者是否有權存取指定租戶
+        // 實現租戶驗證邏輯
+        // 檢查使用者是否有權存取指定的租戶
         return await ValidateUserTenantAccessAsync(tenantId, userId, cancellationToken);
     }
 }
 ```
 
-## 審核和合規性
+## 審計和合規
 
-### 執行審核
+### 執行審計
 
-啟用全面的執行審核：
+啟用全面的執行審計：
 
 ```csharp
 var auditOptions = new AuditOptions
@@ -455,14 +455,14 @@ var auditOptions = new AuditOptions
     EnableAuditEncryption = true
 };
 
-// 設定審核日誌記錄
+// 配置審計日誌記錄
 var auditLogger = new AuditLogger(auditOptions);
 builder.Services.AddSingleton<IAuditLogger>(auditLogger);
 ```
 
-### 合規性報告
+### 合規報告
 
-產生法規要求的合規性報告：
+為法規要求生成合規報告：
 
 ```csharp
 public sealed class ComplianceReporter
@@ -489,69 +489,69 @@ public sealed class ComplianceReporter
 
 ## 安全最佳實踐
 
-### 組態安全
+### 配置安全性
 
-1. **環境式組態**：使用環境變數進行敏感組態
-2. **秘密輪換**：實作長期認證的自動秘密輪換
-3. **最小權限**：為每個元件授予最小必需權限
-4. **網路安全**：針對所有外部通訊使用 HTTPS/TLS
+1. **環境型配置**：針對敏感配置使用環境變數
+2. **密鑰輪替**：為長期認證實現自動密鑰輪替
+3. **最小權限**：向每個元件授予最小必要權限
+4. **網路安全性**：為所有外部通訊使用 HTTPS/TLS
 
 ### 資料保護
 
-1. **靜態加密**：加密持久儲存區中的敏感資料
-2. **傳輸中加密**：對所有資料傳輸使用 TLS
-3. **金鑰管理**：使用安全金鑰管理服務（Azure 金鑰保存庫、AWS KMS）
-4. **資料分類**：按敏感性分類資料，並套用適當的保護
+1. **靜態加密**：加密持久儲存中的敏感資料
+2. **傳輸中加密**：為所有資料傳輸使用 TLS
+3. **金鑰管理**：使用安全的金鑰管理服務（Azure Key Vault、AWS KMS）
+4. **資料分類**：按敏感性分類資料並應用適當的保護
 
 ### 存取控制
 
-1. **多重要素驗證**：要求對管理存取進行 MFA
-2. **角色型存取控制**：為細粒度權限實作 RBAC
-3. **工作階段管理**：實作適當的工作階段逾時和管理
-4. **審核日誌記錄**：記錄所有與安全相關的事件以供合規之用
+1. **多因素驗證**：需要 MFA 進行管理存取
+2. **角色型存取控制**：實現 RBAC 以進行細粒度權限
+3. **工作階段管理**：實現適當的工作階段逾時和管理
+4. **審計日誌記錄**：記錄所有安全相關事件以進行合規
 
 ### 監控和警示
 
 1. **安全監控**：監控可疑活動和安全事件
-2. **警示**：針對安全違規和異常設定警示
-3. **事件回應**：有程序來應對安全事件
-4. **定期審查**：進行定期安全審查和滲透測試
+2. **警示**：設定安全違規和異常的警示
+3. **事件響應**：具有響應安全事件的程序
+4. **定期檢查**：進行定期安全檢查和滲透測試
 
-## 疑難排解
+## 故障排除
 
 ### 常見安全問題
 
-**身份驗證失敗**
-* 驗證 Bearer 令牌格式和過期時間
+**驗證失敗**
+* 驗證 Bearer Token 格式和過期時間
 * 檢查必需的範圍和應用程式角色
-* 驗證令牌簽發者和對象
+* 驗證 Token 簽發者和對象
 
-**資料清理問題**
-* 確保敏感金鑰模式正確設定
-* 檢查清理等級設定
-* 驗證自訂協助函數不會略過清理
+**資料清潔問題**
+* 確保敏感金鑰模式配置正確
+* 檢查清潔級別設定
+* 驗證自訂協助程式函數不會繞過清潔
 
 **加密問題**
 * 驗證加密金鑰格式和長度
-* 檢查金鑰輪換排程
+* 檢查金鑰輪替計畫
 * 驗證加密演算法相容性
 
 **租戶隔離問題**
-* 確認租戶內容是否已正確注入
-* 檢查子圖隔離模式組態
+* 確認租戶上下文已正確注入
+* 檢查子 Graph 隔離模式配置
 * 驗證租戶驗證邏輯
 
-### 安全偵錯
+### 偵錯安全性
 
-1. **啟用安全日誌記錄**：使用詳細的安全日誌記錄進行疑難排解
-2. **令牌檢查**：使用 JWT 偵錯程式檢查令牌內容
-3. **政策驗證**：使用範例資料測試清理政策
+1. **啟用安全日誌記錄**：使用詳細的安全日誌記錄進行故障排除
+2. **Token 檢查**：使用 JWT 偵錯工具檢查 Token 內容
+3. **政策驗證**：使用樣本資料測試清潔政策
 4. **隔離測試**：使用多租戶測試案例驗證租戶隔離
 
-## 另請參閱
+## 相關資訊
 
-* [整合和延伸](../how-to/integration-and-extensions.md) - 核心整合模式和延伸
-* [檢查點和復原](../concepts/checkpointing.md) - 狀態持久化和復原
-* [多代理程式工作流程](../how-to/multi-agent-and-shared-state.md) - 安全多代理程式協調
+* [整合和擴充](../how-to/integration-and-extensions.md) - 核心整合模式和擴充
+* [檢查點和恢復](../concepts/checkpointing.md) - 狀態持久化和恢復
+* [多代理工作流程](../how-to/multi-agent-and-shared-state.md) - 安全多代理協調
 * [REST API 整合](../how-to/exposing-rest-apis.md) - 安全 API 端點
 * [API 參考](../api/) - 安全類型的完整 API 文件

@@ -1,103 +1,103 @@
 # ReAct 問題解決範例
 
-此範例展示了使用 Semantic Kernel Graph 工作流進行系統化問題解決的進階 ReAct (推理 → 行動 → 觀察) 代理。
+本範例展示了使用 Semantic Kernel Graph 工作流進行系統化問題解決的高級 ReAct（推理 → 執行 → 觀察）代理。
 
 ## 目標
 
-學習如何實現可以進行以下操作的複雜 ReAct 代理：
-* 透過系統化分析解決複雜的多步驟問題
-* 使用回饋迴圈處理反覆性問題精進
+學習如何實現能夠：
+* 通過系統化分析解決複雜的多步驟問題
+* 處理具有反饋迴圈的迭代問題優化
 * 管理利益相關者分析、約束條件評估和風險評估
-* 生成帶有實施路線圖的全面解決方案
-* 支援不同的問題解決模式（基本、全面、反覆）
+* 生成包含實施路線圖的全面解決方案
+* 支援不同的問題解決模式（基礎、全面、迭代）
 
 ## 前置條件
 
-* **.NET 8.0** 或更高版本
-* **OpenAI API 金鑰**在 `appsettings.json` 中配置
+* **.NET 8.0** 或更新版本
+* **OpenAI API Key** 配置於 `appsettings.json`
 * **Semantic Kernel Graph 套件**已安裝
-* 對 [ReAct 模式](../concepts/react-pattern.md) 和 [圖執行](../concepts/graph-execution.md) 的基本理解
-* 熟悉 [動作節點](../concepts/action-nodes.md) 和 [條件路由](../concepts/conditional-routing.md)
+* 基本了解 [ReAct Pattern](../concepts/react-pattern.md) 和 [Graph Execution](../concepts/graph-execution.md)
+* 熟悉 [Action Nodes](../concepts/action-nodes.md) 和 [Conditional Routing](../concepts/conditional-routing.md)
 
 ## 關鍵元件
 
 ### 概念和技術
 
-* **ReAct 模式**：透過推理、行動和觀察循環進行系統化問題解決
+* **ReAct Pattern**：通過推理、執行和觀察循環進行系統化問題解決
 * **多階段分析**：將複雜問題分解為可管理的分析階段
-* **反覆精進**：透過回饋迴圈和收斂檢查進行持續改進
-* **利益相關者管理**：識別和分析受問題影響的各方
-* **風險評估**：評估潛在風險和風險緩解策略
-* **解決方案綜合**：將分析結果整合為可執行的實施計畫
+* **迭代優化**：通過反饋迴圈和收斂檢查實現持續改進
+* **利益相關者管理**：識別和分析受問題影響的所有方
+* **風險評估**：評估潛在風險和緩解策略
+* **解決方案綜合**：將分析結果組合成可行的實施計劃
 
 ### 核心類別
 
 * `GraphExecutor`：協調 ReAct 問題解決工作流
 * `FunctionGraphNode`：執行推理、分析和綜合函數
-* `ActionGraphNode`：根據上下文選擇並執行適當的行動
-* `ConditionalEdge`：根據收斂標準和反覆狀態路由執行
-* `ReActTemplateEngine`：為 ReAct 模式執行提供範本
+* `ActionGraphNode`：根據上下文選擇和執行適當的操作
+* `ConditionalEdge`：根據收斂條件和迭代狀態路由執行
+* `ReActTemplateEngine`：為 ReAct 模式執行提供模板
 
 ## 執行範例
 
-### 入門
+### 開始入門
 
-此範例展示了使用 Semantic Kernel Graph 套件的 ReAct 問題解決模式。下面的程式碼片段展示了如何在自己的應用程式中實現此模式。
+本範例展示了使用 Semantic Kernel Graph 套件的 ReAct 問題解決模式。以下程式碼片段示範了如何在自己的應用程式中實現此模式。
 
 ## 逐步實施
 
-### 1. 基本問題解決
+### 1. 基礎問題解決
 
-第一個範例展示了基礎的 ReAct 問題解決功能。
+第一個範例展示了基本的 ReAct 問題解決能力。
 
 ```csharp
 public static async Task RunAsync()
 {
-    Console.WriteLine("--- ReAct 問題解決範例 ---\n");
+    Console.WriteLine("--- ReAct Problem Solving Example ---\n");
 
-    // 建立具有圖支援的最小核心（確定性，不需要外部 LLM）。
+    // Create a minimal kernel with graph support (deterministic, no external LLM required).
     var kernel = Kernel.CreateBuilder()
         .AddGraphSupport()
         .Build();
 
-    // 使用模擬函數構建小型 ReAct 執行器。
+    // Build a small ReAct executor using mock functions.
     var executor = CreateBasicReActSolver(kernel);
 
     var arguments = new KernelArguments
     {
-        ["problem_title"] = "預算規劃",
-        ["task_description"] = "在保持服務品質的同時將營運成本降低 20%。",
+        ["problem_title"] = "Budget Planning",
+        ["task_description"] = "Reduce operational costs by 20% while maintaining service quality.",
         ["max_iterations"] = 3,
         ["solver_mode"] = "systematic",
         ["domain"] = "general"
     };
 
     var result = await executor.ExecuteAsync(kernel, arguments);
-    var solution = result?.GetValue<string>() ?? "未生成解決方案";
+    var solution = result?.GetValue<string>() ?? "No solution generated";
 
-    Console.WriteLine("💡 ReAct 解決方案：");
+    Console.WriteLine("💡 ReAct Solution:");
     Console.WriteLine($"   {solution}\n");
-    Console.WriteLine("✅ ReAct 問題解決範例已成功完成！\n");
+    Console.WriteLine("✅ ReAct problem solving example completed successfully!\n");
 }
 ```
 
-### 2. 基本 ReAct 求解器建立
+### 2. 基礎 ReAct 求解器建立
 
-基本求解器使用四個主要節點實現核心 ReAct 循環。
+基礎求解器使用四個主要 Node 實現核心 ReAct 循環。
 
 ```csharp
 private static GraphExecutor CreateBasicReActSolver(Kernel kernel)
 {
-    var executor = new GraphExecutor("BasicReActSolver", "基本 ReAct 問題解決代理");
+    var executor = new GraphExecutor("BasicReActSolver", "Basic ReAct problem solving agent");
 
-    // 推理節點 - 確定性模擬函數
+    // Reasoning node - deterministic mock function
     var reasoningNode = new FunctionGraphNode(
         CreateMockReasoningFunction(kernel),
         "reasoning_node",
-        "問題解決推理"
+        "Problem Solving Reasoning"
     );
 
-    // 動作節點 - 從核心發現函數
+    // Action node - discovers functions from the kernel
     var actionNode = ActionGraphNode.CreateWithActions(
         kernel,
         new ActionSelectionCriteria
@@ -109,18 +109,18 @@ private static GraphExecutor CreateBasicReActSolver(Kernel kernel)
         "action_node");
     actionNode.ConfigureExecution(ActionSelectionStrategy.Intelligent, enableParameterValidation: true);
 
-    // 觀察節點 - 確定性模擬
+    // Observation node - deterministic mock
     var observationNode = new FunctionGraphNode(
         CreateMockObservationFunction(kernel),
         "observation_node",
-        "問題解決觀察"
+        "Problem Solving Observation"
     );
 
-    // 解決方案綜合節點 - 用於演示的確定性綜合
+    // Solution synthesis node - deterministic synthesis for the demo
     var solutionNode = new FunctionGraphNode(
         CreateSolutionSynthesisFunction(kernel),
         "solution_synthesis",
-        "解決方案綜合"
+        "Solution Synthesis"
     );
 
     executor.AddNode(reasoningNode);
@@ -154,7 +154,7 @@ private static GraphExecutor CreateBasicReActSolver(Kernel kernel)
 ```csharp
 private static async Task RunComplexProblemSolvingAsync(Kernel kernel)
 {
-    Console.WriteLine("--- 範例 2：複雜多步驟問題解決 ---");
+    Console.WriteLine("--- Example 2: Complex Multi-Step Problem Solving ---");
 
     try
     {
@@ -162,52 +162,52 @@ private static async Task RunComplexProblemSolvingAsync(Kernel kernel)
 
         var complexSolver = await CreateComplexReActSolverAsync(kernel, templateEngine);
 
-        // 複雜問題場景
+        // Complex problem scenario
         var complexProblem = @"
-問題：數位轉型策略
+PROBLEM: Digital Transformation Strategy
 
-背景：
-我們的傳統製造公司（500 名員工）需要進行數位轉型以保持競爭力。我們面臨多項挑戰：
+CONTEXT:
+Our traditional manufacturing company (500 employees) needs to undergo digital transformation to remain competitive. We face multiple challenges:
 
-1. 技術挑戰：
-   - 運行關鍵操作的舊系統（已有 20 多年）
-   - IT 基礎設施和專業知識有限
-   - 增加連接性的網路安全隱憂
-   - 舊系統和新系統之間的整合困難
+1. TECHNICAL CHALLENGES:
+   - Legacy systems (20+ years old) running critical operations
+   - Limited IT infrastructure and expertise
+   - Cybersecurity concerns with increased connectivity
+   - Integration difficulties between old and new systems
 
-2. 組織挑戰：
-   - 長期員工對變革的抵觸
-   - 整個員工隊伍缺乏數位技能
-   - 全面轉型的預算有限
-   - 優先事項衝突和投資回報率不清楚
+2. ORGANIZATIONAL CHALLENGES:
+   - Resistance to change from long-term employees
+   - Lack of digital skills across workforce
+   - Limited budget for comprehensive transformation
+   - Competing priorities and unclear ROI
 
-3. 市場壓力：
-   - 競爭對手採用工業 4.0 技術
-   - 客戶對數位服務的期望
-   - 供應鏈數位化要求
-   - 資料處理的監管合規要求
+3. MARKET PRESSURES:
+   - Competitors adopting Industry 4.0 technologies
+   - Customer expectations for digital services
+   - Supply chain digitization requirements
+   - Regulatory compliance for data handling
 
-約束條件：
-* 預算：24 個月內 200 萬美元
-* 轉型期間無法停止目前營運
-* 必須維持目前的品質標準
-* 監管合規要求
+CONSTRAINTS:
+* Budget: $2M over 24 months
+* Cannot halt current operations during transition
+* Must maintain current quality standards
+* Regulatory compliance requirements
 
-目標：
-* 營運效率提高 30%
-* 減少手動流程 50%
-* 提高客戶滿意度評分
-* 為未來創新奠定基礎
+GOALS:
+* Increase operational efficiency by 30%
+* Reduce manual processes by 50%
+* Improve customer satisfaction scores
+* Establish foundation for future innovations
 ";
 
-        Console.WriteLine("🎯 解決複雜數位轉型問題...\n");
-        Console.WriteLine("📋 問題背景：");
+        Console.WriteLine("🎯 Solving Complex Digital Transformation Problem...\n");
+        Console.WriteLine("📋 Problem Context:");
         Console.WriteLine(complexProblem.Substring(0, Math.Min(500, complexProblem.Length)) + "...");
         Console.WriteLine();
 
         var arguments = new KernelArguments
         {
-            ["problem_title"] = "數位轉型策略",
+            ["problem_title"] = "Digital Transformation Strategy",
             ["task_description"] = complexProblem,
             ["max_iterations"] = 5,
             ["solver_mode"] = "comprehensive",
@@ -216,17 +216,17 @@ private static async Task RunComplexProblemSolvingAsync(Kernel kernel)
         };
 
         var result = await complexSolver.ExecuteAsync(kernel, arguments);
-        var comprehensiveSolution = result.GetValue<string>() ?? "未生成複雜解決方案";
+        var comprehensiveSolution = result.GetValue<string>() ?? "Complex solution not generated";
 
-        Console.WriteLine($"💡 全面 ReAct 解決方案：");
+        Console.WriteLine($"💡 Comprehensive ReAct Solution:");
         Console.WriteLine($"   {comprehensiveSolution}");
         Console.WriteLine();
 
-        Console.WriteLine("✅ 複雜 ReAct 問題解決範例已成功完成！\n");
+        Console.WriteLine("✅ Complex ReAct problem solving example completed successfully!\n");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ 複雜 ReAct 問題解決範例中出錯：{ex.Message}\n");
+        Console.WriteLine($"❌ Error in complex ReAct problem solving example: {ex.Message}\n");
     }
 }
 ```
@@ -240,25 +240,25 @@ private static async Task<GraphExecutor> CreateComplexReActSolverAsync(
     Kernel kernel,
     ReActTemplateEngine templateEngine)
 {
-    var executor = new GraphExecutor("ComplexReActSolver", "進階多階段 ReAct 問題求解器");
+    var executor = new GraphExecutor("ComplexReActSolver", "Advanced multi-stage ReAct problem solver");
 
-    // 多階段 ReAct 節點 - 使用模擬函數避免 LLM 依賴
+    // Multi-stage ReAct nodes - using mock functions to avoid LLM dependencies
     var initialAnalysisNode = new FunctionGraphNode(
         CreateMockReasoningFunction(kernel),
         "initial_analysis",
-        "初始問題分析"
+        "Initial Problem Analysis"
     );
 
     var stakeholderAnalysisNode = new FunctionGraphNode(
         CreateStakeholderAnalysisFunction(kernel),
         "stakeholder_analysis",
-        "利益相關者分析"
+        "Stakeholder Analysis"
     );
 
     var constraintAnalysisNode = new FunctionGraphNode(
         CreateConstraintAnalysisFunction(kernel),
         "constraint_analysis",
-        "約束條件分析"
+        "Constraint Analysis"
     );
 
     var optionGenerationNode = ActionGraphNode.CreateWithActions(
@@ -274,7 +274,7 @@ private static async Task<GraphExecutor> CreateComplexReActSolverAsync(
     var riskAssessmentNode = new FunctionGraphNode(
         CreateRiskAssessmentFunction(kernel),
         "risk_assessment",
-        "風險評估"
+        "Risk Assessment"
     );
 
     var implementationPlanNode = ActionGraphNode.CreateWithActions(
@@ -290,16 +290,16 @@ private static async Task<GraphExecutor> CreateComplexReActSolverAsync(
     var evaluationNode = new FunctionGraphNode(
         CreateMockObservationFunction(kernel),
         "solution_evaluation",
-        "解決方案評估"
+        "Solution Evaluation"
     );
 
     var strategicSynthesisNode = new FunctionGraphNode(
         CreateStrategicSynthesisFunction(kernel),
         "strategic_synthesis",
-        "策略解決方案綜合"
+        "Strategic Solution Synthesis"
     );
 
-    // 新增所有節點
+    // Add all nodes
     executor.AddNode(initialAnalysisNode);
     executor.AddNode(stakeholderAnalysisNode);
     executor.AddNode(constraintAnalysisNode);
@@ -309,7 +309,7 @@ private static async Task<GraphExecutor> CreateComplexReActSolverAsync(
     executor.AddNode(evaluationNode);
     executor.AddNode(strategicSynthesisNode);
 
-    // 複雜多階段流程
+    // Complex multi-stage flow
     executor.SetStartNode(initialAnalysisNode.NodeId);
     executor.AddEdge(ConditionalEdge.CreateUnconditional(initialAnalysisNode, stakeholderAnalysisNode));
     executor.AddEdge(ConditionalEdge.CreateUnconditional(stakeholderAnalysisNode, constraintAnalysisNode));
@@ -319,7 +319,7 @@ private static async Task<GraphExecutor> CreateComplexReActSolverAsync(
     executor.AddEdge(ConditionalEdge.CreateUnconditional(implementationPlanNode, evaluationNode));
     executor.AddEdge(ConditionalEdge.CreateUnconditional(evaluationNode, strategicSynthesisNode));
 
-    // 在下一個節點驗證之前對所需輸入進行映射或提供預設值
+    // Map or provide defaults for required inputs before next-node validation
     initialAnalysisNode.SetMetadata("AfterExecute",
         new Func<Kernel, KernelArguments, FunctionResult, CancellationToken, Task>((k, args, result, ct) =>
         {
@@ -329,7 +329,7 @@ private static async Task<GraphExecutor> CreateComplexReActSolverAsync(
             }
             if (!args.ContainsName("solution_options"))
             {
-                args["solution_options"] = "選項 A；選項 B；選項 C";
+                args["solution_options"] = "Option A; Option B; Option C";
             }
             return Task.CompletedTask;
         }));
@@ -338,14 +338,14 @@ private static async Task<GraphExecutor> CreateComplexReActSolverAsync(
 }
 ```
 
-### 5. 帶有精進的反覆性問題解決
+### 5. 具有優化的迭代問題解決
 
-第三個範例展示了帶有回饋迴圈的反覆性問題解決。
+第三個範例展示了具有反饋迴圈的迭代問題解決。
 
 ```csharp
 private static async Task RunIterativeProblemSolvingAsync(Kernel kernel)
 {
-    Console.WriteLine("--- 範例 3：帶有精進的反覆性問題解決 ---");
+    Console.WriteLine("--- Example 3: Iterative Problem Solving with Refinement ---");
 
     try
     {
@@ -353,38 +353,38 @@ private static async Task RunIterativeProblemSolvingAsync(Kernel kernel)
 
         var iterativeSolver = await CreateIterativeReActSolverAsync(kernel, templateEngine);
 
-        // 反覆性問題場景
+        // Iterative problem scenario
         var iterativeProblem = @"
-演變問題：客戶服務最佳化
+EVOLVING PROBLEM: Customer Service Optimization
 
-初始狀態：
-* 客戶滿意度：3.2/5.0
-* 平均回應時間：24 小時
-* 解決率：65%
-* 客戶流失率：月 15%
+INITIAL STATE:
+* Customer satisfaction: 3.2/5.0
+* Average response time: 24 hours
+* Resolution rate: 65%
+* Customer churn: 15% monthly
 
-回饋循環：
-此問題需要基於以下方面的反覆性精進：
-1. 初始解決方案測試
-2. 客戶回饋分析
-3. 效能指標監控
-4. 持續改進調整
+FEEDBACK CYCLE:
+This problem requires iterative refinement based on:
+1. Initial solution testing
+2. Customer feedback analysis
+3. Performance metrics monitoring
+4. Continuous improvement adjustments
 
-目標狀態：
-* 客戶滿意度：>4.5/5.0
-* 平均回應時間：<4 小時
-* 解決率：>90%
-* 客戶流失率：月 <5%
+TARGET STATE:
+* Customer satisfaction: >4.5/5.0
+* Average response time: <4 hours
+* Resolution rate: >90%
+* Customer churn: <5% monthly
 ";
 
-        Console.WriteLine("🔄 使用反覆精進解決問題...\n");
-        Console.WriteLine("📋 反覆性問題背景：");
+        Console.WriteLine("🔄 Solving problem with iterative refinement...\n");
+        Console.WriteLine("📋 Iterative Problem Context:");
         Console.WriteLine(iterativeProblem);
         Console.WriteLine();
 
         var arguments = new KernelArguments
         {
-            ["problem_title"] = "客戶服務最佳化",
+            ["problem_title"] = "Customer Service Optimization",
             ["task_description"] = iterativeProblem,
             ["max_iterations"] = 4,
             ["solver_mode"] = "iterative",
@@ -394,71 +394,71 @@ private static async Task RunIterativeProblemSolvingAsync(Kernel kernel)
         };
 
         var result = await iterativeSolver.ExecuteAsync(kernel, arguments);
-        var iterativeSolution = result.GetValue<string>() ?? "未生成反覆性解決方案";
+        var iterativeSolution = result.GetValue<string>() ?? "Iterative solution not generated";
 
-        Console.WriteLine($"💡 反覆性 ReAct 解決方案：");
+        Console.WriteLine($"💡 Iterative ReAct Solution:");
         Console.WriteLine($"   {iterativeSolution}");
         Console.WriteLine();
 
-        Console.WriteLine("✅ 反覆性 ReAct 問題解決範例已成功完成！\n");
+        Console.WriteLine("✅ Iterative ReAct problem solving example completed successfully!\n");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ 反覆性 ReAct 問題解決範例中出錯：{ex.Message}\n");
+        Console.WriteLine($"❌ Error in iterative ReAct problem solving example: {ex.Message}\n");
     }
 }
 ```
 
-### 6. 帶有回饋迴圈的反覆性 ReAct 求解器
+### 6. 具有反饋迴圈的迭代 ReAct 求解器
 
-反覆性求解器實現帶有收斂檢查的精進循環。
+迭代求解器使用收斂檢查實現優化循環。
 
 ```csharp
 private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
     Kernel kernel,
     ReActTemplateEngine templateEngine)
 {
-    var executor = new GraphExecutor("IterativeReActSolver", "帶有精進迴圈的反覆性 ReAct 求解器");
+    var executor = new GraphExecutor("IterativeReActSolver", "Iterative ReAct solver with refinement loops");
 
-    // 向核心新增一些函數供 ActionGraphNode 發現
-    kernel.ImportPluginFromFunctions("react_actions", "ReAct 模式的動作", new[]
+    // Add some functions to the kernel for the ActionGraphNode to discover
+    kernel.ImportPluginFromFunctions("react_actions", "Actions for ReAct pattern", new[]
     {
         kernel.CreateFunctionFromMethod(
             (KernelArguments args) =>
             {
                 var action = args["action"]?.ToString() ?? "unknown";
-                return $"已執行動作：{action}";
+                return $"Executed action: {action}";
             },
             functionName: "execute_action",
-            description: "執行指定的動作"
+            description: "Executes a specified action"
         ),
 
         kernel.CreateFunctionFromMethod(
             (KernelArguments args) =>
             {
                 var problem = args["problem"]?.ToString() ?? "unknown";
-                return $"已分析問題：{problem}";
+                return $"Analyzed problem: {problem}";
             },
             functionName: "analyze_problem",
-            description: "分析給定的問題"
+            description: "Analyzes a given problem"
         ),
 
         kernel.CreateFunctionFromMethod(
             (KernelArguments args) =>
             {
                 var solution = args["solution"]?.ToString() ?? "unknown";
-                return $"已評估解決方案：{solution}";
+                return $"Evaluated solution: {solution}";
             },
             functionName: "evaluate_solution",
-            description: "評估提議的解決方案"
+            description: "Evaluates a proposed solution"
         )
     });
 
-    // 手動建立個別 ReAct 元件以避免複雜的 ReActLoopGraphNode
+    // Create individual ReAct components manually to avoid the complex ReActLoopGraphNode
     var reasoningNode = new FunctionGraphNode(
         CreateMockReasoningFunction(kernel),
         "iterative_reasoning",
-        "反覆性問題解決推理"
+        "Iterative Problem Solving Reasoning"
     );
 
     var actionNode = ActionGraphNode.CreateWithActions(
@@ -474,34 +474,34 @@ private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
     var observationNode = new FunctionGraphNode(
         CreateMockObservationFunction(kernel),
         "iterative_observation",
-        "反覆性問題解決觀察"
+        "Iterative Problem Solving Observation"
     );
 
     var feedbackAnalysisNode = new FunctionGraphNode(
         CreateFeedbackAnalysisFunction(kernel),
         "feedback_analysis",
-        "回饋分析"
+        "Feedback Analysis"
     );
 
     var refinementNode = new FunctionGraphNode(
         CreateSolutionRefinementFunction(kernel),
         "solution_refinement",
-        "解決方案精進"
+        "Solution Refinement"
     );
 
     var convergenceNode = new FunctionGraphNode(
         CreateConvergenceCheckFunction(kernel),
         "convergence_check",
-        "收斂評估"
+        "Convergence Assessment"
     );
 
     var finalSolutionNode = new FunctionGraphNode(
         CreateFinalSolutionFunction(kernel),
         "final_solution",
-        "最終解決方案生成"
+        "Final Solution Generation"
     );
 
-    // 新增節點
+    // Add nodes
     executor.AddNode(reasoningNode);
     executor.AddNode(actionNode);
     executor.AddNode(observationNode);
@@ -510,7 +510,7 @@ private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
     executor.AddNode(convergenceNode);
     executor.AddNode(finalSolutionNode);
 
-    // 帶有回饋迴圈的反覆性流程
+    // Iterative flow with feedback loops
     executor.SetStartNode(reasoningNode.NodeId);
     executor.AddEdge(ConditionalEdge.CreateUnconditional(reasoningNode, actionNode));
     executor.AddEdge(ConditionalEdge.CreateUnconditional(actionNode, observationNode));
@@ -518,26 +518,26 @@ private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
     executor.AddEdge(ConditionalEdge.CreateUnconditional(feedbackAnalysisNode, refinementNode));
     executor.AddEdge(ConditionalEdge.CreateUnconditional(refinementNode, convergenceNode));
 
-    // 用於反覆與完成的條件邊
+    // Conditional edges for iteration vs completion
     executor.AddEdge(new ConditionalEdge(
         convergenceNode,
         reasoningNode,
         args => ShouldContinueIterating(args),
-        "繼續反覆"
+        "Continue Iteration"
     ));
 
     executor.AddEdge(new ConditionalEdge(
         convergenceNode,
         finalSolutionNode,
         args => !ShouldContinueIterating(args),
-        "完成解決方案"
+        "Finalize Solution"
     ));
 
-    // 保留下游提示所需的中間結果
+    // Persist intermediate results required by downstream prompts
     feedbackAnalysisNode.StoreResultAs("feedback_analysis");
     refinementNode.StoreResultAs("current_solution");
 
-    // 在下一個節點驗證之前提供預設值/映射所需的輸入
+    // Provide defaults/mappings for required inputs prior to validation of subsequent nodes
     observationNode.SetMetadata("AfterExecute",
         new Func<Kernel, KernelArguments, FunctionResult, CancellationToken, Task>((k, args, result, ct) =>
         {
@@ -547,14 +547,14 @@ private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
             {
                 args["problem_description"] = desc;
             }
-            if (!args.ContainsName("target_criteria")) args["target_criteria"] = "符合目標和約束條件";
+            if (!args.ContainsName("target_criteria")) args["target_criteria"] = "Meets goals and constraints";
             return Task.CompletedTask;
         }));
 
     refinementNode.SetMetadata("AfterExecute",
         new Func<Kernel, KernelArguments, FunctionResult, CancellationToken, Task>((k, args, result, ct) =>
         {
-            if (!args.ContainsName("current_solution")) args["current_solution"] = result.GetValue<string>() ?? "初始提議";
+            if (!args.ContainsName("current_solution")) args["current_solution"] = result.GetValue<string>() ?? "Initial proposal";
             return Task.CompletedTask;
         }));
 
@@ -563,10 +563,10 @@ private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
         {
             if (!args.ContainsName("target_criteria"))
             {
-                args["target_criteria"] = "符合目標和約束條件";
+                args["target_criteria"] = "Meets goals and constraints";
             }
 
-            // 增加反覆計數器並更新簡單品質分數以確保收斂
+            // Increment iteration counter and update a simple quality score to ensure convergence
             int currentIteration;
             try { currentIteration = Convert.ToInt32(args.GetValueOrDefault("iteration_count", 1), System.Globalization.CultureInfo.InvariantCulture); }
             catch { currentIteration = 1; }
@@ -578,7 +578,7 @@ private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
             var nextIteration = currentIteration + 1;
             args["iteration_count"] = nextIteration;
 
-            // 品質分數隨反覆次數向 1.0 增加，確保最終收斂
+            // Quality score increases with iterations toward 1.0, ensuring eventual convergence
             var denominator = Math.Max(1, maxIterations);
             double progress = Math.Min(1.0, nextIteration / (double)denominator);
             args["quality_score"] = progress;
@@ -589,7 +589,7 @@ private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
     finalSolutionNode.SetMetadata("AfterExecute",
         new Func<Kernel, KernelArguments, FunctionResult, CancellationToken, Task>((k, args, result, ct) =>
         {
-            if (!args.ContainsName("refinement_history")) args["refinement_history"] = "無歷史";
+            if (!args.ContainsName("refinement_history")) args["refinement_history"] = "No history";
             if (!args.ContainsName("final_analysis")) args["final_analysis"] = args.GetValueOrDefault("current_solution", "");
             return Task.CompletedTask;
         }));
@@ -598,12 +598,12 @@ private static async Task<GraphExecutor> CreateIterativeReActSolverAsync(
 }
 ```
 
-### 7. 函數建立和範本
+### 7. 函數建立和模板
 
 範例展示了為 ReAct 工作流建立函數的各種方法。
 
 ```csharp
-// 用於問題解決的模擬推理函數
+// Mock reasoning function for problem solving
 private static KernelFunction CreateMockReasoningFunction(Kernel kernel)
 {
     return kernel.CreateFunctionFromMethod(
@@ -612,41 +612,41 @@ private static KernelFunction CreateMockReasoningFunction(Kernel kernel)
             var taskDescription = args["task_description"]?.ToString() ?? "unknown task";
             var problemTitle = args["problem_title"]?.ToString() ?? "unknown problem";
 
-            return $"分析問題 '{problemTitle}'：{taskDescription}。根據分析，下一步應該是識別關鍵利益相關者和約束條件。";
+            return $"Analyzed problem '{problemTitle}': {taskDescription}. Based on analysis, the next step should be to identify key stakeholders and constraints.";
         },
         functionName: "mock_reasoning",
-        description: "用於問題解決的模擬推理函數"
+        description: "Mock reasoning function for problem solving"
     );
 }
 
-// 使用提示範本的解決方案綜合函數
+// Solution synthesis function using prompt templates
 private static KernelFunction CreateSolutionSynthesisFunction(Kernel kernel)
 {
     var prompt = @"
-基於 ReAct 分析綜合全面解決方案：
+Synthesize a comprehensive solution based on ReAct analysis:
 
-問題：{{$problem_title}}
-說明：{{$problem_description}}
-求解器模式：{{$solver_mode}}
+Problem: {{$problem_title}}
+Description: {{$problem_description}}
+Solver Mode: {{$solver_mode}}
 
-根據 ReAct 推理、行動規劃和觀察：
+Based on the ReAct reasoning, action planning, and observation:
 
-1. 綜合分析的關鍵見解
-2. 優先考慮最有效的行動
-3. 建立實施路線圖
-4. 識別成功指標
-5. 突出潛在風險和風險緩解
+1. Synthesize key insights from analysis
+2. Prioritize the most effective actions
+3. Create implementation roadmap
+4. Identify success metrics
+5. Highlight potential risks and mitigation
 
-提供全面的解決方案綜合：";
+Provide comprehensive solution synthesis:";
 
     return kernel.CreateFunctionFromPrompt(
         prompt,
         functionName: "solution_synthesis",
-        description: "從 ReAct 分析綜合全面解決方案"
+        description: "Synthesizes comprehensive solutions from ReAct analysis"
     );
 }
 
-// 帶有模擬實現的約束條件分析函數
+// Constraint analysis function with mock implementation
 private static KernelFunction CreateConstraintAnalysisFunction(Kernel kernel)
 {
     return kernel.CreateFunctionFromMethod(
@@ -657,32 +657,32 @@ private static KernelFunction CreateConstraintAnalysisFunction(Kernel kernel)
                 ?? "unknown problem";
             var domain = args["domain"]?.ToString() ?? "general";
 
-            var analysis = $"域 '{domain}' 的約束條件分析：\n" +
-                           "1) 資源約束：預算、時間、人員必須在各個階段中優先考慮；強制執行嚴格的範圍控制和分階段融資。\n" +
-                           "2) 技術約束：舊系統和整合需要 strangler 模式、API 閘道和分階段現代化，具有強大的可觀測性。\n" +
-                           "3) 組織約束：變革管理、能力差距和培訓節奏必須嵌入計畫中；指定轉型倡導者。\n" +
-                           "4) 監管約束：資料駐留、隱私和可稽核性制約架構選擇；實施政策即程式碼和合規即設計。\n" +
-                           "5) 市場約束：客戶期望和競爭基準設定最小可行功能基線和 SLA。\n" +
-                           "6) 風險承受度：定義可接受的風險範圍和風險緩解觸發器；採用漸進式推出和終止開關。\n\n" +
-                           $"考慮的背景：{problemDescription.Substring(0, Math.Min(200, problemDescription.Length))}...";
+            var analysis = $"Constraint analysis for domain '{domain}':\n" +
+                           "1) Resource constraints: Budget, time, personnel must be prioritized across phases; enforce strict scope control and staged funding.\n" +
+                           "2) Technical constraints: Legacy systems and integrations require strangler patterns, API gateways, and phased modernization with strong observability.\n" +
+                           "3) Organizational constraints: Change management, capability gaps, and training cadence must be embedded into the plan; designate transformation champions.\n" +
+                           "4) Regulatory constraints: Data residency, privacy, and auditability shape architecture choices; implement policy-as-code and compliance-by-design.\n" +
+                           "5) Market constraints: Customer expectations and competitive benchmarks set minimum viable feature baselines and SLAs.\n" +
+                           "6) Risk tolerance: Define acceptable risk bands and mitigation triggers; adopt progressive rollouts and kill-switches.\n\n" +
+                           $"Context considered: {problemDescription.Substring(0, Math.Min(200, problemDescription.Length))}...";
 
             return analysis;
         },
         functionName: "constraint_analysis",
-        description: "分析約束條件和限制"
+        description: "Analyzes constraints and limitations"
     );
 }
 ```
 
-### 8. 收斂邏輯和反覆控制
+### 8. 收斂邏輯和迭代控制
 
-範例為反覆精進實現複雜的收斂檢查。
+範例為迭代優化實現了複雜的收斂檢查。
 
 ```csharp
-// 根據收斂標準決定是否應該繼續反覆
+// Determines if iteration should continue based on convergence criteria
 private static bool ShouldContinueIterating(KernelArguments args)
 {
-    // 強大的收斂檢查：容忍 int/double/string 值
+    // Robust convergence check: tolerate int/double/string values
     static int ToInt(object? value, int defaultValue)
     {
         if (value is null) return defaultValue;
@@ -717,11 +717,11 @@ private static bool ShouldContinueIterating(KernelArguments args)
     return iterationCount < maxIterations && qualityScore < convergenceThreshold;
 }
 
-// 收斂檢查函數
+// Convergence check function
 private static KernelFunction CreateConvergenceCheckFunction(Kernel kernel)
 {
-    // 使用確定性的方法型函數以避免外部 LLM 依賴和消除
-    // 範例執行中的短暫故障（例如 HTTP 503）。
+    // Use a deterministic, method-based function to avoid external LLM dependency and
+    // eliminate transient failures (e.g., HTTP 503) in example runs.
     return kernel.CreateFunctionFromMethod(
         (KernelArguments args) =>
         {
@@ -731,21 +731,20 @@ private static KernelFunction CreateConvergenceCheckFunction(Kernel kernel)
             var threshold = args.GetValueOrDefault("convergence_threshold", 0.85)?.ToString();
 
             return shouldContinue
-                ? $"收斂檢查（反覆 {iteration}）：品質={quality}，閾值={threshold}。尚未收斂 — 繼續精進。"
-                : $"收斂檢查（反覆 {iteration}）：品質={quality}，閾值={threshold}。已收斂 — 完成解決方案。";
+                ? $"Convergence check (iteration {iteration}): quality={quality}, threshold={threshold}. Not converged yet — continue refinement."
+                : $"Convergence check (iteration {iteration}): quality={quality}, threshold={threshold}. Converged — finalize solution.";
         },
         functionName: "convergence_check",
-        description: "檢查解決方案是否已收斂到可接受的品質，無需外部呼叫"
+        description: "Checks if solution has converged to acceptable quality without external calls"
     );
 }
-```
 
-## 進階模式
+## 高級模式
 
 ### 多目標問題解決
 
 ```csharp
-// 使用加權評分實現多目標最佳化
+// Implement multi-objective optimization with weighted scoring
 var multiObjectiveAgent = new MultiObjectiveReActAgent
 {
     ObjectiveWeights = new Dictionary<string, double>
@@ -767,14 +766,14 @@ var multiObjectiveAgent = new MultiObjectiveReActAgent
     }
 };
 
-// 解決多目標問題
+// Solve multi-objective problem
 var multiObjectiveResult = await multiObjectiveAgent.SolveAsync(kernel, multiObjectiveArgs);
 ```
 
 ### 自適應問題分解
 
 ```csharp
-// 根據複雜性實現自適應問題分解
+// Implement adaptive problem decomposition based on complexity
 var adaptiveDecomposer = new AdaptiveProblemDecomposer
 {
     DecompositionStrategies = new Dictionary<string, IDecompositionStrategy>
@@ -795,7 +794,7 @@ var adaptiveDecomposer = new AdaptiveProblemDecomposer
     }
 };
 
-// 自動分解複雜問題
+// Automatically decompose complex problems
 var decomposition = await adaptiveDecomposer.DecomposeAsync(problemStatement);
 var decomposedGraph = await adaptiveDecomposer.CreateDecomposedGraphAsync(decomposition);
 ```
@@ -803,7 +802,7 @@ var decomposedGraph = await adaptiveDecomposer.CreateDecomposedGraphAsync(decomp
 ### 協作問題解決
 
 ```csharp
-// 使用多個代理實現協作問題解決
+// Implement collaborative problem solving with multiple agents
 var collaborativeSolver = new CollaborativeProblemSolver
 {
     AgentSpecializations = new Dictionary<string, AgentSpecialization>
@@ -826,51 +825,52 @@ var collaborativeSolver = new CollaborativeProblemSolver
     }
 };
 
-// 協作解決問題
+// Solve problem collaboratively
 var collaborativeResult = await collaborativeSolver.SolveCollaborativelyAsync(kernel, collaborativeArgs);
+```
 ```
 
 ## 預期輸出
 
-範例產生全面的輸出，顯示：
+範例產生全面的輸出，展示：
 
-* 🎯 **基本問題解決**：預算規劃、系統效能和團隊生產力問題的系統化分析
-* 🔍 **複雜多步驟分析**：數位轉型的全面利益相關者分析、約束條件評估和風險評估
-* 🔄 **反覆精進**：具有回饋迴圈和收斂檢查的客戶服務最佳化
-* 💡 **解決方案綜合**：具有成功指標和風險緩解的可執行實施路線圖
+* 🎯 **基礎問題解決**：對預算規劃、系統效能和團隊生產力問題的系統化分析
+* 🔍 **複雜多步驟分析**：針對數位轉型的全面利益相關者分析、約束條件評估和風險評估
+* 🔄 **迭代優化**：客戶服務最佳化，包括反饋迴圈和收斂檢查
+* 💡 **解決方案綜合**：可行的實施路線圖，包含成功指標和風險緩解
 * 📊 **利益相關者管理**：關鍵方的識別和溝通策略
-* ⚠️ **風險評估**：全面的風險評估和風險緩解策略
-* 🚀 **實施規劃**：詳細的執行計畫，包括資源分配和時程表
+* ⚠️ **風險評估**：包含緩解策略的全面風險評估
+* 🚀 **實施規劃**：包含資源分配和時間表的詳細執行計劃
 
 ## 故障排除
 
 ### 常見問題
 
-1. **LLM API 故障**：範例使用模擬函數以避免外部依賴
-2. **狀態映射錯誤**：驗證節點之間的輸入/輸出映射
-3. **收斂問題**：檢查反覆限制和品質閾值
-4. **動作選擇故障**：確保核心具有適合 ActionGraphNode 的函數
+1. **LLM API 故障**：範例使用 mock 函數來避免外部依賴
+2. **狀態映射錯誤**：驗證 Node 之間的輸入/輸出映射
+3. **收斂問題**：檢查迭代限制和品質閾值
+4. **操作選擇故障**：確保 Kernel 具有適合 ActionGraphNode 的函數
 
 ### 除錯提示
 
-* 監控 AfterExecute 中繼資料處理器中的狀態轉換
-* 驗證收斂邏輯和反覆計數
-* 檢查反覆工作流的條件邊路由
-* 驗證節點之間的函數輸入和輸出
+* 在 AfterExecute 元資料處理程式中監控狀態轉換
+* 驗證收斂邏輯和迭代計數
+* 檢查迭代工作流的條件 Edge 路由
+* 驗證 Node 之間的函數輸入和輸出
 
 ### 效能考量
 
-* 使用模擬函數進行確定性測試
-* 實施適當的反覆限制以防止無限迴圈
-* 在反覆精進期間監控狀態大小增長
-* 為長期執行的反覆工作流考慮檢查點
+* 使用 mock 函數進行確定性測試
+* 實現適當的迭代限制以防止無限迴圈
+* 在迭代優化期間監控狀態大小增長
+* 考慮對長時間執行的迭代工作流進行檢查點
 
 ## 另請參閱
 
-* [ReAct 模式](../concepts/react-pattern.md)
-* [動作節點](../concepts/action-nodes.md)
-* [條件路由](../concepts/conditional-routing.md)
-* [狀態管理](../concepts/state.md)
-* [圖執行](../concepts/graph-execution.md)
-* [ReAct 代理範例](./react-agent.md)
-* [問題解決模式](../patterns/problem-solving.md)
+* [ReAct Pattern](../concepts/react-pattern.md)
+* [Action Nodes](../concepts/action-nodes.md)
+* [Conditional Routing](../concepts/conditional-routing.md)
+* [State Management](../concepts/state.md)
+* [Graph Execution](../concepts/graph-execution.md)
+* [ReAct Agent Example](./react-agent.md)
+* [Problem Solving Patterns](../patterns/problem-solving.md)

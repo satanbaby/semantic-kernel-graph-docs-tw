@@ -1,34 +1,34 @@
-# 檢查點快速入門
+# Checkpointing 快速入門
 
-了解如何使用 SemanticKernel.Graph 的檢查點系統來保存和恢復圖執行狀態。本指南展示如何在長時間運行的操作中保持狀態、從失敗中恢復以及維護執行歷史。
+了解如何使用 SemanticKernel.Graph 的 checkpointing 系統來儲存和恢復 Graph 執行狀態。本指南將展示如何在長時間執行作業期間持久化狀態、從失敗中恢復，以及維護執行歷史。
 
 ## 概念和技術
 
-**檢查點**：在圖執行的特定點保存當前狀態的過程，能夠從任何保存的狀態進行恢復和繼續執行。
+**Checkpointing**: 在特定點儲存 Graph 執行當前狀態的過程，可從任何儲存狀態中實現恢復和繼續執行。
 
-**狀態持久化**：`StateHelpers` 提供序列化和反序列化 `GraphState` 物件的工具，而 `CheckpointManager` 處理存儲和檢索。
+**State Persistence**: `StateHelpers` 提供用於序列化和反序列化 `GraphState` 物件的公用程式，而 `CheckpointManager` 則處理儲存和擷取。
 
-**恢復和重播**：從任何檢查點恢復執行，實現容錯能力和重播執行場景的能力。
+**Recovery and Replay**: 從任何 checkpoint 繼續執行，啟用容錯能力和重新執行情景的能力。
 
-## 前置條件和最低配置
+## 前置條件和最小設定
 
 * .NET 8.0 或更高版本
 * 已安裝 SemanticKernel.Graph 套件
-* 已配置圖記憶體服務（檢查點必須）
-* 在核心中啟用檢查點支持
+* Graph 記憶體服務已設定（checkpointing 所需）
+* 在您的 kernel 中啟用 checkpoint 支援
 
-## 快速設置
+## 快速設定
 
-### 1. 啟用檢查點支持
+### 1. 啟用 Checkpoint 支援
 
-使用記憶體集成向核心添加檢查點支持：
+使用記憶體整合將 checkpoint 支援新增至您的 kernel：
 
 ```csharp
 using SemanticKernel.Graph.Extensions;
 
 var kernel = Kernel.CreateBuilder()
     .AddOpenAIChatCompletion("gpt-3.5-turbo", apiKey)
-    .AddGraphMemory()  // 檢查點必須
+    .AddGraphMemory()  // checkpointing 所需
     .AddCheckpointSupport(options =>
     {
         options.EnableCompression = true;
@@ -37,9 +37,9 @@ var kernel = Kernel.CreateBuilder()
     .Build();
 ```
 
-### 2. 創建一個檢查點圖執行器
+### 2. 建立 Checkpointing Graph Executor
 
-使用檢查點執行器工廠創建具有檢查點功能的執行器：
+使用 checkpointing executor 工廠建立具有 checkpoint 功能的 executor：
 
 ```csharp
 using SemanticKernel.Graph.Core;
@@ -47,7 +47,7 @@ using SemanticKernel.Graph.Core;
 var executorFactory = kernel.Services.GetRequiredService<ICheckpointingGraphExecutorFactory>();
 var executor = executorFactory.CreateExecutor("my-graph", new CheckpointingOptions
 {
-    CheckpointInterval = 2,  // 每 2 個節點創建一個檢查點
+    CheckpointInterval = 2,  // 每 2 個 Node 建立一個 checkpoint
     CreateInitialCheckpoint = true,
     CreateFinalCheckpoint = true,
     EnableAutoCleanup = true,
@@ -55,14 +55,14 @@ var executor = executorFactory.CreateExecutor("my-graph", new CheckpointingOptio
 });
 ```
 
-### 3. 構建並執行您的圖
+### 3. 建置並執行您的 Graph
 
-添加節點並使用自動檢查點執行：
+新增 Node 並使用自動 checkpointing 執行：
 
 ```csharp
 using SemanticKernel.Graph.Nodes;
 
-// 向圖添加節點
+// 將 Node 新增至您的 Graph
 var inputNode = new FunctionGraphNode(
     KernelFunctionFactory.CreateFromMethod(() => "Input data", "input"),
     "input", "DataInput");
@@ -76,7 +76,7 @@ executor.AddNode(inputNode)
         .Connect("input", "process")
         .SetStartNode("input");
 
-// 使用自動檢查點執行
+// 使用自動 checkpointing 執行
 var arguments = new KernelArguments();
 arguments["input"] = "Process this data";
 arguments["counter"] = 0;
@@ -86,23 +86,23 @@ Console.WriteLine($"Execution completed: {result.GetValue<object>()}");
 Console.WriteLine($"ExecutionId: {executor.LastExecutionId}");
 ```
 
-## 手動檢查點管理
+## 手動 Checkpoint 管理
 
-### 創建檢查點
+### 建立 Checkpoint
 
-使用 `StateHelpers` 手動創建和管理檢查點：
+使用 `StateHelpers` 手動建立和管理 checkpoint：
 
 ```csharp
 using SemanticKernel.Graph.State;
 
-// 獲取當前圖狀態
+// 取得當前 Graph 狀態
 var graphState = arguments.GetOrCreateGraphState();
 
-// 使用自訂名稱創建檢查點
+// 使用自訂名稱建立 checkpoint
 var checkpointId = StateHelpers.CreateCheckpoint(graphState, "manual-checkpoint");
 Console.WriteLine($"Created checkpoint: {checkpointId}");
 
-// 檢查點現在存儲在狀態元資料中
+// checkpoint 現在儲存在狀態中繼資料中
 var checkpoint = graphState.GetMetadata<object>($"checkpoint_{checkpointId}");
 if (checkpoint != null)
 {
@@ -110,17 +110,17 @@ if (checkpoint != null)
 }
 ```
 
-### 從檢查點恢復
+### 從 Checkpoint 恢復
 
-從任何保存的檢查點恢復圖狀態：
+從任何儲存的 checkpoint 恢復您的 Graph 狀態：
 
 ```csharp
 try
 {
-    // 從特定檢查點恢復狀態
+    // 從特定 checkpoint 恢復狀態
     var restoredState = StateHelpers.RestoreCheckpoint(graphState, checkpointId);
     
-    // 注意：UpdateFromGraphState 方法在當前實現中不存在
+    // 注意：UpdateFromGraphState 方法在目前實作中不存在
     // 恢復的狀態可用於分析或手動狀態重建
     Console.WriteLine("State restored successfully");
 }
@@ -130,27 +130,27 @@ catch (InvalidOperationException ex)
 }
 ```
 
-## 高級檢查點配置
+## 進階 Checkpoint 設定
 
-### 檢查點選項
+### Checkpointing 選項
 
-配置詳細的檢查點行為：
+設定詳細的 checkpoint 行為：
 
 ```csharp
 var checkpointingOptions = new CheckpointingOptions
 {
-    CheckpointInterval = 3,  // 每 3 個節點
+    CheckpointInterval = 3,  // 每 3 個 Node
     CheckpointTimeInterval = TimeSpan.FromMinutes(5),  // 或每 5 分鐘
     CreateInitialCheckpoint = true,
     CreateFinalCheckpoint = true,
-    CreateErrorCheckpoints = true,  // 在發生錯誤時保存狀態
+    CreateErrorCheckpoints = true,  // 在錯誤時儲存狀態
     EnableAutoCleanup = true,
-    FailOnCheckpointError = false,  // 即使檢查點失敗也繼續執行
+    FailOnCheckpointError = false,  // 即使 checkpointing 失敗也繼續執行
     
-    // 定義總是觸發檢查點的關鍵節點
+    // 定義始終觸發 checkpoint 的關鍵 Node
     CriticalNodes = new HashSet<string> { "process", "validate", "output" },
     
-    // 配置保留策略
+    // 設定保留原則
     RetentionPolicy = new CheckpointRetentionPolicy
     {
         MaxAge = TimeSpan.FromHours(24),
@@ -164,7 +164,7 @@ var executor = executorFactory.CreateExecutor("advanced-graph", checkpointingOpt
 
 ### 從失敗中恢復
 
-使用自動檢查點恢復實現容錯能力：
+使用自動 checkpoint 恢復實施容錯能力：
 
 ```csharp
 try
@@ -176,7 +176,7 @@ catch (Exception ex)
 {
     Console.WriteLine($"Execution failed: {ex.Message}");
     
-    // 尋找最新的檢查點以進行恢復
+    // 尋找最新的 checkpoint 以進行恢復
     var executionId = executor.LastExecutionId ?? arguments.GetOrCreateGraphState().StateId;
     var checkpoints = await executor.GetExecutionCheckpointsAsync(executionId);
     
@@ -185,7 +185,7 @@ catch (Exception ex)
         var latestCheckpoint = checkpoints.First();
         Console.WriteLine($"Latest checkpoint: {latestCheckpoint.CheckpointId}");
         
-        // 從檢查點恢復
+        // 從 checkpoint 繼續執行
         var recoveredResult = await executor.ResumeFromCheckpointAsync(
             latestCheckpoint.CheckpointId, kernel);
         
@@ -194,14 +194,14 @@ catch (Exception ex)
 }
 ```
 
-## 檢查點監測和管理
+## Checkpoint 監控和管理
 
-### 查看檢查點統計
+### 檢視 Checkpoint 統計資訊
 
-監控檢查點系統：
+監控您的 checkpoint 系統：
 
 ```csharp
-// 獲取最後執行的檢查點統計
+// 取得最後執行的 checkpoint 統計資訊
 var executionId = executor.LastExecutionId;
 if (!string.IsNullOrEmpty(executionId))
 {
@@ -222,12 +222,12 @@ if (!string.IsNullOrEmpty(executionId))
 
 ### 手動清理
 
-清理舊檢查點以管理儲存空間：
+清理舊的 checkpoint 以管理儲存空間：
 
 ```csharp
 var checkpointManager = kernel.Services.GetRequiredService<ICheckpointManager>();
 
-// 清理舊檢查點
+// 清理舊的 checkpoint
 var cleanupCount = await checkpointManager.CleanupCheckpointsAsync(
     retentionPolicy: new CheckpointRetentionPolicy
     {
@@ -239,35 +239,35 @@ var cleanupCount = await checkpointManager.CleanupCheckpointsAsync(
 Console.WriteLine($"Cleaned up {cleanupCount} old checkpoints");
 ```
 
-## 故障排除
+## 疑難排解
 
 ### 常見問題
 
-**檢查點不工作**：確保在構建核心時調用了 `.AddGraphMemory()` 和 `.AddCheckpointSupport()`。
+**Checkpointing 無法運作**: 確保在建置 kernel 時呼叫了 `.AddGraphMemory()` 和 `.AddCheckpointSupport()`。
 
-**找不到記憶體服務**：檢查點系統需要圖記憶體服務。確保已正確配置。
+**找不到記憶體服務**: checkpointing 系統需要 Graph 記憶體服務。確保已正確設定它。
 
-**檢查點太大**：使用 `options.EnableCompression = true` 啟用壓縮，並考慮減少存儲在狀態中的數據。
+**Checkpoint 太大**: 使用 `options.EnableCompression = true` 啟用壓縮，並考慮減少儲存在狀態中的資料。
 
-**恢復失敗**：驗證檢查點完整性並確保在嘗試恢復前檢查點 ID 存在。
+**恢復失敗**: 驗證 checkpoint 完整性，並在嘗試還原之前確保 checkpoint ID 存在。
 
-### 性能建議
+### 效能建議
 
-* 根據執行時間使用適當的檢查點間隔
+* 根據您的執行時間使用適當的 checkpoint 間隔
 * 為大型狀態物件啟用壓縮
-* 配置保留策略以防止儲存空間溢出
-* 謹慎使用關鍵節點以避免過度檢查點
-* 監測檢查點大小並相應調整壓縮設置
+* 設定保留原則以防止儲存空間膨脹
+* 謹慎使用關鍵 Node 以避免過度 checkpointing
+* 監控 checkpoint 大小並相應調整壓縮設定
 
 ## 另請參閱
 
-* **參考**：[CheckpointManager](../api/CheckpointManager.md)、[CheckpointingOptions](../api/CheckpointingOptions.md)、[StateHelpers](../api/StateHelpers.md)
-* **指南**：[狀態管理](../guides/state-management.md)、[恢復和重播](../guides/recovery-replay.md)
-* **範例**：[CheckpointingExample](../examples/checkpointing.md)、[AdvancedPatternsExample](../examples/advanced-patterns.md)
+* **Reference**: [CheckpointManager](../api/CheckpointManager.md), [CheckpointingOptions](../api/CheckpointingOptions.md), [StateHelpers](../api/StateHelpers.md)
+* **Guides**: [State Management](../guides/state-management.md), [Recovery and Replay](../guides/recovery-replay.md)
+* **Examples**: [CheckpointingExample](../examples/checkpointing.md), [AdvancedPatternsExample](../examples/advanced-patterns.md)
 
 ## 參考 API
 
-* **[CheckpointManager](../api/checkpointing.md#checkpoint-manager)**：檢查點存儲和檢索
-* **[CheckpointingOptions](../api/checkpointing.md#checkpointing-options)**：檢查點配置
-* **[StateHelpers](../api/state.md#state-helpers)**：狀態序列化工具
-* **[ICheckpointingGraphExecutor](../api/checkpointing.md#icheckpointing-graph-executor)**：檢查點執行器介面
+* **[CheckpointManager](../api/checkpointing.md#checkpoint-manager)**: Checkpoint 儲存和擷取
+* **[CheckpointingOptions](../api/checkpointing.md#checkpointing-options)**: Checkpoint 設定
+* **[StateHelpers](../api/state.md#state-helpers)**: 狀態序列化公用程式
+* **[ICheckpointingGraphExecutor](../api/checkpointing.md#icheckpointing-graph-executor)**: Checkpointing executor 介面

@@ -1,31 +1,31 @@
-# 串流快速開始指南
+# 串流快速入門
 
-本快速教程將教您如何在 SemanticKernel.Graph 中使用串流執行。您將了解如何使用 `StreamingGraphExecutor` 執行圖表，並透過 `IGraphExecutionEventStream` 消費即時事件。
+本快速教學將教您如何在 SemanticKernel.Graph 中使用串流執行。您將學習如何使用 `StreamingGraphExecutor` 執行 Graph，以及透過 `IGraphExecutionEventStream` 消費即時事件。
 
-## 您將學習的內容
+## 您將學到的內容
 
-* 建立和配置 `StreamingGraphExecutor`
+* 建立和設定 `StreamingGraphExecutor`
 * 消費即時執行事件
 * 過濾和緩衝事件流
 * 處理串流完成和錯誤
-* 圖表執行的即時監控
+* Graph 執行的即時監控
 
 ## 概念和技術
 
-**StreamingGraphExecutor**：一個特殊的執行器，透過事件流提供即時執行更新，實現實時監控和響應式應用程式。
+**StreamingGraphExecutor**：一個專門的執行器，透過事件流提供即時執行更新，支援即時監控和回應式應用程式。
 
-**IGraphExecutionEventStream**：事件流介面，提供關於圖表執行進度、節點完成和狀態變化的即時更新。
+**IGraphExecutionEventStream**：一個事件流介面，提供關於 Graph 執行進度、Node 完成和狀態變化的即時更新。
 
-**串流事件**：關於圖表執行的即時通知，包括節點啟動/完成事件、狀態更新和執行進度。
+**Streaming Events**：關於 Graph 執行的即時通知，包括 Node 啟動/完成事件、狀態更新和執行進度。
 
-**背壓管理**：控制事件流量的能力，以防止使用者負擔過重並維護系統穩定性。
+**Backpressure Management**：控制事件流程的能力，以防止消費者被淹沒並維持系統穩定性。
 
-## 必要條件
+## 先決條件
 
-* 已完成[首個圖表教程](first-graph-5-minutes.md)
-* 已完成[狀態快速開始指南](state-quickstart.md)
-* 已完成[條件節點快速開始指南](conditional-nodes-quickstart.md)
-* 對 SemanticKernel.Graph 概念有基本了解
+* [First Graph Tutorial](first-graph-5-minutes.md) 已完成
+* [State Quickstart](state-quickstart.md) 已完成
+* [Conditional Nodes Quickstart](conditional-nodes-quickstart.md) 已完成
+* SemanticKernel.Graph 概念的基本瞭解
 
 ## 步驟 1：基本串流設定
 
@@ -34,7 +34,7 @@
 ```csharp
 using SemanticKernel.Graph.Streaming;
 
-// 建立啟用串流的圖表執行器
+// 建立一個啟用串流的 Graph 執行器
 var streamingExecutor = new StreamingGraphExecutor("StreamingDemo", "Demo of streaming execution");
 
 // 或轉換現有的 GraphExecutor
@@ -42,10 +42,10 @@ var regularExecutor = new GraphExecutor("MyGraph", "Regular graph");
 var streamingExecutor2 = regularExecutor.AsStreamingExecutor();
 ```
 
-### 向您的串流圖表新增節點
+### 新增 Node 到您的串流 Graph
 
 ```csharp
-// 新增函數節點
+// 新增函數 Node
 var node1 = new FunctionGraphNode(
     KernelFunctionFactory.CreateFromMethod(
         () => 
@@ -88,20 +88,20 @@ var node3 = new FunctionGraphNode(
     "Third Node"
 );
 
-// 將節點新增到執行器
+// 新增 Node 到執行器
 streamingExecutor.AddNode(node1);
 streamingExecutor.AddNode(node2);
 streamingExecutor.AddNode(node3);
 
-// 連接節點
+// 連接 Node
 streamingExecutor.Connect("node1", "node2");
 streamingExecutor.Connect("node2", "node3");
 streamingExecutor.SetStartNode("node1");
 ```
 
-## 步驟 2：配置串流選項
+## 步驟 2：設定串流選項
 
-### 基本串流配置
+### 基本串流設定
 
 ```csharp
 using SemanticKernel.Graph.Streaming;
@@ -109,7 +109,7 @@ using SemanticKernel.Graph.Streaming;
 // 建立具有預設值的串流選項
 var options = new StreamingExecutionOptions();
 
-// 或配置特定選項
+// 或設定特定選項
 var configuredOptions = new StreamingExecutionOptions
 {
     BufferSize = 20,
@@ -171,7 +171,7 @@ await foreach (var @event in eventStream)
 {
     Console.WriteLine($"📡 事件：{@event.EventType} 於 {@event.Timestamp:HH:mm:ss.fff}");
     
-    // 處理不同的事件類型
+    // 處理不同事件類型
     switch (@event)
     {
         case GraphExecutionStartedEvent started:
@@ -179,15 +179,15 @@ await foreach (var @event in eventStream)
             break;
             
         case NodeExecutionStartedEvent nodeStarted:
-            Console.WriteLine($"   ▶️  節點已啟動：{nodeStarted.Node.Name}");
+            Console.WriteLine($"   ▶️  Node 已啟動：{nodeStarted.Node.Name}");
             break;
             
         case NodeExecutionCompletedEvent nodeCompleted:
-            Console.WriteLine($"   ✅ 節點已完成：{nodeCompleted.Node.Name} 於 {nodeCompleted.ExecutionDuration.TotalMilliseconds:F0}ms");
+            Console.WriteLine($"   ✅ Node 已完成：{nodeCompleted.Node.Name} 用時 {nodeCompleted.ExecutionDuration.TotalMilliseconds:F0}ms");
             break;
             
         case GraphExecutionCompletedEvent completed:
-            Console.WriteLine($"   🎯 執行已完成於 {completed.TotalDuration.TotalMilliseconds:F0}ms");
+            Console.WriteLine($"   🎯 執行已完成，用時 {completed.TotalDuration.TotalMilliseconds:F0}ms");
             break;
     }
     
@@ -201,26 +201,26 @@ await foreach (var @event in eventStream)
 ### 事件過濾
 
 ```csharp
-// 只過濾與節點相關的事件
+// 僅過濾 Node 相關事件
 var nodeEventsStream = eventStream.Filter(
     GraphExecutionEventType.NodeStarted,
     GraphExecutionEventType.NodeCompleted
 );
 
-Console.WriteLine("🎯 僅節點事件：");
+Console.WriteLine("🎯 僅限 Node 事件：");
 await foreach (var @event in nodeEventsStream)
 {
-    Console.WriteLine($"   節點事件：{@event.EventType}");
+    Console.WriteLine($"   Node 事件：{@event.EventType}");
 }
 ```
 
 ### 緩衝消費
 
 ```csharp
-// 為高吞吐量情景建立緩衝流
+// 為高吞吐量情境建立緩衝流
 var bufferedStream = eventStream.Buffer(10);
 
-Console.WriteLine("🚀 緩衝事件（批次 10 個）：");
+Console.WriteLine("🚀 緩衝事件（批次 10）：");
 var eventBatch = new List<GraphExecutionEvent>();
 await foreach (var @event in bufferedStream)
 {
@@ -237,7 +237,7 @@ await foreach (var @event in bufferedStream)
 ### 等待完成
 
 ```csharp
-// 透過消費所有事件來等待執行完成
+// 透過消費所有事件等待執行完成
 var eventCount = 0;
 var startTime = DateTimeOffset.UtcNow;
 
@@ -250,13 +250,13 @@ await foreach (var @event in eventStream)
 var duration = DateTimeOffset.UtcNow - startTime;
 Console.WriteLine($"\n✅ 執行已完成！");
 Console.WriteLine($"   狀態：已完成");
-Console.WriteLine($"   持續時間：{duration.TotalMilliseconds:F0}ms");
-Console.WriteLine($"   事件總數：{eventCount}");
+Console.WriteLine($"   耗時：{duration.TotalMilliseconds:F0}ms");
+Console.WriteLine($"   總事件數：{eventCount}");
 ```
 
 ## 步驟 5：完整串流範例
 
-### 建立實時監控圖表
+### 建立即時監控 Graph
 
 ```csharp
 using Microsoft.SemanticKernel;
@@ -277,7 +277,7 @@ class Program
         // 建立串流執行器
         var streamingExecutor = new StreamingGraphExecutor("RealTimeMonitor", "Real-time execution monitoring");
 
-        // 建立具有不同執行時間的節點
+        // 建立具有不同執行時間的 Node
         var inputNode = new FunctionGraphNode(
             KernelFunctionFactory.CreateFromMethod(
                 (KernelArguments args) =>
@@ -360,7 +360,7 @@ class Program
             "summary_node"
         ).StoreResultAs("summaryResult");
 
-        // 建立圖表
+        // 建置 Graph
         streamingExecutor.AddNode(inputNode);
         streamingExecutor.AddNode(analysisNode);
         streamingExecutor.AddNode(decisionNode);
@@ -368,7 +368,7 @@ class Program
         streamingExecutor.AddNode(fallbackNode);
         streamingExecutor.AddNode(summaryNode);
 
-        // 連接節點
+        // 連接 Node
         streamingExecutor.Connect("input_node", "analysis_node");
         streamingExecutor.Connect("analysis_node", "decision_node");
         streamingExecutor.Connect("decision_node", "success_node");
@@ -378,7 +378,7 @@ class Program
 
         streamingExecutor.SetStartNode("input_node");
 
-        // 配置串流選項
+        // 設定串流選項
         var options = new StreamingExecutionOptions
         {
             BufferSize = 15,
@@ -398,7 +398,7 @@ class Program
         var arguments = new KernelArguments();
         var eventStream = streamingExecutor.ExecuteStreamAsync(kernel, arguments, options);
 
-        Console.WriteLine("=== 實時執行監控 ===\n");
+        Console.WriteLine("=== 即時執行監控 ===\n");
         Console.WriteLine("⚡ 啟動串流執行...\n");
 
         // 即時監控執行
@@ -417,17 +417,17 @@ class Program
                     break;
                     
                         case NodeExecutionStartedEvent nodeStarted:
-            Console.WriteLine($"   ▶️  節點：{nodeStarted.Node.Name}");
+            Console.WriteLine($"   ▶️  Node：{nodeStarted.Node.Name}");
             break;
             
         case NodeExecutionCompletedEvent nodeCompleted:
             var duration = nodeCompleted.ExecutionDuration.TotalMilliseconds;
-            Console.WriteLine($"   ✅ 節點：{nodeCompleted.Node.Name} ({duration:F0}ms)");
+            Console.WriteLine($"   ✅ Node：{nodeCompleted.Node.Name} ({duration:F0}ms)");
             break;
                     
                 case GraphExecutionCompletedEvent completed:
                     var totalDuration = completed.TotalDuration.TotalMilliseconds;
-                    Console.WriteLine($"   🎯 總持續時間：{totalDuration:F0}ms");
+                    Console.WriteLine($"   🎯 總耗時：{totalDuration:F0}ms");
                     break;
             }
             
@@ -436,17 +436,17 @@ class Program
         }
 
         // 等待完成並顯示結果
-        // 注意：WaitForCompletionAsync 由消費流直到完成來處理
+        // 注意：WaitForCompletionAsync 透過消費流至完成來處理
         
         Console.WriteLine($"\n=== 執行摘要 ===");
         Console.WriteLine($"狀態：已完成");
-        Console.WriteLine($"事件總數：{eventCount}");
-        Console.WriteLine($"持續時間：處理已完成");
+        Console.WriteLine($"總事件數：{eventCount}");
+        Console.WriteLine($"耗時：處理已完成");
         
         // 顯示最終狀態
         var finalState = await streamingExecutor.ExecuteAsync(kernel, arguments);
         Console.WriteLine($"最終結果：{finalState.ContainsName("finalResult") ? finalState["finalResult"]?.ToString() ?? "" : ""}");
-        Console.WriteLine($"總持續時間：{finalState.ContainsName("totalDuration") ? finalState["totalDuration"]?.ToString() ?? "0" : "0"}ms");
+        Console.WriteLine($"總耗時：{finalState.ContainsName("totalDuration") ? finalState["totalDuration"]?.ToString() ?? "0" : "0"}ms");
         
         Console.WriteLine("\n✅ 串流執行已成功完成！");
     }
@@ -465,92 +465,92 @@ setx OPENAI_API_KEY "your-api-key-here"
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
-### 執行圖表
+### 執行 Graph
 
 ```bash
 dotnet run
 ```
 
-您應該會看到實時輸出，如下所示：
+您應該會看到類似的即時輸出：
 
 ```
-=== 實時執行監控 ===
+=== 即時執行監控 ===
 
 ⚡ 啟動串流執行...
 
 [14:30:15.123] #1 ExecutionStarted
    🚀 執行 ID：abc123def456
 [14:30:15.125] #2 NodeStarted
-   ▶️  節點：input_node
+   ▶️  Node：input_node
 [14:30:15.127] #3 NodeCompleted
-   ✅ 節點：input_node (4ms)
+   ✅ Node：input_node (4ms)
 [14:30:15.129] #4 NodeStarted
-   ▶️  節點：analysis_node
+   ▶️  Node：analysis_node
 [14:30:17.135] #5 NodeCompleted
-   ✅ 節點：analysis_node (2006ms)
+   ✅ Node：analysis_node (2006ms)
 [14:30:17.137] #6 NodeStarted
-   ▶️  節點：decision_node
+   ▶️  Node：decision_node
 [14:30:17.138] #7 NodeCompleted
-   ✅ 節點：decision_node (1ms)
+   ✅ Node：decision_node (1ms)
 [14:30:17.140] #8 NodeStarted
-   ▶️  節點：success_node
+   ▶️  Node：success_node
 [14:30:17.141] #9 NodeCompleted
-   ✅ 節點：success_node (1ms)
+   ✅ Node：success_node (1ms)
 [14:30:17.143] #10 NodeStarted
-   ▶️  節點：summary_node
+   ▶️  Node：summary_node
 [14:30:17.144] #11 NodeCompleted
-   ✅ 節點：summary_node (1ms)
+   ✅ Node：summary_node (1ms)
 [14:30:17.145] #12 ExecutionCompleted
-   🎯 總持續時間：2022ms
+   🎯 總耗時：2022ms
 
 === 執行摘要 ===
 狀態：已完成
-事件總數：12
-持續時間：2022ms
+總事件數：12
+耗時：2022ms
 最終結果：Success path taken
-總持續時間：2022ms
+總耗時：2022ms
 
 ✅ 串流執行已成功完成！
 ```
 
-## 剛才發生了什麼？
+## 剛發生了什麼？
 
 ### 1. **串流執行器建立**
 ```csharp
 var streamingExecutor = new StreamingGraphExecutor("RealTimeMonitor");
 ```
-建立在圖表執行期間發出即時事件的執行器。
+建立一個在 Graph 執行期間發出即時事件的執行器。
 
 ### 2. **事件流生成**
 ```csharp
 var eventStream = streamingExecutor.ExecuteStreamAsync(kernel, arguments, options);
 ```
-啟動執行並傳回即時事件的串流。
+啟動執行並傳回即時事件的流。
 
 ### 3. **即時事件消費**
 ```csharp
 await foreach (var @event in eventStream)
 {
-    // 在事件發生時處理每個事件
+    // 處理每個發生的事件
 }
 ```
-消費生成的事件，提供即時監控。
+消費事件時提供即時監控。
 
 ### 4. **事件過濾和緩衝**
 ```csharp
 var nodeEventsStream = eventStream.Filter(GraphExecutionEventType.NodeStarted);
 var bufferedStream = eventStream.Buffer(10);
 ```
-過濾特定的事件類型，並為高吞吐量情景緩衝事件。
+過濾特定事件類型並為高吞吐量情境緩衝事件。
 
-## 關鍵概念
+## 重要概念
 
-* **StreamingGraphExecutor**：執行圖表同時發出即時事件
-* **IGraphExecutionEventStream**：提供對執行事件的非同步迭代
-* **GraphExecutionEvent**：所有執行事件的基類（已啟動、已完成、失敗等）
-* **事件過濾**：選擇特定的事件類型進行監控
-* **事件緩衝**：用於效能的事件批次處理
-* **即時監控**：在執行進行時觀察進度
+* **StreamingGraphExecutor**：執行 Graph 同時發出即時事件
+* **IGraphExecutionEventStream**：透過執行事件提供非同步迭代
+* **GraphExecutionEvent**：所有執行事件的基類（啟動、完成、失敗等）
+* **事件過濾**：選擇特定事件類型進行監控
+* **事件緩衝**：為提高效能而批量處理事件
+* **即時監控**：在執行進行時觀察執行進度
 
 ## 常見模式
 
@@ -562,24 +562,24 @@ var criticalEvents = eventStream.Filter(
 );
 ```
 
-### 緩衝事件以進行批次處理
+### 為批量處理緩衝事件
 ```csharp
 var batchStream = eventStream.Buffer(50);
 await foreach (var batch in batchStream)
 {
-    // 成批處理 50 個事件
+    // 批量處理 50 個事件
 }
 ```
 
-### 處理不同的事件類型
+### 處理不同事件類型
 ```csharp
 switch (@event)
 {
     case NodeExecutionStartedEvent started:
-        Console.WriteLine($"節點 {started.Node.Name} 已啟動");
+        Console.WriteLine($"Node {started.Node.Name} 已啟動");
         break;
     case NodeExecutionCompletedEvent completed:
-        Console.WriteLine($"節點 {completed.Node.Name} 已完成於 {completed.ExecutionDuration}ms");
+        Console.WriteLine($"Node {completed.Node.Name} 已完成，用時 {completed.ExecutionDuration}ms");
         break;
 }
 ```
@@ -593,11 +593,11 @@ var startTime = DateTimeOffset.UtcNow;
 await foreach (var @event in eventStream)
 {
     eventCount++;
-    // 根據需要處理事件
+    // 視需要處理事件
     if (@event is GraphExecutionCompletedEvent)
     {
         var duration = DateTimeOffset.UtcNow - startTime;
-        Console.WriteLine($"執行已完成於 {duration.TotalMilliseconds:F0}ms");
+        Console.WriteLine($"執行已在 {duration.TotalMilliseconds:F0}ms 內完成");
         break;
     }
 }
@@ -605,68 +605,68 @@ await foreach (var @event in eventStream)
 
 ## 疑難排解
 
-### **串流永不啟動**
+### **串流未啟動**
 ```
 未發出任何事件
 ```
-**解決方案**：確保圖表有起始節點且已正確配置。
+**解決方案**：確保 Graph 有起始 Node 並正確設定。
 
-### **事件在執行中期停止**
+### **事件在執行中止**
 ```
 流意外結束
 ```
-**解決方案**：檢查節點執行中的異常，驗證錯誤處理。
+**解決方案**：檢查 Node 執行中是否有例外狀況，並驗證錯誤處理。
 
-### **高記憶體使用率**
+### **高記憶體使用量**
 ```
 串流期間記憶體消耗增加
 ```
-**解決方案**：使用緩衝並批次處理事件，正確釋放流。
+**解決方案**：使用緩衝並批量處理事件，正確處置流。
 
-### **事件無序到達**
+### **事件順序錯亂**
 ```
-事件序列不按時間順序
+事件序列不是按時間順序排列
 ```
-**解決方案**：在高吞吐量情景中使用 `HighPrecisionTimestamp` 以精確排序。
+**解決方案**：在高吞吐量情境中使用 `HighPrecisionTimestamp` 以確保精確排序。
 
 ## 後續步驟
 
-* **[串流教程](streaming-tutorial.md)**：進階串流模式和最佳實踐
-* **[事件處理](how-to/event-handling.md)**：自訂事件處理器和處理
-* **[效能最佳化](how-to/streaming-performance.md)**：高吞吐量串流情景
-* **[核心概念](concepts/index.md)**：了解圖表、節點和執行
+* **[Streaming Tutorial](streaming-tutorial.md)**：進階串流模式和最佳實踐
+* **[Event Handling](how-to/event-handling.md)**：自訂事件處理程式和處理
+* **[Performance Optimization](how-to/streaming-performance.md)**：高吞吐量串流情境
+* **[Core Concepts](concepts/index.md)**：理解 Graph、Node 和執行
 
 ## 概念和技術
 
-本教程介紹了幾個關鍵概念：
+本教學介紹了幾個關鍵概念：
 
-* **串流執行**：圖表執行進度的實時監控
+* **串流執行**：Graph 執行進度的即時監控
 * **事件流**：執行事件的非同步消費
-* **事件類型**：不同類別的執行事件（已啟動、已完成、失敗）
-* **事件過濾**：選擇性監控特定的事件類型
-* **事件緩衝**：用於效能的事件批次處理
-* **即時監控**：在執行進行時觀察進度
+* **事件類型**：執行事件的不同類別（啟動、完成、失敗）
+* **事件過濾**：選擇性監控特定事件類型
+* **事件緩衝**：為提高效能而批量處理事件
+* **即時監控**：在執行進行時觀察執行進度
 
-## 必要條件和最小配置
+## 先決條件和最低配置
 
-若要完成本教程，您需要：
-* **.NET 8.0+** 執行時環境和 SDK
+要完成本教學，您需要：
+* **.NET 8.0+** 執行時和 SDK
 * **SemanticKernel.Graph** 套件已安裝
-* **LLM 提供者**使用有效的 API 金鑰配置
-* **環境變數**為您的 API 認證設定
+* **LLM 提供者**已設定有效的 API 金鑰
+* **環境變數**已為您的 API 認證設定
 
 ## 另請參閱
 
-* **[首個圖表教程](first-graph-5-minutes.md)**：建立您的第一個圖表工作流程
-* **[狀態快速開始指南](state-quickstart.md)**：管理節點之間的資料流
-* **[條件節點快速開始指南](conditional-nodes-quickstart.md)**：為工作流程新增決策
-* **[串流教程](streaming-tutorial.md)**：進階串流概念
-* **[核心概念](concepts/index.md)**：了解圖表、節點和執行
-* **[API 參考](api/streaming.md)**：完整的串流 API 文件
+* **[First Graph Tutorial](first-graph-5-minutes.md)**：建立您的第一個 Graph 工作流程
+* **[State Quickstart](state-quickstart.md)**：管理 Node 之間的資料流
+* **[Conditional Nodes Quickstart](conditional-nodes-quickstart.md)**：將決策制定新增到工作流程
+* **[Streaming Tutorial](streaming-tutorial.md)**：進階串流概念
+* **[Core Concepts](concepts/index.md)**：理解 Graph、Node 和執行
+* **[API Reference](api/streaming.md)**：完整串流 API 文件
 
 ## 參考 API
 
 * **[StreamingGraphExecutor](../api/streaming.md#streaming-graph-executor)**：串流執行引擎
 * **[IGraphExecutionEventStream](../api/streaming.md#igraph-execution-event-stream)**：事件流介面
 * **[GraphExecutionEvent](../api/streaming.md#graph-execution-event)**：執行事件類型
-* **[StreamingExecutionOptions](../api/streaming.md#streaming-execution-options)**：串流配置
+* **[StreamingExecutionOptions](../api/streaming.md#streaming-execution-options)**：串流設定

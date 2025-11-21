@@ -1,20 +1,20 @@
-# 檢查和可視化 API 參考
+# 檢查與視覺化 API 參考
 
-本參考文檔說明了 SemanticKernel.Graph 中的檢查和可視化 API，這些 API 可實現圖形執行的實時監控、除錯和視覺表示。
+本參考文檔記錄了 SemanticKernel.Graph 中的檢查與視覺化 API，這些 API 能夠進行即時監控、除錯，以及圖表執行的視覺化表示。
 
 ## GraphInspectionApi
 
-用於檢查圖形結構、執行狀態和性能指標的執行時 API。提供用於實時監控、除錯和分析圖形執行的端點。
+用於檢查圖表結構、執行狀態和性能指標的執行時 API。提供用於即時監控、除錯和分析圖表執行的端點。
 
 ### 功能
 
-* 實時圖形結構檢查
+* 即時圖表結構檢查
 * 執行狀態監控
 * 性能指標存取
-* 節點和邊緣詳細資訊檢索
+* Node 和 Edge 詳細資訊檢索
 * 執行路徑追蹤
-* 健康檢查和狀態監控
-* 自定義查詢功能
+* 健康檢查與狀態監控
+* 自訂查詢功能
 
 ### 建構函式
 
@@ -24,7 +24,7 @@ public GraphInspectionApi(GraphInspectionOptions? options = null, IGraphLogger? 
 
 ### 方法
 
-#### 執行環境管理
+#### 執行上下文管理
 
 ```csharp
 public void RegisterExecution(GraphExecutionContext executionContext, GraphPerformanceMetrics? performanceMetrics = null)
@@ -47,42 +47,42 @@ public GraphInspectionResponse GetPerformanceMetrics(string executionId, TimeSpa
 public GraphInspectionResponse GetPerformanceHeatmap(string executionId)
 ```
 
-#### 實時監控端點
+#### 即時監控端點
 
 ```csharp
 public GraphInspectionResponse GetExecutionStatus(string executionId)
 public GraphInspectionResponse GetHealthCheck()
 ```
 
-#### 除錯和分析
+#### 除錯與分析
 
 ```csharp
-// 使用 GetGraphStructure、GetNodeDetails 和 GetActiveExecutions 檢索
-// 詳細的結構、節點級別的資訊和活動執行摘要
-// 以透過檢查 API 進行除錯和分析工作流。
+// Use GetGraphStructure, GetNodeDetails and GetActiveExecutions to retrieve
+// detailed structure, node-level information and active execution summaries
+// for debugging and analysis workflows via the inspection API.
 ```
 
 ### 屬性
 
-* `IsDisposed`：取得 API 是否已處理
-* `ActiveExecutionCount`：取得監控中的活動執行數量
+* `IsDisposed`: 取得 API 是否已被釋放
+* `ActiveExecutionCount`: 取得目前被監控的主動執行數量
 
 ## GraphVisualizationEngine
 
-用於序列化和匯出至多種格式的綜合圖形可視化引擎。提供生成 DOT、JSON、Mermaid 和其他可視化格式的方法。
+用於序列化和匯出至多種格式的綜合圖表視覺化引擎。提供用於產生 DOT、JSON、Mermaid 和其他視覺化格式的方法。
 
 ### 支援的格式
 
-* **DOT (GraphViz)**：用於專業圖形可視化
-* **JSON**：用於 API 使用和資料交換
-* **Mermaid**：用於文檔和基於網絡的圖表
-* **SVG**：用於靜態圖像匯出
+* **DOT (GraphViz)**: 用於專業圖表視覺化
+* **JSON**: 用於 API 使用和資料交換
+* **Mermaid**: 用於文檔和網頁型圖表
+* **SVG**: 用於靜態影像匯出
 
 ### 功能
 
-* 實時執行路徑高亮
+* 即時執行路徑高亮顯示
 * 性能指標整合
-* 可自定義的樣式和主題
+* 可自訂的樣式和主題
 * 多格式匯出功能
 
 ### 建構函式
@@ -93,7 +93,7 @@ public GraphVisualizationEngine(GraphVisualizationOptions? options = null, IGrap
 
 ### 方法
 
-#### 圖形結構序列化
+#### 圖表結構序列化
 
 ```csharp
 public string SerializeToDot(GraphVisualizationData visualizationData, DotSerializationOptions? options = null)
@@ -109,7 +109,7 @@ public string ExportMetricsForVisualization(GraphPerformanceMetrics performanceM
 public string GeneratePerformanceHeatmap(GraphPerformanceMetrics performanceMetrics, GraphVisualizationData visualizationData)
 ```
 
-#### 實時高亮
+#### 即時高亮顯示
 
 ```csharp
 public GraphVisualizationData UpdateRealtimeHighlights(GraphVisualizationData visualizationData, GraphExecutionContext currentExecutionContext)
@@ -117,98 +117,98 @@ public GraphVisualizationData UpdateRealtimeHighlights(GraphVisualizationData vi
 
 ## GraphInspectionOptions
 
-圖形檢查 API 的配置選項。
+圖表檢查 API 的設定選項。
 
 ### 屬性
 
 ```csharp
-public int MaxActiveExecutions { get; set; } = 100;           // 要監控的最大活動執行數
-public bool EnableDetailedNodeInspection { get; set; } = true; // 啟用詳細節點檢查
-public bool EnablePerformanceMetrics { get; set; } = true;     // 啟用性能指標收集
-public bool EnableRealtimeMonitoring { get; set; } = true;     // 啟用實時監控
-public bool EnableDebugSessions { get; set; } = true;          // 啟用除錯工作階段支援
-public TimeSpan MetricsRetentionPeriod { get; set; } = TimeSpan.FromHours(24); // 指標保留期限
-public DateTimeOffset StartTime { get; set; } = DateTimeOffset.UtcNow; // API 啟動時間
-public bool IncludeDebugInfo { get; set; } = true;             // 在回應中包含除錯資訊
-public bool IncludePerformanceHeatmaps { get; set; } = true;   // 包含性能熱圖
+public int MaxActiveExecutions { get; set; } = 100;           // Maximum active executions to monitor
+public bool EnableDetailedNodeInspection { get; set; } = true; // Enable detailed node inspection
+public bool EnablePerformanceMetrics { get; set; } = true;     // Enable performance metrics collection
+public bool EnableRealtimeMonitoring { get; set; } = true;     // Enable real-time monitoring
+public bool EnableDebugSessions { get; set; } = true;          // Enable debug session support
+public TimeSpan MetricsRetentionPeriod { get; set; } = TimeSpan.FromHours(24); // Metrics retention period
+public DateTimeOffset StartTime { get; set; } = DateTimeOffset.UtcNow; // API start time
+public bool IncludeDebugInfo { get; set; } = true;             // Include debug information in responses
+public bool IncludePerformanceHeatmaps { get; set; } = true;   // Include performance heatmaps
 ```
 
 ## GraphVisualizationOptions
 
-圖形可視化引擎的配置選項。
+圖表視覺化引擎的設定選項。
 
 ### 屬性
 
 ```csharp
-public VisualizationTheme Theme { get; set; } = VisualizationTheme.Default;  // 預設可視化主題
-public bool EnableRealtimeUpdates { get; set; } = true;                       // 啟用實時更新
-public bool EnableCaching { get; set; } = true;                               // 啟用快取
-public int MaxCacheSize { get; set; } = 100;                                  // 最大快取大小
-public int CacheExpirationMinutes { get; set; } = 30;                         // 快取過期時間
-public bool IncludePerformanceMetrics { get; set; } = true;                   // 包含性能指標
-public int MaxNodesPerVisualization { get; set; } = 1000;                     // 每個可視化的最大節點數
-public bool EnableAdvancedStyling { get; set; } = true;                       // 啟用進階樣式設定
+public VisualizationTheme Theme { get; set; } = VisualizationTheme.Default;  // Default visualization theme
+public bool EnableRealtimeUpdates { get; set; } = true;                       // Enable real-time updates
+public bool EnableCaching { get; set; } = true;                               // Enable caching
+public int MaxCacheSize { get; set; } = 100;                                  // Maximum cache size
+public int CacheExpirationMinutes { get; set; } = 30;                         // Cache expiration time
+public bool IncludePerformanceMetrics { get; set; } = true;                   // Include performance metrics
+public int MaxNodesPerVisualization { get; set; } = 1000;                     // Maximum nodes per visualization
+public bool EnableAdvancedStyling { get; set; } = true;                       // Enable advanced styling
 ```
 
 ## 序列化選項
 
 ### DotSerializationOptions
 
-DOT 格式序列化特定的選項。
+特定於 DOT 格式序列化的選項。
 
 ```csharp
-public string GraphName { get; set; } = "SemanticKernelGraph";  // DOT 輸出中的圖形名稱
-public bool EnableClustering { get; set; } = false;             // 啟用節點聚類
-public bool HighlightExecutionPath { get; set; } = true;        // 高亮執行路徑
-public bool HighlightCurrentNode { get; set; } = true;          // 高亮目前節點
-public DotLayoutDirection LayoutDirection { get; set; } = DotLayoutDirection.TopToBottom; // 佈局方向
-public bool IncludeNodeTypeInfo { get; set; } = true;           // 包含節點類型資訊
-public Dictionary<string, string> CustomNodeStyles { get; set; } = new(); // 自定義節點樣式
-public Dictionary<string, string> CustomEdgeStyles { get; set; } = new(); // 自定義邊緣樣式
+public string GraphName { get; set; } = "SemanticKernelGraph";  // Graph name in DOT output
+public bool EnableClustering { get; set; } = false;             // Enable node clustering
+public bool HighlightExecutionPath { get; set; } = true;        // Highlight execution path
+public bool HighlightCurrentNode { get; set; } = true;          // Highlight current node
+public DotLayoutDirection LayoutDirection { get; set; } = DotLayoutDirection.TopToBottom; // Layout direction
+public bool IncludeNodeTypeInfo { get; set; } = true;           // Include node type information
+public Dictionary<string, string> CustomNodeStyles { get; set; } = new(); // Custom node styles
+public Dictionary<string, string> CustomEdgeStyles { get; set; } = new(); // Custom edge styles
 ```
 
 ### SvgSerializationOptions
 
-SVG 序列化特定的選項。
+特定於 SVG 序列化的選項。
 
 ```csharp
-public int Width { get; set; } = 960;                          // 畫布寬度（像素）
-public int Height { get; set; } = 540;                          // 畫布高度（像素）
-public int HorizontalSpacing { get; set; } = 180;               // 節點之間的水平間距
-public int VerticalSpacing { get; set; } = 120;                 // 節點之間的垂直間距
-public bool IncludeMetricsOverlay { get; set; } = true;         // 包含指標覆蓋層
-public bool HighlightExecutionPath { get; set; } = true;        // 高亮執行路徑
-public bool HighlightCurrentNode { get; set; } = true;          // 高亮目前節點
+public int Width { get; set; } = 960;                          // Canvas width in pixels
+public int Height { get; set; } = 540;                          // Canvas height in pixels
+public int HorizontalSpacing { get; set; } = 180;               // Horizontal spacing between nodes
+public int VerticalSpacing { get; set; } = 120;                 // Vertical spacing between nodes
+public bool IncludeMetricsOverlay { get; set; } = true;         // Include metrics overlay
+public bool HighlightExecutionPath { get; set; } = true;        // Highlight execution path
+public bool HighlightCurrentNode { get; set; } = true;          // Highlight current node
 ```
 
 ### JsonSerializationOptions
 
-JSON 序列化特定的選項。
+特定於 JSON 序列化的選項。
 
 ```csharp
-public bool Indented { get; set; } = true;                      // 用縮進格式化 JSON
-public bool UseCamelCase { get; set; } = true;                  // 使用 camelCase 屬性命名
-public bool IncludeNodeProperties { get; set; } = true;          // 包含詳細的節點屬性
-public bool IncludeLayoutInfo { get; set; } = true;             // 包含佈局資訊
-public bool IncludeExecutionMetrics { get; set; } = false;      // 包含執行指標
-public bool IncludeTimestamps { get; set; } = true;             // 包含時間戳資訊
-public int MaxSerializationDepth { get; set; } = 10;            // 最大序列化深度
+public bool Indented { get; set; } = true;                      // Format JSON with indentation
+public bool UseCamelCase { get; set; } = true;                  // Use camelCase property naming
+public bool IncludeNodeProperties { get; set; } = true;          // Include detailed node properties
+public bool IncludeLayoutInfo { get; set; } = true;             // Include layout information
+public bool IncludeExecutionMetrics { get; set; } = false;      // Include execution metrics
+public bool IncludeTimestamps { get; set; } = true;             // Include timestamp information
+public int MaxSerializationDepth { get; set; } = 10;            // Maximum serialization depth
 ```
 
 ### MermaidGenerationOptions
 
-Mermaid 圖表生成特定的選項。
+特定於 Mermaid 圖表產生的選項。
 
 ```csharp
-public string Direction { get; set; } = "TD";                   // 圖表方向（TD、LR、BT、RL）
-public bool IncludeTitle { get; set; } = true;                  // 在圖表中包含標題
-public bool EnableStyling { get; set; } = true;                 // 啟用樣式類別
-public bool HighlightExecutionPath { get; set; } = true;        // 高亮執行路徑
-public bool HighlightCurrentNode { get; set; } = true;          // 高亮目前節點
-public bool StyleByNodeType { get; set; } = true;               // 按節點類型進行樣式設定
-public bool IncludePerformanceIndicators { get; set; } = false; // 包含性能指標
-public MermaidTheme Theme { get; set; } = MermaidTheme.Default; // 圖表主題
-public Dictionary<string, string> CustomStyles { get; set; } = new(); // 自定義 CSS 樣式
+public string Direction { get; set; } = "TD";                   // Diagram direction (TD, LR, BT, RL)
+public bool IncludeTitle { get; set; } = true;                  // Include title in diagram
+public bool EnableStyling { get; set; } = true;                 // Enable styling classes
+public bool HighlightExecutionPath { get; set; } = true;        // Highlight execution path
+public bool HighlightCurrentNode { get; set; } = true;          // Highlight current node
+public bool StyleByNodeType { get; set; } = true;               // Style nodes by type
+public bool IncludePerformanceIndicators { get; set; } = false; // Include performance indicators
+public MermaidTheme Theme { get; set; } = MermaidTheme.Default; // Diagram theme
+public Dictionary<string, string> CustomStyles { get; set; } = new(); // Custom CSS styles
 ```
 
 ## InspectionFormat 列舉
@@ -218,10 +218,10 @@ public Dictionary<string, string> CustomStyles { get; set; } = new(); // 自定�
 ```csharp
 public enum InspectionFormat
 {
-    Json,      // API 回應的 JSON 格式
-    Dot,       // GraphViz 可視化的 DOT 格式
-    Mermaid,   // 基於網絡圖表的 Mermaid 格式
-    Xml        // 用於結構化資料交換的 XML 格式
+    Json,      // JSON format for API responses
+    Dot,       // DOT format for GraphViz visualization
+    Mermaid,   // Mermaid format for web-based diagrams
+    Xml        // XML format for structured data exchange
 }
 ```
 
@@ -232,37 +232,37 @@ public enum InspectionFormat
 ```csharp
 public enum MetricsExportFormat
 {
-    Json,        // JSON 格式
-    Csv,         // CSV 格式
-    Prometheus   // Prometheus 指標格式
+    Json,        // JSON format
+    Csv,         // CSV format
+    Prometheus   // Prometheus metrics format
 }
 ```
 
 ## DotLayoutDirection 列舉
 
-DOT 佈局方向的列舉。
+DOT 配置方向的列舉。
 
 ```csharp
 public enum DotLayoutDirection
 {
-    TopToBottom,    // 由上至下的佈局
-    LeftToRight,    // 由左至右的佈局
-    BottomToTop,    // 由下至上的佈局
-    RightToLeft     // 由右至左的佈局
+    TopToBottom,    // Top to bottom layout
+    LeftToRight,    // Left to right layout
+    BottomToTop,    // Bottom to top layout
+    RightToLeft     // Right to left layout
 }
 ```
 
 ## VisualizationTheme 列舉
 
-支援的可視化主題的列舉。
+支援的視覺化主題的列舉。
 
 ```csharp
 public enum VisualizationTheme
 {
-    Default,    // 具有標準顏色和樣式的預設主題
-    Dark,       // 針對深色背景最佳化的深色主題
-    Light,      // 針對淺色背景最佳化的淺色主題
-    HighContrast // 用於無障礙的高對比度主題
+    Default,    // Default theme with standard colors and styling
+    Dark,       // Dark theme optimized for dark backgrounds
+    Light,      // Light theme optimized for light backgrounds
+    HighContrast // High contrast theme for accessibility
 }
 ```
 
@@ -273,25 +273,25 @@ Mermaid 圖表主題的列舉。
 ```csharp
 public enum MermaidTheme
 {
-    Default,    // 預設 Mermaid 主題
-    Forest,     // 綠色調的森林主題
-    Dark,       // 深色主題
-    Neutral     // 中性主題
+    Default,    // Default Mermaid theme
+    Forest,     // Forest theme with green tones
+    Dark,       // Dark theme
+    Neutral     // Neutral theme
 }
 ```
 
 ## GraphInspectionResponse
 
-表示來自圖形檢查 API 的回應。
+代表來自圖表檢查 API 的回應。
 
 ### 屬性
 
 ```csharp
-public bool IsSuccess { get; private set; }                     // 請求是否成功
-public string Data { get; private set; } = string.Empty;        // 回應資料
-public string? ErrorMessage { get; private set; }               // 失敗時的錯誤訊息
-public object? Metadata { get; private set; }                   // 其他中繼資料
-public DateTimeOffset Timestamp { get; private set; } = DateTimeOffset.UtcNow; // 回應時間戳
+public bool IsSuccess { get; private set; }                     // Whether the request was successful
+public string Data { get; private set; } = string.Empty;        // Response data
+public string? ErrorMessage { get; private set; }               // Error message if failed
+public object? Metadata { get; private set; }                   // Additional metadata
+public DateTimeOffset Timestamp { get; private set; } = DateTimeOffset.UtcNow; // Response timestamp
 ```
 
 ### 靜態工廠方法
@@ -304,16 +304,16 @@ public static GraphInspectionResponse Error(string message)
 
 ## GraphVisualizationData
 
-用於圖形可視化資訊的資料結構。
+圖表視覺化資訊的資料結構。
 
 ### 屬性
 
 ```csharp
-public IReadOnlyList<IGraphNode> Nodes { get; }                 // 圖形節點
-public IReadOnlyList<GraphEdgeInfo> Edges { get; }              // 圖形邊緣
-public IGraphNode? CurrentNode { get; }                          // 目前執行中的節點
-public IReadOnlyList<IGraphNode> ExecutionPath { get; }         // 執行路徑
-public DateTimeOffset GeneratedAt { get; } = DateTimeOffset.UtcNow; // 生成時間戳
+public IReadOnlyList<IGraphNode> Nodes { get; }                 // Graph nodes
+public IReadOnlyList<GraphEdgeInfo> Edges { get; }              // Graph edges
+public IGraphNode? CurrentNode { get; }                          // Currently executing node
+public IReadOnlyList<IGraphNode> ExecutionPath { get; }         // Execution path
+public DateTimeOffset GeneratedAt { get; } = DateTimeOffset.UtcNow; // Generation timestamp
 ```
 
 ### 建構函式
@@ -324,16 +324,16 @@ public GraphVisualizationData(IReadOnlyList<IGraphNode> nodes, IReadOnlyList<Gra
 
 ## GraphEdgeInfo
 
-用於可視化的圖形邊緣資訊。
+用於視覺化的圖表 Edge 資訊。
 
 ### 屬性
 
 ```csharp
-public string FromNodeId { get; }                                // 源節點 ID
-public string ToNodeId { get; }                                  // 目標節點 ID
-public string? Label { get; }                                    // 邊緣標籤
-public string? Condition { get; }                                // 條件運算式
-public bool IsHighlighted { get; set; }                          // 邊緣是否已高亮
+public string FromNodeId { get; }                                // Source node ID
+public string ToNodeId { get; }                                  // Target node ID
+public string? Label { get; }                                    // Edge label
+public string? Condition { get; }                                // Conditional expression
+public bool IsHighlighted { get; set; }                          // Whether edge is highlighted
 ```
 
 ### 建構函式
@@ -342,12 +342,12 @@ public bool IsHighlighted { get; set; }                          // 邊緣是否
 public GraphEdgeInfo(string fromNodeId, string toNodeId, string? label = null, string? condition = null)
 ```
 
-## 使用示例
+## 使用範例
 
 ### 基本檢查設定
 
 ```csharp
-// 建立包含選項的檢查 API
+// Create inspection API with options
 var inspectionOptions = new GraphInspectionOptions
 {
     MaxActiveExecutions = 50,
@@ -358,14 +358,14 @@ var inspectionOptions = new GraphInspectionOptions
 
 var inspectionApi = new GraphInspectionApi(inspectionOptions, logger);
 
-// 註冊執行以進行監控
+// Register an execution for monitoring
 inspectionApi.RegisterExecution(executionContext, performanceMetrics);
 ```
 
-### 圖形結構檢查
+### 圖表結構檢查
 
 ```csharp
-// 獲取不同格式的圖形結構
+// Get graph structure in different formats
 var jsonStructure = inspectionApi.GetGraphStructure(executionId, InspectionFormat.Json);
 var dotStructure = inspectionApi.GetGraphStructure(executionId, InspectionFormat.Dot);
 var mermaidStructure = inspectionApi.GetGraphStructure(executionId, InspectionFormat.Mermaid);
@@ -373,17 +373,17 @@ var mermaidStructure = inspectionApi.GetGraphStructure(executionId, InspectionFo
 if (jsonStructure.IsSuccess)
 {
     var graphData = jsonStructure.Data;
-    // 處理圖形結構資料
+    // Process graph structure data
 }
 ```
 
-### 可視化匯出
+### 視覺化匯出
 
 ```csharp
-// 建立可視化引擎
+// Create visualization engine
 var visualizationEngine = new GraphVisualizationEngine(logger: logger);
 
-// 匯出至 DOT 格式
+// Export to DOT format
 var dotOptions = new DotSerializationOptions
 {
     GraphName = "MyGraph",
@@ -394,7 +394,7 @@ var dotOptions = new DotSerializationOptions
 
 var dotOutput = visualizationEngine.SerializeToDot(visualizationData, dotOptions);
 
-// 匯出至 Mermaid
+// Export to Mermaid
 var mermaidOptions = new MermaidGenerationOptions
 {
     Direction = "TD",
@@ -409,49 +409,49 @@ var mermaidOutput = visualizationEngine.GenerateEnhancedMermaidDiagram(visualiza
 ### 性能指標匯出
 
 ```csharp
-// 獲取性能指標
+// Get performance metrics
 var metricsResponse = inspectionApi.GetPerformanceMetrics(executionId, TimeSpan.FromHours(1), MetricsExportFormat.Json);
 
 if (metricsResponse.IsSuccess)
 {
     var metricsData = metricsResponse.Data;
-    // 處理性能指標
+    // Process performance metrics
 }
 
-// 生成性能熱圖
+// Generate performance heatmap
 var heatmapResponse = inspectionApi.GetPerformanceHeatmap(executionId);
 if (heatmapResponse.IsSuccess)
 {
     var heatmapData = heatmapResponse.Data;
-    // 處理熱圖資料
+    // Process heatmap data
 }
 ```
 
-### 實時監控
+### 即時監控
 
 ```csharp
-// 獲取目前執行狀態
+// Get current execution status
 var statusResponse = inspectionApi.GetExecutionStatus(executionId);
 if (statusResponse.IsSuccess)
 {
     var statusData = statusResponse.Data;
-    // 處理實時狀態
+    // Process real-time status
 }
 
-// 獲取執行健康狀況
+// Get execution health
 var healthResponse = inspectionApi.GetExecutionHealth(executionId);
 if (healthResponse.IsSuccess)
 {
     var healthData = healthResponse.Data;
-    // 處理健康資訊
+    // Process health information
 }
 ```
 
 ## 另請參閱
 
-* [除錯和檢查指南](../how-to/debug-and-inspection.md) - 如何使用檢查和除錯功能
-* [指標和可觀測性指南](../how-to/metrics-and-observability.md) - 性能監控和指標
-* [實時可視化指南](../how-to/real-time-visualization-and-highlights.md) - 即時可視化功能
-* [GraphVisualizationExample](../examples/graph-visualization.md) - 實用的可視化示例
-* [Streaming APIs 參考](./streaming.md) - 實時執行監控
-* [指標和日誌參考](./metrics-logging.md) - 性能指標和日誌
+* [除錯與檢查指南](../how-to/debug-and-inspection.md) - 如何使用檢查和除錯功能
+* [指標與可觀測性指南](../how-to/metrics-and-observability.md) - 性能監控和指標
+* [即時視覺化指南](../how-to/real-time-visualization-and-highlights.md) - 即時視覺化功能
+* [GraphVisualizationExample](../examples/graph-visualization.md) - 實用視覺化範例
+* [Streaming APIs 參考](./streaming.md) - 即時執行監控
+* [指標與日誌參考](./metrics-logging.md) - 性能指標和日誌

@@ -1,61 +1,61 @@
-# 子圖示例
+# Subgraph 範例
 
-此範例展示了 Semantic Kernel Graph 中的子圖組合功能，包含不同的隔離模式和輸入/輸出對應。
+此範例示範 Semantic Kernel Graph 中的 Subgraph 組合功能，展示不同的隔離模式和輸入/輸出映射。
 
 ## 目標
 
-學習如何在基於圖的工作流中實現子圖組合：
-* 使用隔離的執行上下文建立可重複使用的子圖
-* 實現父圖與子圖之間的輸入/輸出對應
+學習如何在基於 Graph 的工作流程中實現 Subgraph 組合，以便：
+* 建立具有隔離執行上下文的可重用 Subgraph
+* 實現父圖形和子圖形之間的輸入/輸出映射
 * 使用不同的隔離模式（IsolatedClone、ScopedPrefix）
 * 處理狀態合併和衝突解決
-* 構建模組化和可組合的圖架構
+* 建立模組化和可組合的 Graph 架構
 
 ## 先決條件
 
-* **.NET 8.0** 或更新版本
-* **OpenAI API 金鑰**已在 `appsettings.json` 中配置
-* **Semantic Kernel Graph 套件**已安裝
-* 對[圖概念](../concepts/graph-concepts.md)和[子圖組合](../concepts/subgraphs.md)的基本理解
-* 熟悉[狀態管理](../concepts/state.md)
+* **.NET 8.0** 或更高版本
+* **OpenAI API Key** 在 `appsettings.json` 中配置
+* 已安裝 **Semantic Kernel Graph** 套件
+* 對 [Graph 概念](../concepts/graph-concepts.md) 和 [Subgraph 組合](../concepts/subgraphs.md) 的基本了解
+* 熟悉 [狀態管理](../concepts/state.md)
 
-## 關鍵元件
+## 關鍵組件
 
 ### 概念和技術
 
-* **子圖組合**：從更簡單的、可重複使用的元件構建複雜的圖
-* **隔離模式**：隔離子圖執行上下文的不同策略
-* **輸入/輸出對應**：在父圖和子圖上下文之間轉換資料
-* **狀態合併**：將子圖的執行結果與父狀態結合
-* **衝突解決**：在子圖執行期間處理狀態衝突
+* **Subgraph 組合**：從更簡單、可重用的組件建立複雜的 Graph
+* **隔離模式**：用於隔離 Subgraph 執行上下文的不同策略
+* **輸入/輸出映射**：在父圖形和子圖形上下文之間轉換資料
+* **狀態合併**：將來自 Subgraph 的執行結果與父狀態結合
+* **衝突解決**：在 Subgraph 執行期間處理狀態衝突
 
 ### 核心類別
 
-* `GraphExecutor`：父圖和子圖的基礎執行器
-* `SubgraphGraphNode`：執行具有配置的子圖的節點
-* `SubgraphConfiguration`：子圖行為和對應的配置
-* `FunctionGraphNode`：子圖內用於特定功能的節點
+* `GraphExecutor`：父圖形和子圖形的基本執行器
+* `SubgraphGraphNode`：執行具有配置的 Subgraph 的節點
+* `SubgraphConfiguration`：Subgraph 行為和映射的配置
+* `FunctionGraphNode`：Subgraph 內用於特定功能的節點
 * `SubgraphIsolationMode`：隔離策略的列舉
 
-## 運行示例
+## 執行範例
 
-### 快速開始
+### 入門
 
-此範例展示了 Semantic Kernel Graph 套件中的子圖組合和隔離。下面的程式碼片段展示了如何在自己的應用程式中實現此模式。
+此範例使用 Semantic Kernel Graph 套件演示 Subgraph 組合和隔離。下面的程式碼片段顯示如何在您自己的應用程式中實現此模式。
 
 ## 逐步實現
 
-### 1. IsolatedClone 子圖示例
+### 1. IsolatedClone Subgraph 範例
 
-第一個範例展示了完全隔離和明確對應的子圖執行。
+第一個範例演示具有完全隔離和明確映射的 Subgraph 執行。
 
 ```csharp
 public static async Task RunIsolatedCloneAsync(Kernel kernel)
 {
     ArgumentNullException.ThrowIfNull(kernel);
 
-    // 1) 定義一個計算 x 和 y 之和的子子圖
-    var child = new GraphExecutor("Subgraph_Sum", "Calculates sum of x and y");
+    // 1) 定義一個計算 x 和 y 之和的子 Subgraph
+    var child = new GraphExecutor("Subgraph_Sum", "計算 x 和 y 的總和");
 
     var sumFunction = KernelFunctionFactory.CreateFromMethod(
         (KernelArguments args) =>
@@ -64,20 +64,20 @@ public static async Task RunIsolatedCloneAsync(Kernel kernel)
             var x = args.TryGetValue("x", out var xv) && xv is IConvertible ? Convert.ToDouble(xv) : 0.0;
             var y = args.TryGetValue("y", out var yv) && yv is IConvertible ? Convert.ToDouble(yv) : 0.0;
             var sum = x + y;
-            // 將結果存儲在子狀態中
+            // 將結果儲存在子狀態中
             args["sum"] = sum;
             return sum.ToString("F2");
         },
         functionName: "compute_sum",
-        description: "Sums x and y and stores in 'sum'"
+        description: "將 x 和 y 相加並存放在 'sum' 中"
     );
 
-    var sumNode = new FunctionGraphNode(sumFunction, nodeId: "sum_node", description: "Calculates sum");
+    var sumNode = new FunctionGraphNode(sumFunction, nodeId: "sum_node", description: "計算總和");
     sumNode.SetMetadata("StoreResultAs", "sum");
 
     child.AddNode(sumNode).SetStartNode(sumNode.NodeId);
 
-    // 2) 在父圖中配置子圖節點，包括對應和隔離
+    // 2) 在父圖形中配置 Subgraph 節點，包括映射和隔離
     var config = new SubgraphConfiguration
     {
         IsolationMode = SubgraphIsolationMode.IsolatedClone,
@@ -93,27 +93,27 @@ public static async Task RunIsolatedCloneAsync(Kernel kernel)
         }
     };
 
-    var parent = new GraphExecutor("Parent_IsolatedClone", "Uses subgraph for summation");
-    var subgraphNode = new SubgraphGraphNode(child, name: "Subgraph(Sum)", description: "Executes sum subgraph", config: config);
+    var parent = new GraphExecutor("Parent_IsolatedClone", "使用 Subgraph 進行求和");
+    var subgraphNode = new SubgraphGraphNode(child, name: "Subgraph(Sum)", description: "執行求和 Subgraph", config: config);
 
-    // 最終節點以在子圖執行後繼續
+    // 在 Subgraph 執行後繼續的最終節點
     var finalizeFunction = KernelFunctionFactory.CreateFromMethod(
         (KernelArguments args) =>
         {
             var total = args.TryGetValue("total", out var tv) ? tv : 0;
-            return $"Total (mapped from subgraph): {total}";
+            return $"總計（從 Subgraph 映射）：{total}";
         },
         functionName: "finalize",
-        description: "Returns total"
+        description: "返回總計"
     );
-    var finalizeNode = new FunctionGraphNode(finalizeFunction, nodeId: "finalize_node", description: "Displays total");
+    var finalizeNode = new FunctionGraphNode(finalizeFunction, nodeId: "finalize_node", description: "顯示總計");
 
     parent.AddNode(subgraphNode)
           .AddNode(finalizeNode)
           .SetStartNode(subgraphNode.NodeId)
           .Connect(subgraphNode.NodeId, finalizeNode.NodeId);
 
-    // 3) 使用初始狀態 (a,b) 執行
+    // 3) 使用初始狀態（a,b）執行
     var args = new KernelArguments
     {
         ["a"] = 3,
@@ -122,24 +122,24 @@ public static async Task RunIsolatedCloneAsync(Kernel kernel)
 
     var result = await parent.ExecuteAsync(kernel, args, CancellationToken.None);
 
-    Console.WriteLine("[IsolatedClone] expected total = 10");
+    Console.WriteLine("[IsolatedClone] 預期總計 = 10");
     var totalOk = args.TryGetValue("total", out var totalVal);
-    Console.WriteLine($"[IsolatedClone] obtained total = {(totalOk ? totalVal : "(not mapped)")}");
-    Console.WriteLine($"[IsolatedClone] final message = {result.GetValue<object>()}");
+    Console.WriteLine($"[IsolatedClone] 獲得的總計 = {(totalOk ? totalVal : "（未映射）")}");
+    Console.WriteLine($"[IsolatedClone] 最終訊息 = {result.GetValue<object>()}");
 }
 ```
 
-### 2. ScopedPrefix 子圖示例
+### 2. ScopedPrefix Subgraph 範例
 
-第二個範例展示了使用作用域前綴隔離的子圖執行。
+第二個範例演示具有作用域前綴隔離的 Subgraph 執行。
 
 ```csharp
 public static async Task RunScopedPrefixAsync(Kernel kernel)
 {
     ArgumentNullException.ThrowIfNull(kernel);
 
-    // 1) 定義一個在前綴下對總值應用折扣的子子圖
-    var child = new GraphExecutor("Subgraph_Discount", "Applies a discount to a total under a prefix");
+    // 1) 定義一個在前綴下向總計應用折扣的子 Subgraph
+    var child = new GraphExecutor("Subgraph_Discount", "在前綴下將折扣應用於總計");
 
     var applyDiscountFunction = KernelFunctionFactory.CreateFromMethod(
         (KernelArguments args) =>
@@ -151,22 +151,22 @@ public static async Task RunScopedPrefixAsync(Kernel kernel)
             return final.ToString("F2");
         },
         functionName: "apply_discount",
-        description: "Applies discount and stores in 'final'"
+        description: "應用折扣並存放在 'final' 中"
     );
 
-    var discountNode = new FunctionGraphNode(applyDiscountFunction, nodeId: "discount_node", description: "Apply discount");
+    var discountNode = new FunctionGraphNode(applyDiscountFunction, nodeId: "discount_node", description: "應用折扣");
     discountNode.SetMetadata("StoreResultAs", "final");
     child.AddNode(discountNode).SetStartNode(discountNode.NodeId);
 
-    // 2) 具有作用域前綴隔離的子圖節點
+    // 2) 使用作用域前綴隔離的 Subgraph 節點
     var config = new SubgraphConfiguration
     {
         IsolationMode = SubgraphIsolationMode.ScopedPrefix,
         ScopedPrefix = "invoice."
     };
 
-    var parent = new GraphExecutor("Parent_ScopedPrefix", "Uses subgraph with scoped prefix");
-    var subgraphNode = new SubgraphGraphNode(child, name: "Subgraph(Discount)", description: "Executes discount subgraph", config: config);
+    var parent = new GraphExecutor("Parent_ScopedPrefix", "使用帶有作用域前綴的 Subgraph");
+    var subgraphNode = new SubgraphGraphNode(child, name: "Subgraph(Discount)", description: "執行折扣 Subgraph", config: config);
 
     var echoFunction = KernelFunctionFactory.CreateFromMethod(
         (KernelArguments args) =>
@@ -174,19 +174,19 @@ public static async Task RunScopedPrefixAsync(Kernel kernel)
             var total = args.TryGetValue("invoice.total", out var t) ? t : 0;
             var discount = args.TryGetValue("invoice.discount", out var d) ? d : 0;
             var final = args.TryGetValue("invoice.final", out var f) ? f : 0;
-            return $"Total: {total} | Discount: {discount} | Final: {final}";
+            return $"總計：{total} | 折扣：{discount} | 最終：{final}";
         },
         functionName: "echo_invoice",
-        description: "Echoes invoice values"
+        description: "回應發票值"
     );
-    var echoNode = new FunctionGraphNode(echoFunction, nodeId: "echo_node", description: "Echo node");
+    var echoNode = new FunctionGraphNode(echoFunction, nodeId: "echo_node", description: "回應節點");
 
     parent.AddNode(subgraphNode)
           .AddNode(echoNode)
           .SetStartNode(subgraphNode.NodeId)
           .Connect(subgraphNode.NodeId, echoNode.NodeId);
 
-    // 3) 使用初始前綴狀態執行
+    // 3) 使用初始的有前綴狀態執行
     var args = new KernelArguments
     {
         ["invoice.total"] = 125.0,
@@ -195,38 +195,38 @@ public static async Task RunScopedPrefixAsync(Kernel kernel)
 
     var result = await parent.ExecuteAsync(kernel, args, CancellationToken.None);
 
-    Console.WriteLine("[ScopedPrefix] final expected = 105.00");
+    Console.WriteLine("[ScopedPrefix] 最終預期 = 105.00");
     var finalOk = args.TryGetValue("invoice.final", out var finalVal);
-    Console.WriteLine($"[ScopedPrefix] invoice.final = {(finalOk ? finalVal : "(not mapped)")}");
-    Console.WriteLine($"[ScopedPrefix] final message = {result.GetValue<object>()}");
+    Console.WriteLine($"[ScopedPrefix] invoice.final = {(finalOk ? finalVal : "（未映射）")}");
+    Console.WriteLine($"[ScopedPrefix] 最終訊息 = {result.GetValue<object>()}");
 }
 ```
 
-### 3. 子圖配置選項
+### 3. Subgraph 配置選項
 
-這些範例展示了子圖行為的各種配置選項。
+範例演示 Subgraph 行為的各種配置選項。
 
 ```csharp
-// 全面的子圖配置
+// 全面的 Subgraph 配置
 var advancedConfig = new SubgraphConfiguration
 {
-    // 隔離模式決定了子圖上下文的管理方式
+    // 隔離模式決定 Subgraph 上下文的管理方式
     IsolationMode = SubgraphIsolationMode.IsolatedClone, // 或 ScopedPrefix
 
-    // 用於作用域隔離的 ScopedPrefix（僅與 ScopedPrefix 模式一起使用）
+    // 作用域前綴隔離（僅用於 ScopedPrefix 模式）
     ScopedPrefix = "my_subgraph_",
 
-    // 如何處理合併期間的狀態衝突
+    // 如何在合併期間處理狀態衝突
     MergeConflictPolicy = StateMergeConflictPolicy.PreferSecond, // 或 PreferFirst、Merge
 
-    // 輸入對應：父狀態 -> 子圖狀態
+    // 輸入映射：父狀態 -> Subgraph 狀態
     InputMappings = new Dictionary<string, string>
     {
         ["parent_input"] = "subgraph_input",
         ["parent_config"] = "subgraph_config"
     },
 
-    // 輸出對應：子圖狀態 -> 父狀態
+    // 輸出映射：Subgraph 狀態 -> 父狀態
     OutputMappings = new Dictionary<string, string>
     {
         ["subgraph_result"] = "parent_result",
@@ -242,75 +242,75 @@ var advancedConfig = new SubgraphConfiguration
 
 ### 4. 狀態管理和隔離
 
-這些範例展示了在不同隔離模式中狀態如何被管理。
+範例展示了不同隔離模式之間的狀態管理方式。
 
 ```csharp
 // IsolatedClone 模式中的狀態管理
 // - 父狀態：{ "a": 3, "b": 7 }
-// - 對應到子圖：{ "x": 3, "y": 7 }
-// - 子圖執行：{ "x": 3, "y": 7, "sum": 10 }
-// - 對應回父圖：{ "a": 3, "b": 7, "total": 10 }
+// - 映射到 Subgraph：{ "x": 3, "y": 7 }
+// - Subgraph 執行：{ "x": 3, "y": 7, "sum": 10 }
+// - 映射回父：{ "a": 3, "b": 7, "total": 10 }
 
 // ScopedPrefix 模式中的狀態管理
 // - 父狀態：{ "data": "Hello World" }
-// - 對應到子圖：{ "input": "Hello World" }
-// - 子圖執行：{ "input": "Hello World", "internal_result": "Processed: HELLO WORLD", "internal_count": 11 }
+// - 映射到 Subgraph：{ "input": "Hello World" }
+// - Subgraph 執行：{ "input": "Hello World", "internal_result": "Processed: HELLO WORLD", "internal_count": 11 }
 // - 使用前綴合併：{ "data": "Hello World", "subgraph_internal_result": "Processed: HELLO WORLD", "subgraph_internal_count": 11 }
-// - 對應輸出：{ "data": "Hello World", "result": "Processed: HELLO WORLD", "count": 11 }
+// - 映射輸出：{ "data": "Hello World", "result": "Processed: HELLO WORLD", "count": 11 }
 ```
 
 ### 5. 錯誤處理和驗證
 
-這些範例包括子圖執行的錯誤處理。
+範例包括 Subgraph 執行的錯誤處理。
 
 ```csharp
-// 子圖執行中的錯誤處理
+// Subgraph 執行中的錯誤處理
 try
 {
     var result = await parent.ExecuteAsync(kernel, args, CancellationToken.None);
     
     if (result.Success)
     {
-        Console.WriteLine("✅ 子圖執行完成成功");
+        Console.WriteLine("✅ Subgraph 執行成功完成");
         Console.WriteLine($"結果：{result.GetValue<object>()}");
     }
     else
     {
-        Console.WriteLine("❌ 子圖執行失敗");
+        Console.WriteLine("❌ Subgraph 執行失敗");
         Console.WriteLine($"錯誤：{result.ErrorMessage}");
     }
 }
 catch (SubgraphExecutionException ex)
 {
-    Console.WriteLine($"🚨 子圖執行錯誤：{ex.Message}");
-    Console.WriteLine($"子圖：{ex.SubgraphName}");
+    Console.WriteLine($"🚨 Subgraph 執行錯誤：{ex.Message}");
+    Console.WriteLine($"Subgraph：{ex.SubgraphName}");
     Console.WriteLine($"節點：{ex.NodeId}");
 }
 catch (StateMappingException ex)
 {
-    Console.WriteLine($"🔀 狀態對應錯誤：{ex.Message}");
-    Console.WriteLine($"對應：{ex.MappingName}");
+    Console.WriteLine($"🔀 狀態映射錯誤：{ex.Message}");
+    Console.WriteLine($"映射：{ex.MappingName}");
 }
 ```
 
-### 6. 進階子圖模式
+### 6. 進階 Subgraph 模式
 
-這些範例展示了子圖組合的進階模式。
+範例演示 Subgraph 組合的進階模式。
 
 ```csharp
-// 嵌套子圖
-var nestedChild = new GraphExecutor("Nested_Child", "Nested subgraph example");
-// ... 配置嵌套子圖
+// 巢狀 Subgraph
+var nestedChild = new GraphExecutor("Nested_Child", "巢狀 Subgraph 範例");
+// ... 配置巢狀子 Graph
 
-var middleChild = new GraphExecutor("Middle_Child", "Middle level subgraph");
-var nestedNode = new SubgraphGraphNode(nestedChild, "Nested", "Nested subgraph");
+var middleChild = new GraphExecutor("Middle_Child", "中級別 Subgraph");
+var nestedNode = new SubgraphGraphNode(nestedChild, "Nested", "巢狀 Subgraph");
 middleChild.AddNode(nestedNode);
 
-var parent = new GraphExecutor("Parent", "Parent with nested subgraphs");
-var middleNode = new SubgraphGraphNode(middleChild, "Middle", "Middle subgraph");
+var parent = new GraphExecutor("Parent", "具有巢狀 Subgraph 的父 Graph");
+var middleNode = new SubgraphGraphNode(middleChild, "Middle", "中 Subgraph");
 parent.AddNode(middleNode);
 
-// 條件子圖執行
+// 條件式 Subgraph 執行
 var conditionalConfig = new SubgraphConfiguration
 {
     IsolationMode = SubgraphIsolationMode.IsolatedClone,
@@ -319,7 +319,7 @@ var conditionalConfig = new SubgraphConfiguration
         enable is bool b && b
 };
 
-// 動態子圖選擇
+// 動態 Subgraph 選擇
 var subgraphSelector = new FunctionGraphNode(
     KernelFunctionFactory.CreateFromMethod(
         (KernelArguments args) =>
@@ -333,44 +333,44 @@ var subgraphSelector = new FunctionGraphNode(
             };
         },
         "select_subgraph",
-        "Selects appropriate subgraph based on condition"
+        "根據條件選擇適當的 Subgraph"
     ),
     "selector",
-    "Subgraph Selector"
+    "Subgraph 選擇器"
 );
 ```
 
 ## 預期輸出
 
-這些範例產生全面的輸出，展示：
+範例產生全面的輸出，顯示：
 
-* 🔢 具有明確對應的 IsolatedClone 子圖執行
-* 🔀 具有自動前綴的 ScopedPrefix 子圖執行
-* 📊 狀態轉換和對應結果
+* 🔢 使用明確映射的 IsolatedClone Subgraph 執行
+* 🔀 使用自動前綴的 ScopedPrefix Subgraph 執行
+* 📊 狀態轉換和映射結果
 * 🔄 狀態合併和衝突解決
-* ✅ 完整的子圖工作流執行
-* 📈 模組化圖組合功能
+* ✅ 完整的 Subgraph 工作流程執行
+* 📈 模組化 Graph 組合功能
 
-## 故障排除
+## 疑難排解
 
 ### 常見問題
 
-1. **狀態對應失敗**：驗證輸入/輸出對應配置
+1. **狀態映射失敗**：驗證輸入/輸出映射配置
 2. **隔離模式錯誤**：檢查隔離模式是否與使用情況相容
-3. **狀態合併衝突**：配置適當的衝突解決策略
-4. **子圖執行失敗**：監視子圖執行和錯誤處理
+3. **狀態合併衝突**：配置適當的衝突解決原則
+4. **Subgraph 執行失敗**：監視 Subgraph 執行和錯誤處理
 
-### 調試提示
+### 偵錯提示
 
-* 為子圖執行啟用詳細日誌
-* 驗證狀態對應配置和轉換
+* 為 Subgraph 執行啟用詳細記錄
+* 驗證狀態映射配置和轉換
 * 監視狀態隔離和合併行為
-* 檢查子圖配置和隔離模式設定
+* 檢查 Subgraph 配置和隔離模式設定
 
 ## 另請參閱
 
-* [子圖組合](../concepts/subgraphs.md)
+* [Subgraph 組合](../concepts/subgraphs.md)
 * [狀態管理](../concepts/state.md)
-* [圖組合](../how-to/graph-composition.md)
-* [狀態對應](../concepts/state-mapping.md)
+* [Graph 組合](../how-to/graph-composition.md)
+* [狀態映射](../concepts/state-mapping.md)
 * [模組化架構](../patterns/modular-architecture.md)

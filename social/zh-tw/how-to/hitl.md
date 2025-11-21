@@ -1,53 +1,54 @@
-# 人工參與式工作流程（Human-in-the-Loop）
+# 人工介入迴圈
 
-本指南說明如何在 SemanticKernel.Graph 中實作人工參與式工作流程（HITL）。您將學習如何暫停執行以等待人工審核、實作信心度閘門，以及整合多個互動頻道以實現無縫的人工監督。
+本指南說明如何在 SemanticKernel.Graph 中實現人工介入迴圈 (HITL) 工作流程。您將了解如何暫停執行以取得人工核准、實現信心閘門，以及整合多個互動通道以實現無縫的人工監督。
 
 ## 概述
 
-人工參與式工作流程可讓您：
+人工介入迴圈工作流程可讓您：
 * **暫停執行**並等待人工核准或輸入
-* **實作信心度閘門**以進行品質控制
-* **支援多個頻道**，包括 CLI、Web 和 API 介面
-* **批量核准**多個待審決議
-* **設定逾時和 SLA**以應對人工回應需求
+* **實現信心閘門**以進行品質控制
+* **支援多個通道**，包括 CLI、Web 和 API 介面
+* **批量核准**多個待決事項
+* **設定逾時和 SLA** 以滿足人工回應要求
 
 ## 核心 HITL 元件
 
 ### 人工核准節點
 
-使用 `HumanApprovalGraphNode` 暫停執行以等待人工決策。該節點需要一個 `IHumanInteractionChannel` 實例（例如 `ConsoleHumanInteractionChannel`）。
+使用 `HumanApprovalGraphNode` 暫停執行以進行人工決定。該節點需要 `IHumanInteractionChannel` 執行個體（例如 `ConsoleHumanInteractionChannel`）。
 
 ```csharp
-// 建立一個控制台頻道，將在終端中提示核准者。
+// 建立一個主控台通道，將透過終端提示核准者。
 var consoleChannel = new ConsoleHumanInteractionChannel();
 
-// 建立一個 HumanApprovalGraphNode，暫停圖表執行並請求人工核准。
-// 提供簡短清晰的標題和訊息，以便核准者理解請求的操作。
+// 建置一個 HumanApprovalGraphNode，暫停 Graph 執行並要求
+// 人工核准。提供簡短、清晰的標題和訊息，以便核准者
+// 了解請求的動作。
 var approvalNode = new HumanApprovalGraphNode(
     approvalTitle: "Document Approval",
     approvalMessage: "Please review and approve the generated document (type 'approve' or 'reject')",
     interactionChannel: consoleChannel,
     nodeId: "approve_step"
 )
-    // 配置合理的逾時設置和預設動作以避免
-    // 無限期阻擋自動化執行。TimeoutAction.Reject 將
+    // 設定合理的逾時和預設動作以避免
+    // 無限期地封鎖自動化執行。TimeoutAction.Reject 將
     // 在核准者未回應時選擇拒絕路徑。
     .WithTimeout(TimeSpan.FromMinutes(10), TimeoutAction.Reject);
 
-// 在 GraphExecutor 中註冊該節點並連接兩個可能的結果。
+// 在 GraphExecutor 中註冊節點並連接兩個可能的結果。
 executor.AddNode(approvalNode);
 executor.Connect(approvalNode.NodeId, "approved_path");
 executor.Connect(approvalNode.NodeId, "rejected_path");
 ```
 
-### 信心度閘門節點
+### 信心閘門節點
 
-實作基於信心度的決策閘門。如果您想要用於人工覆蓋的互動頻道，請使用接受頻道的工廠方法。
+實現基於信心的決定閘門。如果您想要一個互動通道以進行人工覆蓋，請使用接受通道的工廠方法。
 
 ```csharp
-// 建立一個信心度閘門節點，可以根據
-// 數值分數進行自動路由。可選地附加一個互動頻道，以便
-// 人工可以覆蓋或檢查低信心度情況。
+// 建立一個信心閘門節點，可根據
+// 數值分數自動路由。選擇性地附加互動通道，以便人類
+// 可以覆蓋或檢查低信心個案。
 var consoleChannel = new ConsoleHumanInteractionChannel();
 var confidenceNode = ConfidenceGateGraphNode.CreateWithInteraction(
     confidenceThreshold: 0.8f,
@@ -55,9 +56,9 @@ var confidenceNode = ConfidenceGateGraphNode.CreateWithInteraction(
     nodeId: "confidence_check"
 );
 
-// 新增該節點並使用 ConnectWhen 搭配檢查圖表狀態的
-// 謂詞來路由結果。使用 GetOrCreateGraphState() 讀取
-// 圖表稍早產生的值。
+// 新增節點並使用 ConnectWhen 搭配檢查 Graph 狀態的述詞來路由結果。
+// 使用 GetOrCreateGraphState() 讀取
+// Graph 中先前產生的值。
 executor.AddNode(confidenceNode);
 executor.ConnectWhen("confidence_check", "high_confidence", args =>
     args.GetOrCreateGraphState().GetFloat("confidence_score", 0f) >= 0.8f);
@@ -65,27 +66,27 @@ executor.ConnectWhen("confidence_check", "human_review", args =>
     args.GetOrCreateGraphState().GetFloat("confidence_score", 0f) < 0.8f);
 ```
 
-## 多個互動頻道
+## 多個互動通道
 
-### 控制台頻道
+### 主控台通道
 
-使用基於控制台的人工互動。使用簡單的配置字典初始化頻道（該頻道公開 `InitializeAsync` 用於配置）。
+使用主控台型人工互動。使用簡單的設定字典初始化通道（通道公開 `InitializeAsync` 以供設定）。
 
 ```csharp
-// 配置並初始化一個基於控制台的互動頻道。
+// 設定並初始化主控台型互動通道。
 var consoleChannel = new ConsoleHumanInteractionChannel();
 await consoleChannel.InitializeAsync(new Dictionary<string, object>
 {
-    // 選擇適合核准場景的提示樣式。
+    // 選擇適合核准情節的提示樣式。
     ["prompt_style"] = "detailed",
-    // 在支援彩色的終端中啟用顏色以提高可讀性。
+    // 啟用顏色以改善在支援終端時的可讀性。
     ["enable_colors"] = true,
-    // 可選地顯示時間戳以幫助核准者追蹤請求。
+    // 選擇性地顯示時間戳記以幫助核准者追蹤要求。
     ["show_timestamps"] = true
 });
 
-// 使用已初始化的控制台頻道建立一個核准節點，
-// 並使用逾時設置防護長時間等待。
+// 使用初始化的主控台通道建立核准節點，並
+// 使用逾時保護長執行等待。
 var approvalNode = new HumanApprovalGraphNode(
     approvalTitle: "Console Approval",
     approvalMessage: "Enter 'approve' or 'reject'",
@@ -94,21 +95,21 @@ var approvalNode = new HumanApprovalGraphNode(
 ).WithTimeout(TimeSpan.FromMinutes(10));
 ```
 
-### Web API 頻道
+### Web API 通道
 
-實作基於 Web 的核准介面。該程式庫提供了由 `IHumanInteractionStore` 支持的 Web API 頻道。使用提供的核心建造器擴展進行註冊，或使用存儲區手動建構頻道。
+實現 Web 型核准介面。該程式庫提供 Web API 支援的通道，可搭配 `IHumanInteractionStore` 運作。使用提供的核心建置器擴充功能來註冊它，或使用存放區建構通道。
 
 ```csharp
-// 透過核心建造器註冊 Web API 人工互動支持
+// 透過核心建置器註冊 Web API 人工互動支援
 // 以便範例連接由 DI 和框架處理。
 kernelBuilder.AddWebApiHumanInteraction();
 
-// 或者，使用備份存儲區手動建構頻道。
+// 或者，使用支援存放區手動建構通道。
 var store = new InMemoryHumanInteractionStore();
 var webApiChannel = new WebApiHumanInteractionChannel(store);
 
-// 建立一個路由到 Web 頻道的核准節點。Web 互動
-// 通常需要較長的逾時以允許外部核准者回應。
+// 建立路由至 Web 通道的核准節點。Web 互動
+// 通常需要更長的逾時以允許外部核准者回應。
 var webApprovalNode = new HumanApprovalGraphNode(
     approvalTitle: "Web Approval",
     approvalMessage: "Approve via the web UI",
@@ -117,13 +118,14 @@ var webApprovalNode = new HumanApprovalGraphNode(
 ).WithTimeout(TimeSpan.FromMinutes(30));
 ```
 
-### CLI 頻道
+### CLI 通道
 
-CLI 互動可由控制台頻道提供。此程式碼庫中沒有單獨的 `CliHumanInteractionChannel` 類型 — 重複使用 `ConsoleHumanInteractionChannel`。
+CLI 互動可由主控台通道提供。此程式碼基底中沒有單獨的 `CliHumanInteractionChannel` 型別 — 重複使用 `ConsoleHumanInteractionChannel`。
 
 ```csharp
-// CLI 互動重複使用控制台頻道。當核准者期望簡短命令和
-// 有限輸出時，使用簡潔的提示樣式。
+// CLI 互動重複使用主控台通道。當核准者
+// 預期簡短命令和有限輸出時，使用精簡提示
+// 樣式。
 var cliChannel = new ConsoleHumanInteractionChannel();
 await cliChannel.InitializeAsync(new Dictionary<string, object>
 {
@@ -143,11 +145,11 @@ var cliApprovalNode = new HumanApprovalGraphNode(
 
 ### 批量核准管理
 
-使用 `HumanApprovalBatchManager` 有效地處理多個待審核准。
+使用 `HumanApprovalBatchManager` 有效率地處理多個待決核准。
 
 ```csharp
-// 使用預設頻道和批次選項建立管理器。
-// 批次管理器將多個請求分組以減少通知噪音。
+// 使用預設通道和批次選項建立管理員。
+// 批次管理員將多個要求分組以減少通知噪音。
 var defaultChannel = new ConsoleHumanInteractionChannel();
 var batchOptions = new BatchApprovalOptions
 {
@@ -158,7 +160,7 @@ var batchOptions = new BatchApprovalOptions
 
 var batchManager = new HumanApprovalBatchManager(defaultChannel, batchOptions);
 
-// 建立一個核准節點，可能由管理器路由到批次中。
+// 建立可能由管理員路由至批次的核准節點。
 var batchApprovalNode = new HumanApprovalGraphNode(
     approvalTitle: "Batch Approval",
     approvalMessage: "This request may be processed in a batch",
@@ -167,14 +169,14 @@ var batchApprovalNode = new HumanApprovalGraphNode(
 ).WithTimeout(TimeSpan.FromHours(2));
 ```
 
-### 條件式人工審核
+### 條件式人工檢查
 
-使用條件節點和核准節點實作智能人工審核路由。
+使用條件式節點和核准節點實現智能人工檢查路由。
 
 ```csharp
-// 建立一個條件節點，評估圖表狀態以決定
-// 是否需要人工審核。謂詞讀取稍早在
-// 圖表狀態中儲存的值，例如信心度、風險等級和交易金額。
+// 建立一個條件式節點，評估 Graph 狀態以決定是否
+// 需要人工檢查。述詞讀取先前儲存在
+// Graph 狀態中的值，例如信心度、風險等級和交易金額。
 var conditionalReview = new ConditionalGraphNode(
     condition: state =>
     {
@@ -183,7 +185,7 @@ var conditionalReview = new ConditionalGraphNode(
         var amount = state.GetDecimal("transaction_amount", 0m);
 
         // 當信心度低、風險高或
-        // 交易金額超過業務定義的閾值時，請求人工審核。
+        // 交易金額超過業務定義的閾值時，要求人工檢查。
         return confidence < 0.7f ||
                riskLevel == "high" ||
                amount > 10000m;
@@ -191,7 +193,8 @@ var conditionalReview = new ConditionalGraphNode(
     nodeId: "review_decision"
 );
 
-// 建立當條件節點評估為 true 時將執行的人工核准節點。
+// 建立一個人工核准節點，當條件式
+// 節點評估為真時，該節點將被執行。
 var humanReviewNode = new HumanApprovalGraphNode(
     approvalTitle: "Human Review",
     approvalMessage: "Please review this transaction",
@@ -199,21 +202,21 @@ var humanReviewNode = new HumanApprovalGraphNode(
     nodeId: "human_review"
 );
 
-// 將節點連接到執行器中，並將 true 分支路由到人工節點。
+// 將節點連接至執行程式，並將真分支路由至人工節點。
 executor.AddNode(conditionalReview);
 executor.AddNode(humanReviewNode);
 conditionalReview.AddTrueNode(humanReviewNode);
-// 在 false 分支上根據需要新增自動處理節點。
+// 視情況在假分支上新增自動處理節點。
 ```
 
 ### 多階段核准
 
-實作複雜的核准工作流程：
+實現複雜的核准工作流程：
 
 ```csharp
-// 範例多階段核准流程。每個階段由一個
-// HumanApprovalGraphNode 表示。核准是鏈式的，以便
-// 一個階段的輸出觸發下一個階段。
+// 多階段核准流的範例。每個階段由
+// HumanApprovalGraphNode 表示。核准被連接起來，
+// 以便一個階段的輸出觸發下一個階段。
 var firstApproval = new HumanApprovalGraphNode(
     approvalTitle: "First Approval",
     approvalMessage: "Stage 1 approval",
@@ -235,7 +238,7 @@ var finalApproval = new HumanApprovalGraphNode(
     nodeId: "final_approval"
 );
 
-// 將多階段流程連接到執行器中。
+// 將多階段流連接至執行程式。
 executor.AddNode(firstApproval);
 executor.AddNode(secondApproval);
 executor.AddNode(finalApproval);
@@ -244,14 +247,14 @@ executor.Connect(secondApproval.NodeId, finalApproval.NodeId);
 executor.Connect(finalApproval.NodeId, "approved");
 ```
 
-## 配置和選項
+## 設定和選項
 
-### 核准節點配置
+### 核准節點設定
 
-配置核准行為和外觀：
+設定核准行為和外觀：
 
 ```csharp
-// 使用明確的核准選項和逾時配置核准節點。
+// 使用明確的核准選項和逾時設定核准節點。
 var configuredApproval = new HumanApprovalGraphNode(
     approvalTitle: "Document Review Required",
     approvalMessage: "Please review the generated document for accuracy",
@@ -259,48 +262,48 @@ var configuredApproval = new HumanApprovalGraphNode(
     nodeId: "configured_approval"
 );
 
-// 新增核准者可以選擇的具名核准選項。該 API
-// 將選擇的值儲存在結果中，以便圖表路由可以使用它。
+// 新增核准者可選擇的具名核准選項。
+// API 會將選擇的值儲存在結果中，以便 Graph 路由可以使用它。
 configuredApproval.AddApprovalOption("approve", "Approve", value: true, isDefault: true)
                   .AddApprovalOption("reject", "Reject", value: false);
 
-// 應用合理的逾時以避免無限期阻擋。
+// 套用合理的逾時以避免無限期封鎖。
 configuredApproval.WithTimeout(TimeSpan.FromMinutes(15), TimeoutAction.Reject);
 ```
 
-### 頻道配置
+### 通道設定
 
-配置互動頻道以獲得最佳使用者體驗：
+設定互動通道以最佳化使用者體驗：
 
 ```csharp
-// Web API 頻道透過核心建造器進行註冊或使用存儲區建構。
+// Web API 通道透過核心建置器註冊或使用存放區建構。
 kernelBuilder.AddWebApiHumanInteraction();
 
-// 或者手動使用備份存儲區建構並初始化它。
+// 或者手動建構具有支援存放區的通道，並初始化它。
 var store = new InMemoryHumanInteractionStore();
 var webChannel = new WebApiHumanInteractionChannel(store);
 await webChannel.InitializeAsync();
 ```
 
-## 與外部系統整合
+## 與外部系統的整合
 
 ### 電子郵件通知
 
-整合核准的電子郵件通知：
+整合電子郵件通知以進行核准：
 
 ```csharp
-// 電子郵件頻道預設不包含在程式碼庫中；實作一個
-// 實作 IHumanInteractionChannel 的頻道並插入核准節點。
+// 電子郵件通道預設不包括在程式碼基底中；實現一個通道
+// 實現 IHumanInteractionChannel 並插入核准節點中。
 ```
 
 ## 監控和稽核
 
 ### 核准追蹤
 
-追蹤核准狀態和時序：
+追蹤核准狀態和時間：
 
 ```csharp
-// 建立一個核准節點並附加掛鈎以記錄時序和結果
+// 建立核准節點並附加掛鉤以記錄時間和結果
 // 中繼資料以進行監控和稽核。
 var trackedApproval = new HumanApprovalGraphNode(
     approvalTitle: "Tracked Approval",
@@ -309,7 +312,7 @@ var trackedApproval = new HumanApprovalGraphNode(
     nodeId: "tracked_approval"
 );
 
-// 記錄何時請求核准。
+// 記錄核准何時被要求。
 trackedApproval.OnBeforeExecuteAsync = async (kernel, args, ct) =>
 {
     var state = args.GetOrCreateGraphState();
@@ -328,64 +331,64 @@ trackedApproval.OnAfterExecuteAsync = async (kernel, args, result, ct) =>
 };
 ```
 
-## 最佳實踐
+## 最佳做法
 
 ### 核准設計
 
-1. **清晰的說明** - 為核准者提供清晰、可行的說明
-2. **合理的逾時** - 根據核准複雜度設定適當的逾時
+1. **清晰的指示** - 為核准者提供清晰、可行的指示
+2. **合理的逾時** - 根據核准複雜性設定適當的逾時
 3. **升級路徑** - 定義逾期核准的升級程序
-4. **批次處理** - 將相關核准分組以提高效率
+4. **批量處理** - 分組相關核准以提高效率
 
-### 頻道選擇
+### 通道選擇
 
-1. **使用者偏好** - 根據使用者偏好和可用性選擇頻道
-2. **回應緊迫性** - 針對緊急核准使用更快的頻道
-3. **整合功能** - 利用現有通訊基礎設施
-4. **無障礙** - 確保所有核准者都可以存取頻道
+1. **使用者偏好** - 根據使用者偏好和可用性選擇通道
+2. **回應緊急性** - 對於緊急核准使用更快的通道
+3. **整合能力** - 利用現有的通訊基礎架構
+4. **可存取性** - 確保所有核准者都可存取通道
 
-### 安全和合規
+### 安全性和合規性
 
-1. **驗證** - 為所有頻道實作適當的身份驗證
-2. **稽核線跡** - 為合規維護全面的稽核日誌
-3. **資料隱私** - 保護核准請求中的敏感資訊
-4. **存取控制** - 限制核准存取權限給授權使用者
+1. **身份驗證** - 為所有通道實現適當的身份驗證
+2. **稽核軌跡** - 為合規性維護全面的稽核日誌
+3. **資料隱私** - 保護核准要求中的機密資訊
+4. **存取控制** - 限制核准存取僅限授權使用者
 
-## 故障排除
+## 疑難排解
 
 ### 常見問題
 
-**核准逾時**：檢查逾時設置和核准者可用性
+**核准逾時**：檢查逾時設定和核准者可用性
 
-**頻道故障**：驗證頻道配置和網路連線
+**通道故障**：驗證通道設定和網路連線
 
-**批次處理問題**：檢查批次大小限制和分組邏輯
+**批量處理問題**：檢查批量大小限制和分組邏輯
 
-**稽核日誌差距**：驗證稽核記錄器配置和權限
+**稽核日誌差距**：驗證稽核記錄器設定和權限
 
-### 除錯提示
+### 偵錯提示
 
-1. **啟用詳細的記錄**以追蹤核准流程
-2. **檢查頻道狀態**以瞭解連線問題
-3. **監控核准指標**以瞭解效能問題
-4. **獨立測試頻道**以隔離問題
+1. **啟用詳細日誌**以追蹤核准流
+2. **檢查通道狀態**以發現連線問題
+3. **監控核准計量**以發現效能問題
+4. **獨立測試通道**以隔離問題
 
-## 概念和技巧
+## 概念和技術
 
-**HumanApprovalGraphNode**：一種特殊的圖表節點，暫停執行以等待人工輸入或核准。它支援多個互動頻道和可配置的逾時。
+**HumanApprovalGraphNode**：一個專門的 Graph 節點，暫停執行以等待人工輸入或核准。它支援多個互動通道和可設定的逾時。
 
-**ConfidenceGateGraphNode**：一種根據信心度分數自動路由執行的節點，僅當信心度低於閾值時才需要人工干預。
+**ConfidenceGateGraphNode**：一個根據信心分數自動路由執行的節點，只在信心低於閾值時需要人工介入。
 
-**HumanInteractionChannel**：定義如何處理人工互動的介面，支援多種通訊方法，如控制台、Web API、電子郵件和 Slack。
+**HumanInteractionChannel**：定義如何處理人工互動的介面，支援各種通訊方法，如主控台、Web API、電子郵件和 Slack。
 
-**HumanApprovalBatchManager**：一項服務，將多個核准請求分組為批次以進行有效處理，減少通知開銷並改善核准工作流程管理。
+**HumanApprovalBatchManager**：將多個核准要求分組為批次以進行有效率處理的服務，減少通知成本並改善核准工作流程管理。
 
-**核准工作流程**：一種模式，其中圖表執行在特定點暫停以允許人工決策，在自動化過程中啟用監督和品質控制。
+**核准工作流程**：一種模式，其中 Graph 執行在特定點暫停，允許人工決定制定，在自動化程序中啟用監督和品質控制。
 
 ## 另請參閱
 
-* [人工參與式工作流程](human-in-the-loop.md) - HITL 工作流程的綜合指南
-* [建立圖表](build-a-graph.md) - 瞭解如何使用核准節點建構圖表
-* [錯誤處理和復原能力](error-handling-and-resilience.md) - 妥善處理核准失敗
-* [安全和資料](security-and-data.md) - 安全 HITL 實作實踐
-* [範例：HITL 工作流程](../examples/hitl-example.md) - 人工參與式工作流程的完整工作範例
+* [Human-in-the-Loop](human-in-the-loop.md) - HITL 工作流程的完整指南
+* [Build a Graph](build-a-graph.md) - 了解如何使用核准節點建構 Graph
+* [Error Handling and Resilience](error-handling-and-resilience.md) - 妥善處理核准失敗
+* [Security and Data](security-and-data.md) - 安全的 HITL 實現做法
+* [Examples: HITL Workflows](../examples/hitl-example.md) - 人工介入迴圈工作流程的完整工作範例

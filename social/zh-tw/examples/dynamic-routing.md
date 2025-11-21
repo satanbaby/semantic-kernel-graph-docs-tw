@@ -4,42 +4,42 @@
 
 ## 目標
 
-學習如何在圖形工作流中實現動態路由，以：
-* 根據內容分析和語義相似性進行路由
-* 使用多種路由策略實現智能決策
-* 透過即時條件評估處理動態路由
-* 在複雜工作流場景中擴展路由邏輯
-* 使用快取和預測來優化路由效能
+了解如何在基於 Graph 的工作流程中實現動態路由：
+* 根據內容分析和語義相似度進行路由
+* 使用多個路由策略實現智能決策
+* 使用即時條件評估處理動態路由
+* 在複雜工作流程場景中擴展路由邏輯
+* 使用快取和預測優化路由效能
 
 ## 先決條件
 
 * **.NET 8.0** 或更新版本
-* **OpenAI API Key** 在 `appsettings.json` 中配置
-* 已安裝 **Semantic Kernel Graph 套件**
-* 基本了解 [圖形概念](../concepts/graph-concepts.md) 和 [路由概念](../concepts/routing.md)
+* **OpenAI API Key** 在 `appsettings.json` 中設定
+* **Semantic Kernel Graph package** 已安裝
+* 基本了解 [Graph Concepts](../concepts/graph-concepts.md) 和 [Routing Concepts](../concepts/routing.md)
 
-## 主要組件
+## 關鍵元件
 
 ### 概念和技術
 
-* **動態路由**：根據條件在運行時確定執行路徑
-* **基於內容的路由**：根據內容分析和分類進行路由決策
-* **語義相似性**：使用嵌入向量和相似性分數進行智能路由
-* **多策略路由**：結合多種路由方法以獲得最佳決策
-* **性能最佳化**：用於高效路由的快取和預測
+* **Dynamic Routing**: 在運行時根據條件判斷執行路徑
+* **Content-Based Routing**: 基於內容分析和分類的路由決策
+* **Semantic Similarity**: 使用嵌入和相似度分數進行智能路由
+* **Multi-Strategy Routing**: 組合多個路由方法以做出最佳決策
+* **Performance Optimization**: 使用快取和預測實現高效路由
 
 ### 核心類別
 
-* `DynamicRoutingEngine`：動態路由決策的核心引擎
-* `ConditionalGraphNode`：評估路由條件的節點
-* `FunctionGraphNode`：用於不同內容類型的處理節點
-* `GraphExecutor`：協調動態路由工作流
+* `DynamicRoutingEngine`: 用於動態路由決策的核心引擎
+* `ConditionalGraphNode`: 評估路由條件的 Node
+* `FunctionGraphNode`: 不同內容類型的處理 Node
+* `GraphExecutor`: 協調動態路由工作流程
 
-## 運行範例
+## 執行範例
 
-### 開始使用
+### 快速開始
 
-此範例使用 Semantic Kernel Graph 套件演示動態路由和自適應執行。以下代碼片段展示如何在您自己的應用程式中實現此模式。
+此範例演示使用 Semantic Kernel Graph package 的動態路由和自適應執行。以下程式碼片段展示如何在你的應用程式中實現此模式。
 
 ## 逐步實現
 
@@ -48,13 +48,13 @@
 此範例演示基於輸入內容分析的簡單動態路由。
 
 ```csharp
-// 使用 mock 配置建立 kernel
+// Create kernel with mock configuration
 var kernel = CreateKernel();
 
-// 建立動態路由工作流
+// Create dynamic routing workflow
 var dynamicRouter = new GraphExecutor("DynamicRouter", "Basic dynamic routing", logger);
 
-// 內容分析器節點
+// Content analyzer node
 var contentAnalyzer = new FunctionGraphNode(
     "content-analyzer",
     "Analyze input content and determine routing",
@@ -62,7 +62,7 @@ var contentAnalyzer = new FunctionGraphNode(
     {
         var inputContent = context.GetValue<string>("input_content");
         
-        // 簡單內容分析
+        // Simple content analysis
         var contentType = AnalyzeContentType(inputContent);
         var priority = CalculatePriority(inputContent);
         var complexity = AssessComplexity(inputContent);
@@ -75,7 +75,7 @@ var contentAnalyzer = new FunctionGraphNode(
         return $"Content analyzed: {contentType} (Priority: {priority}, Complexity: {complexity})";
     });
 
-// 動態路由決策節點
+// Dynamic routing decision node
 var routingDecision = new ConditionalGraphNode(
     "routing-decision",
     "Make routing decision based on content analysis",
@@ -86,7 +86,7 @@ var routingDecision = new ConditionalGraphNode(
     FalseNodeId = "standard-processor"
 };
 
-// 用於高優先級技術內容的專家處理器
+// Expert processor for high-priority technical content
 var expertProcessor = new FunctionGraphNode(
     "expert-processor",
     "Process high-priority technical content",
@@ -95,7 +95,7 @@ var expertProcessor = new FunctionGraphNode(
         var content = context.GetValue<string>("input_content");
         var priority = context.GetValue<int>("priority_level");
         
-        // 專家級別處理
+        // Expert-level processing
         var result = await ProcessWithExpertLogic(content, priority);
         context.SetValue("processing_result", result);
         context.SetValue("processing_level", "expert");
@@ -104,7 +104,7 @@ var expertProcessor = new FunctionGraphNode(
         return $"Expert processing completed: {result}";
     });
 
-// 標準處理器用於其他內容
+// Standard processor for other content
 var standardProcessor = new FunctionGraphNode(
     "standard-processor",
     "Process standard content",
@@ -113,7 +113,7 @@ var standardProcessor = new FunctionGraphNode(
         var content = context.GetValue<string>("input_content");
         var contentType = context.GetValue<string>("content_type");
         
-        // 標準處理
+        // Standard processing
         var result = await ProcessWithStandardLogic(content, contentType);
         context.SetValue("processing_result", result);
         context.SetValue("processing_level", "standard");
@@ -122,16 +122,16 @@ var standardProcessor = new FunctionGraphNode(
         return $"Standard processing completed: {result}";
     });
 
-// 將節點新增至路由器
+// Add nodes to router
 dynamicRouter.AddNode(contentAnalyzer);
 dynamicRouter.AddNode(routingDecision);
 dynamicRouter.AddNode(expertProcessor);
 dynamicRouter.AddNode(standardProcessor);
 
-// 設定起始節點
+// Set start node
 dynamicRouter.SetStartNode(contentAnalyzer.NodeId);
 
-// 使用不同的內容類型進行測試
+// Test with different content types
 var testContent = new[]
 {
     "How do I implement a binary search tree in C#?",
@@ -163,13 +163,13 @@ foreach (var content in testContent)
 
 ### 2. 進階語義路由
 
-演示基於語義相似性和內容分類的路由。
+演示基於語義相似度和內容分類的路由。
 
 ```csharp
-// 建立進階語義路由工作流
+// Create advanced semantic routing workflow
 var semanticRouter = new GraphExecutor("SemanticRouter", "Semantic-based routing", logger);
 
-// 語義內容分析器
+// Semantic content analyzer
 var semanticAnalyzer = new FunctionGraphNode(
     "semantic-analyzer",
     "Perform semantic analysis of content",
@@ -177,7 +177,7 @@ var semanticAnalyzer = new FunctionGraphNode(
     {
         var inputContent = context.GetValue<string>("input_content");
         
-        // 語義分析
+        // Semantic analysis
         var topics = ExtractTopics(inputContent);
         var sentiment = AnalyzeSentiment(inputContent);
         var domain = ClassifyDomain(inputContent);
@@ -192,8 +192,8 @@ var semanticAnalyzer = new FunctionGraphNode(
         return $"Semantic analysis: {domain} domain, {intent} intent";
     });
 
-// 多維度路由決策
-// 根據語義分析進行路由的決策節點
+// Multi-dimensional routing decision
+// Decision node that routes based on semantic analysis
 var semanticRoutingDecision = new ConditionalGraphNode(
     "semantic-router",
     "Route based on semantic analysis",
@@ -204,7 +204,7 @@ var semanticRoutingDecision = new ConditionalGraphNode(
     FalseNodeId = "domain-router"
 };
 
-// 特定領域路由
+// Domain-specific routing
 var domainRouter = new ConditionalGraphNode(
     "domain-router",
     "Route to domain-specific processors",
@@ -215,7 +215,7 @@ var domainRouter = new ConditionalGraphNode(
     FalseNodeId = "general-processor"
 };
 
-// 技術專家處理器
+// Technical expert processor
 var technicalExpert = new FunctionGraphNode(
     "technical-expert",
     "Process technical content with expert knowledge",
@@ -225,7 +225,7 @@ var technicalExpert = new FunctionGraphNode(
         var topics = context.GetValue<string[]>("semantic_topics");
         var intent = context.GetValue<string>("user_intent");
         
-        // 專家技術處理
+        // Expert technical processing
         var result = await ProcessTechnicalContent(content, topics, intent);
         context.SetValue("processing_result", result);
         context.SetValue("processing_specialization", "technical_expert");
@@ -233,7 +233,7 @@ var technicalExpert = new FunctionGraphNode(
         return $"Technical expert processing: {result}";
     });
 
-// 業務處理器
+// Business processor
 var businessProcessor = new FunctionGraphNode(
     "business-processor",
     "Process business-related content",
@@ -242,7 +242,7 @@ var businessProcessor = new FunctionGraphNode(
         var content = context.GetValue<string>("input_content");
         var topics = context.GetValue<string[]>("semantic_topics");
         
-        // 業務處理
+        // Business processing
         var result = await ProcessBusinessContent(content, topics);
         context.SetValue("processing_result", result);
         context.SetValue("processing_specialization", "business");
@@ -250,7 +250,7 @@ var businessProcessor = new FunctionGraphNode(
         return $"Business processing: {result}";
     });
 
-// 一般處理器
+// General processor
 var generalProcessor = new FunctionGraphNode(
     "general-processor",
     "Process general content",
@@ -259,7 +259,7 @@ var generalProcessor = new FunctionGraphNode(
         var content = context.GetValue<string>("input_content");
         var domain = context.GetValue<string>("domain_classification");
         
-        // 一般處理
+        // General processing
         var result = await ProcessGeneralContent(content, domain);
         context.SetValue("processing_result", result);
         context.SetValue("processing_specialization", "general");
@@ -267,19 +267,19 @@ var generalProcessor = new FunctionGraphNode(
         return $"General processing: {result}";
     });
 
-// 將節點新增至語義路由器
+// Add nodes to semantic router
 semanticRouter.AddNode(semanticAnalyzer);
-// 新增語義路由決策節點
+// Add the semantic routing decision node (named semanticRoutingDecision)
 semanticRouter.AddNode(semanticRoutingDecision);
 semanticRouter.AddNode(domainRouter);
 semanticRouter.AddNode(technicalExpert);
 semanticRouter.AddNode(businessProcessor);
 semanticRouter.AddNode(generalProcessor);
 
-// 設定起始節點
+// Set start node
 semanticRouter.SetStartNode(semanticAnalyzer.NodeId);
 
-// 測試語義路由
+// Test semantic routing
 var semanticTestContent = new[]
 {
     "I need help with implementing a microservices architecture",
@@ -309,19 +309,19 @@ foreach (var content in semanticTestContent)
 
 ### 3. 實時自適應路由
 
-展示如何實現基於實時條件和性能指標進行自適應的路由。
+演示如何實現基於實時條件和效能指標的自適應路由。
 
 ```csharp
-// 建立自適應路由工作流
+// Create adaptive routing workflow
 var adaptiveRouter = new GraphExecutor("AdaptiveRouter", "Real-time adaptive routing", logger);
 
-// 性能監視器
+// Performance monitor
 var performanceMonitor = new FunctionGraphNode(
     "performance-monitor",
     "Monitor system performance and routing conditions",
     async (context) =>
     {
-        // 取得實時指標
+        // Get real-time metrics
         var cpuUsage = GetCurrentCpuUsage();
         var memoryUsage = GetCurrentMemoryUsage();
         var queueLength = GetCurrentQueueLength();
@@ -336,7 +336,7 @@ var performanceMonitor = new FunctionGraphNode(
         return $"System health: CPU {cpuUsage}%, Memory {memoryUsage}%, Queue {queueLength}";
     });
 
-// 自適應路由決策節點
+// Adaptive routing decision node
 var adaptiveRoutingDecision = new ConditionalGraphNode(
     "adaptive-router",
     "Make adaptive routing decision",
@@ -347,7 +347,7 @@ var adaptiveRoutingDecision = new ConditionalGraphNode(
     FalseNodeId = "load-balanced-processor"
 };
 
-// 用於健康系統的高性能處理器
+// High-performance processor for healthy systems
 var highPerformanceProcessor = new FunctionGraphNode(
     "high-performance-processor",
     "Process with high-performance resources",
@@ -355,7 +355,7 @@ var highPerformanceProcessor = new FunctionGraphNode(
     {
         var content = context.GetValue<string>("input_content");
         
-        // 使用高性能處理
+        // Use high-performance processing
         var result = await ProcessWithHighPerformance(content);
         context.SetValue("processing_result", result);
         context.SetValue("processing_mode", "high_performance");
@@ -364,7 +364,7 @@ var highPerformanceProcessor = new FunctionGraphNode(
         return $"High-performance processing: {result}";
     });
 
-// 用於受壓力系統的負載平衡處理器
+// Load-balanced processor for stressed systems
 var loadBalancedProcessor = new FunctionGraphNode(
     "load-balanced-processor",
     "Process with load balancing",
@@ -374,7 +374,7 @@ var loadBalancedProcessor = new FunctionGraphNode(
         var cpuUsage = context.GetValue<double>("cpu_usage");
         var queueLength = context.GetValue<int>("queue_length");
         
-        // 自適應負載平衡
+        // Adaptive load balancing
         var result = await ProcessWithLoadBalancing(content, cpuUsage, queueLength);
         context.SetValue("processing_result", result);
         context.SetValue("processing_mode", "load_balanced");
@@ -383,17 +383,17 @@ var loadBalancedProcessor = new FunctionGraphNode(
         return $"Load-balanced processing: {result}";
     });
 
-// 將節點新增至自適應路由器
+// Add nodes to adaptive router
 adaptiveRouter.AddNode(performanceMonitor);
-// 新增自適應路由決策節點
+// Add the adaptive routing decision node
 adaptiveRouter.AddNode(adaptiveRoutingDecision);
 adaptiveRouter.AddNode(highPerformanceProcessor);
 adaptiveRouter.AddNode(loadBalancedProcessor);
 
-// 設定起始節點
+// Set start node
 adaptiveRouter.SetStartNode(performanceMonitor.NodeId);
 
-// 使用模擬條件測試自適應路由
+// Test adaptive routing with simulated conditions
 var adaptiveTestScenarios = new[]
 {
     new { Content = "Process this urgent request", CpuSimulation = 50.0, MemorySimulation = 60.0, QueueSimulation = 5 },
@@ -403,7 +403,7 @@ var adaptiveTestScenarios = new[]
 
 foreach (var scenario in adaptiveTestScenarios)
 {
-    // 模擬系統條件
+    // Simulate system conditions
     SimulateSystemConditions(scenario.CpuSimulation, scenario.MemorySimulation, scenario.QueueSimulation);
     
     var arguments = new KernelArguments
@@ -427,15 +427,15 @@ foreach (var scenario in adaptiveTestScenarios)
 }
 ```
 
-### 4. 多策略路由編排
+### 4. 多策略路由協調
 
-演示編排多種路由策略以進行複雜決策。
+演示如何為複雜決策做出協調多個路由策略。
 
 ```csharp
-// 建立多策略路由工作流
+// Create multi-strategy routing workflow
 var multiStrategyRouter = new GraphExecutor("MultiStrategyRouter", "Multi-strategy routing orchestration", logger);
 
-// 策略協調者
+// Strategy coordinator
 var strategyCoordinator = new FunctionGraphNode(
     "strategy-coordinator",
     "Coordinate multiple routing strategies",
@@ -444,7 +444,7 @@ var strategyCoordinator = new FunctionGraphNode(
         var inputContent = context.GetValue<string>("input_content");
         var userContext = context.GetValue<Dictionary<string, object>>("user_context");
         
-        // 評估多個策略
+        // Evaluate multiple strategies
         var contentStrategy = EvaluateContentStrategy(inputContent);
         var userStrategy = EvaluateUserStrategy(userContext);
         var performanceStrategy = EvaluatePerformanceStrategy();
@@ -459,7 +459,7 @@ var strategyCoordinator = new FunctionGraphNode(
         return $"Strategies evaluated: {contentStrategy}, {userStrategy}, {performanceStrategy}, {businessStrategy}";
     });
 
-// 策略衝突解決器
+// Strategy conflict resolver
 var conflictResolver = new ConditionalGraphNode(
     "conflict-resolver",
     "Resolve conflicts between routing strategies",
@@ -470,7 +470,7 @@ var conflictResolver = new ConditionalGraphNode(
     FalseNodeId = "direct-routing"
 };
 
-// 衝突解決處理器
+// Conflict resolution processor
 var conflictResolution = new FunctionGraphNode(
     "conflict-resolution",
     "Resolve routing strategy conflicts",
@@ -481,7 +481,7 @@ var conflictResolution = new FunctionGraphNode(
         var performanceStrategy = context.GetValue<string>("performance_strategy");
         var businessStrategy = context.GetValue<string>("business_strategy");
         
-        // 應用衝突解決邏輯
+        // Apply conflict resolution logic
         var resolvedStrategy = ResolveStrategyConflicts(
             contentStrategy, userStrategy, performanceStrategy, businessStrategy);
         
@@ -491,7 +491,7 @@ var conflictResolution = new FunctionGraphNode(
         return $"Conflict resolved: {resolvedStrategy}";
     });
 
-// 無衝突的直接路由
+// Direct routing for no conflicts
 var directRouting = new FunctionGraphNode(
     "direct-routing",
     "Route directly based on primary strategy",
@@ -500,7 +500,7 @@ var directRouting = new FunctionGraphNode(
         var contentStrategy = context.GetValue<string>("content_strategy");
         var userStrategy = context.GetValue<string>("user_strategy");
         
-        // 使用主要策略
+        // Use primary strategy
         var primaryStrategy = DeterminePrimaryStrategy(contentStrategy, userStrategy);
         context.SetValue("resolved_strategy", primaryStrategy);
         context.SetValue("conflict_resolved", false);
@@ -508,7 +508,7 @@ var directRouting = new FunctionGraphNode(
         return $"Direct routing: {primaryStrategy}";
     });
 
-// 策略執行路由器
+// Strategy execution router
 var strategyExecutor = new ConditionalGraphNode(
     "strategy-executor",
     "Execute the resolved routing strategy",
@@ -519,7 +519,7 @@ var strategyExecutor = new ConditionalGraphNode(
     FalseNodeId = "hybrid-executor"
 };
 
-// 基於內容的執行器
+// Content-based executor
 var contentBasedExecutor = new FunctionGraphNode(
     "content-based-executor",
     "Execute content-based routing",
@@ -535,7 +535,7 @@ var contentBasedExecutor = new FunctionGraphNode(
         return $"Content-based execution: {result}";
     });
 
-// 混合執行器
+// Hybrid executor
 var hybridExecutor = new FunctionGraphNode(
     "hybrid-executor",
     "Execute hybrid routing strategy",
@@ -552,7 +552,7 @@ var hybridExecutor = new FunctionGraphNode(
         return $"Hybrid execution: {result}";
     });
 
-// 將節點新增至多策略路由器
+// Add nodes to multi-strategy router
 multiStrategyRouter.AddNode(strategyCoordinator);
 multiStrategyRouter.AddNode(conflictResolver);
 multiStrategyRouter.AddNode(conflictResolution);
@@ -561,10 +561,10 @@ multiStrategyRouter.AddNode(strategyExecutor);
 multiStrategyRouter.AddNode(contentBasedExecutor);
 multiStrategyRouter.AddNode(hybridExecutor);
 
-// 設定起始節點
+// Set start node
 multiStrategyRouter.SetStartNode(strategyCoordinator.NodeId);
 
-// 測試多策略路由
+// Test multi-strategy routing
 var multiStrategyTestScenarios = new[]
 {
     new { 
@@ -665,44 +665,44 @@ foreach (var scenario in multiStrategyTestScenarios)
    Result: Concise summary with expert-level insights
 ```
 
-## 配置選項
+## 設定選項
 
-### 動態路由配置
+### 動態路由設定
 
 ```csharp
 var routingOptions = new DynamicRoutingOptions
 {
-    EnableSemanticRouting = true,                    // 啟用語義相似性路由
-    EnablePerformanceRouting = true,                 // 啟用性能為基礎的路由
-    EnableUserContextRouting = true,                 // 啟用使用者上下文路由
-    MaxRoutingStrategies = 5,                       // 要評估的最大策略數
-    RoutingTimeout = TimeSpan.FromSeconds(10),       // 路由決策逾時
-    EnableStrategyCaching = true,                    // 快取路由策略決策
-    EnableConflictResolution = true,                 // 啟用自動衝突解決
-    DefaultRoutingStrategy = "content_based",        // 衝突發生時的預設策略
+    EnableSemanticRouting = true,                    // Enable semantic similarity routing
+    EnablePerformanceRouting = true,                 // Enable performance-based routing
+    EnableUserContextRouting = true,                 // Enable user context routing
+    MaxRoutingStrategies = 5,                       // Maximum strategies to evaluate
+    RoutingTimeout = TimeSpan.FromSeconds(10),       // Routing decision timeout
+    EnableStrategyCaching = true,                    // Cache routing strategy decisions
+    EnableConflictResolution = true,                 // Enable automatic conflict resolution
+    DefaultRoutingStrategy = "content_based",        // Default strategy when conflicts occur
     PerformanceThresholds = new PerformanceThresholds
     {
-        CpuUsageThreshold = 80.0,                   // CPU 使用率路由閾值
-        MemoryUsageThreshold = 85.0,                // 記憶體使用率路由閾值
-        QueueLengthThreshold = 15,                   // 佇列長度路由閾值
-        ResponseTimeThreshold = TimeSpan.FromSeconds(2) // 響應時間閾值
+        CpuUsageThreshold = 80.0,                   // CPU usage threshold for routing
+        MemoryUsageThreshold = 85.0,                // Memory usage threshold for routing
+        QueueLengthThreshold = 15,                   // Queue length threshold for routing
+        ResponseTimeThreshold = TimeSpan.FromSeconds(2) // Response time threshold
     }
 };
 ```
 
-### 語義路由配置
+### 語義路由設定
 
 ```csharp
 var semanticOptions = new SemanticRoutingOptions
 {
-    EnableTopicExtraction = true,                    // 提取主題以進行路由
-    EnableSentimentAnalysis = true,                  // 分析情緒以進行路由
-    EnableDomainClassification = true,               // 分類內容領域
-    EnableIntentDetection = true,                    // 偵測使用者意圖
-    SimilarityThreshold = 0.7,                      // 最低相似性分數
-    MaxTopics = 10,                                 // 要提取的最大主題數
-    EnableEmbeddingCaching = true,                   // 快取嵌入向量以提升性能
-    DomainMappings = new Dictionary<string, string>  // 領域至處理器的對映
+    EnableTopicExtraction = true,                    // Extract topics for routing
+    EnableSentimentAnalysis = true,                  // Analyze sentiment for routing
+    EnableDomainClassification = true,               // Classify content domains
+    EnableIntentDetection = true,                    // Detect user intent
+    SimilarityThreshold = 0.7,                      // Minimum similarity score
+    MaxTopics = 10,                                 // Maximum topics to extract
+    EnableEmbeddingCaching = true,                   // Cache embeddings for performance
+    DomainMappings = new Dictionary<string, string>  // Domain to processor mappings
     {
         ["technical"] = "technical_processor",
         ["business"] = "business_processor",
@@ -711,23 +711,23 @@ var semanticOptions = new SemanticRoutingOptions
 };
 ```
 
-## 故障排查
+## 故障排除
 
 ### 常見問題
 
-#### 路由決策不起作用
+#### 路由決策無法運作
 ```bash
-# 問題：路由決策未遵循預期的邏輯
-# 解決方案：檢查條件表達式和節點 ID
+# Problem: Routing decisions not following expected logic
+# Solution: Check condition expressions and node IDs
 ConditionExpression = "simple_condition == true";
 TrueNodeId = "correct-node-id";
 FalseNodeId = "correct-node-id";
 ```
 
-#### 性能問題
+#### 效能問題
 ```bash
-# 問題：動態路由速度緩慢
-# 解決方案：啟用快取並最佳化策略評估
+# Problem: Dynamic routing is slow
+# Solution: Enable caching and optimize strategy evaluation
 EnableStrategyCaching = true;
 EnableEmbeddingCaching = true;
 MaxRoutingStrategies = 3;
@@ -735,25 +735,25 @@ MaxRoutingStrategies = 3;
 
 #### 策略衝突
 ```bash
-# 問題：多個策略衝突
-# 解決方案：實現衝突解決並設定優先順序
+# Problem: Multiple strategies conflict
+# Solution: Implement conflict resolution and set priorities
 EnableConflictResolution = true;
 DefaultRoutingStrategy = "fallback_strategy";
 ```
 
-### 偵錯模式
+### 調試模式
 
-為故障排查啟用詳細日誌：
+啟用詳細日誌記錄以進行故障排除：
 
 ```csharp
-// 啟用偵錯日誌
+// Enable debug logging
 var logger = LoggerFactory.Create(builder =>
 {
     builder.AddConsole();
     builder.SetMinimumLevel(LogLevel.Debug);
 }).CreateLogger<DynamicRoutingExample>();
 
-// 使用偵錯日誌配置動態路由
+// Configure dynamic routing with debug logging
 var debugRouter = new GraphExecutor("DebugRouter", "Debug dynamic routing", logger);
 debugRouter.EnableDebugMode = true;
 debugRouter.LogRoutingDecisions = true;
@@ -765,7 +765,7 @@ debugRouter.LogStrategyEvaluation = true;
 ### 自訂路由策略
 
 ```csharp
-// 實現自訂路由策略
+// Implement custom routing strategies
 public class CustomRoutingStrategy : IRoutingStrategy
 {
     public async Task<RoutingDecision> EvaluateAsync(RoutingContext context)
@@ -774,7 +774,7 @@ public class CustomRoutingStrategy : IRoutingStrategy
         var userContext = context.UserContext;
         var systemMetrics = context.SystemMetrics;
         
-        // 自訂評估邏輯
+        // Custom evaluation logic
         var score = await CalculateCustomScore(content, userContext, systemMetrics);
         
         return new RoutingDecision
@@ -795,17 +795,17 @@ public class CustomRoutingStrategy : IRoutingStrategy
 ### 機器學習路由
 
 ```csharp
-// 實現基於機器學習的路由
+// Implement ML-based routing
 public class MLRoutingEngine : IRoutingEngine
 {
     private readonly IMLModel _routingModel;
     
     public async Task<RoutingDecision> PredictRouteAsync(RoutingContext context)
     {
-        // 為機器學習模型準備特徵
+        // Prepare features for ML model
         var features = await ExtractFeatures(context);
         
-        // 取得機器學習預測
+        // Get ML prediction
         var prediction = await _routingModel.PredictAsync(features);
         
         return new RoutingDecision
@@ -826,7 +826,7 @@ public class MLRoutingEngine : IRoutingEngine
 ### A/B 測試路由
 
 ```csharp
-// 實現路由策略的 A/B 測試
+// Implement A/B testing for routing strategies
 public class ABTestingRouter : IRouter
 {
     private readonly IRandom _random;
@@ -834,10 +834,10 @@ public class ABTestingRouter : IRouter
     
     public async Task<string> RouteAsync(RoutingContext context)
     {
-        // 確定 A/B 測試群組
+        // Determine A/B test group
         var testGroup = DetermineTestGroup(context.UserId);
         
-        // 應用 A/B 測試權重
+        // Apply A/B testing weights
         var strategy = await SelectStrategyWithABTesting(context, testGroup);
         
         return strategy;
@@ -864,14 +864,14 @@ public class ABTestingRouter : IRouter
 
 ## 相關範例
 
-* [條件節點](./conditional-nodes.md)：基本條件路由
-* [進階模式](./advanced-patterns.md)：複雜路由模式
-* [多代理](./multi-agent.md)：協調路由決策
-* [性能最佳化](./performance-optimization.md)：路由性能調整
+* [Conditional Nodes](./conditional-nodes.md): 基本條件路由
+* [Advanced Patterns](./advanced-patterns.md): 複雜路由模式
+* [Multi-Agent](./multi-agent.md): 協調路由決策
+* [Performance Optimization](./performance-optimization.md): 路由效能調整
 
-## 另請參閱
+## 另見
 
-* [動態路由概念](../concepts/dynamic-routing.md)：了解動態路由
-* [路由策略](../patterns/routing-strategies.md)：路由模式實現
-* [性能最佳化](../how-to/performance-optimization.md)：最佳化路由性能
-* [API 參考](../api/)：完整 API 文件
+* [Dynamic Routing Concepts](../concepts/dynamic-routing.md): 了解動態路由
+* [Routing Strategies](../patterns/routing-strategies.md): 路由模式實現
+* [Performance Optimization](../how-to/performance-optimization.md): 優化路由效能
+* [API Reference](../api/): 完整 API 文件
